@@ -1,3 +1,6 @@
 {
-    "Pegawai": true
+    "Kepegawaian": true,
+    "MasterData": true,
+    "Presensi": true,
+    "Akademik": true
 }

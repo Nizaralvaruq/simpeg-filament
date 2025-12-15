@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
-use Modules\Pegawai\Models\DataInduk;
+use Modules\Kepegawaian\Models\DataInduk;
 
 use Filament\Models\Contracts\FilamentUser;
 
@@ -21,11 +21,11 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasAnyRole(['admin_hr', 'kepala_sekolah', 'koor_jenjang']);
+            return $this->hasAnyRole(['super_admin', 'admin_hr', 'kepala_sekolah', 'koor_jenjang']);
         }
 
         if ($panel->getId() === 'staff') {
-            return $this->hasAnyRole(['staff', 'admin_hr', 'kepala_sekolah']);
+            return $this->hasAnyRole(['super_admin', 'staff', 'admin_hr', 'kepala_sekolah']);
         }
 
         return false;

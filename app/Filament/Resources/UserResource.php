@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Schemas\Schema;
 
+
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -32,8 +33,8 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        // Only Admin HR can manage users
-        if (!auth()->user()->hasRole('admin_hr')) {
+        // Admin HR and Super Admin can manage users
+        if (!auth()->user()->hasAnyRole(['admin_hr', 'super_admin'])) {
             return parent::getEloquentQuery()->whereRaw('1=0');
         }
         return parent::getEloquentQuery();
@@ -41,7 +42,7 @@ class UserResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()->hasRole('admin_hr');
+        return auth()->user()->hasAnyRole(['admin_hr', 'super_admin']);
     }
 
     public static function form(Schema $schema): Schema
@@ -65,6 +66,13 @@ class UserResource extends Resource
                             ->dehydrated(fn($state) => filled($state))
                             ->required(fn(string $context): bool => $context === 'create')
                             ->maxLength(255),
+                        Forms\Components\Select::make('employee_id')
+                            ->relationship('employee', 'nama')
+                            ->searchable()
+                            ->preload()
+                            ->label('Terhubung ke Pegawai')
+                            ->placeholder('Pilih pegawai (opsional)')
+                            ->helperText('Optional: Hubungkan user ini dengan data pegawai'),
                         Forms\Components\Select::make('roles')
                             ->relationship('roles', 'name')
                             ->multiple()

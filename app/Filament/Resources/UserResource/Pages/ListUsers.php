@@ -33,7 +33,7 @@ class ListUsers extends ListRecords
                         ->required(),
                     \Filament\Forms\Components\Select::make('unit_id')
                         ->label('Unit yang Dipimpin')
-                        ->options(\Modules\Pegawai\Models\Unit::pluck('name', 'id'))
+                        ->options(\Modules\MasterData\Models\Unit::pluck('name', 'id'))
                         ->required()
                         ->searchable(),
                 ])
@@ -49,7 +49,7 @@ class ListUsers extends ListRecords
                     $user->assignRole('koor_jenjang');
 
                     // 3. Create Data Induk (Pegawai Profile)
-                    $employee = \Modules\Pegawai\Models\DataInduk::create([
+                    $employee = \Modules\Kepegawaian\Models\DataInduk::create([
                         'user_id' => $user->id,
                         'nama' => $data['name'],
                         'status_kepegawaian' => 'Tetap', // Default

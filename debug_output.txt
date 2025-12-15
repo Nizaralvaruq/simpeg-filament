@@ -1,0 +1,5 @@
+Debugging User ID 2 (Super Admin)
+Is Super Admin Role: YES
+Gate::before active (allows random): YES
+Can 'viewAny' User model: YES
+Can 'viewAny' Role model: YES
