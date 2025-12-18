@@ -2,6 +2,8 @@
 
 namespace Modules\Kepegawaian\Filament\Resources;
 
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Modules\Kepegawaian\Filament\Resources\LeaveRequestResource\Pages;
 use Modules\Kepegawaian\Models\LeaveRequest;
 use Filament\Schemas\Schema;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 class LeaveRequestResource extends Resource
 {
     protected static ?string $model = LeaveRequest::class;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -43,11 +46,10 @@ class LeaveRequestResource extends Resource
         $user = Auth::user();
 
         // 1. Super Admin & Admin HR: View ALL
-        if ($user->hasRole('super_admin') || $user->hasRole('admin_hr')) {
+        if ($user->hasRole('super_admin') || $user->hasRole('admin')) {
             return $query;
         }
 
-        // 2. Kepala Sekolah & Koor Jenjang: View Unit Requests
         if ($user->hasRole('kepala_sekolah') || $user->hasRole('koor_jenjang')) {
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id');
@@ -73,54 +75,75 @@ class LeaveRequestResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                \Filament\Schemas\Components\Section::make('Detail Cuti')
-                    ->schema([
-                        Forms\Components\Hidden::make('data_induk_id')
-                            ->default(function () {
-                                /** @var \App\Models\User $user */
-                                $user = auth()->user();
-                                return $user->employee?->id;
-                            }),
+        return $schema->components([
+            \Filament\Schemas\Components\Section::make('Detail Cuti')
+                ->schema([
 
-                        \Filament\Schemas\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\DatePicker::make('start_date')
-                                    ->label('Mulai Tanggal')
-                                    ->required()
-                                    ->minDate(now()),
-                                Forms\Components\DatePicker::make('end_date')
-                                    ->label('Sampai Tanggal')
-                                    ->required()
-                                    ->afterOrEqual('start_date'),
-                            ]),
+                    Forms\Components\Select::make('data_induk_id')
+                        ->label('Nama Pegawai')
+                        ->relationship('employee', 'nama') 
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->visible(fn () => auth()->user()->hasRole('super_admin'))
+                        ->columnSpanFull(),
 
-                        Forms\Components\Textarea::make('reason')
-                            ->label('Alasan Cuti')
-                            ->required()
-                            ->columnSpanFull(),
-                    ]),
+                    Forms\Components\Hidden::make('data_induk_id')
+                        ->default(fn () => auth()->user()->employee?->id)
+                        ->visible(fn () => ! auth()->user()->hasRole('super_admin')),
 
-                \Filament\Schemas\Components\Section::make('Persetujuan')
-                    ->visible(function () {
-                        /** @var \App\Models\User $user */
-                        $user = auth()->user();
-                        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah']);
-                    })
-                    ->schema([
-                        Forms\Components\Select::make('status')
-                            ->options([
-                                'pending' => 'Menunggu',
-                                'approved' => 'Disetujui',
-                                'rejected' => 'Ditolak',
-                            ])
-                            ->required(),
-                        Forms\Components\Textarea::make('rejection_reason')
-                            ->label('Catatan / Alasan Penolakan')
-                            ->visible(fn($get) => $get('status') === 'rejected'),
-                    ]),
-            ]);
+                    \Filament\Schemas\Components\Grid::make(2)
+                        ->schema([
+                            Forms\Components\DatePicker::make('start_date')
+                                ->label('Mulai Tanggal')
+                                ->required()
+                                ->minDate(now()),
+                            Forms\Components\DatePicker::make('end_date')
+                                ->label('Sampai Tanggal')
+                                ->required()
+                                ->afterOrEqual('start_date'),
+                        ]),
+
+                    Forms\Components\Textarea::make('reason')
+                        ->label('Alasan Cuti')
+                        ->required()
+                        ->columnSpanFull(),
+                    
+                    Forms\Components\FileUpload::make('upload_file')
+                        ->label('Upload Bukti (PDF/JPG/PNG)')
+                        ->directory('upload_file')
+                        ->disk('public')
+                        ->visibility('public')
+                        ->preserveFilenames()
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->maxSize(2048)
+                        ->required(fn () => auth()->user()->hasRole('staff'))
+                        ->visible(fn () => auth()->user()->hasRole('staff'))
+                        ->columnSpanFull(),
+
+                    Forms\Components\Hidden::make('status')
+                        ->default('pending')
+                        ->dehydrated(true)
+                        ->visible(fn () => ! auth()->user()->hasAnyRole(['super_admin', 'admin'])),
+                ]),
+
+            \Filament\Schemas\Components\Section::make('Persetujuan')
+                ->visible(fn () => auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                ->schema([
+                    Forms\Components\Select::make('status')
+                        ->options([
+                            'pending' => 'Menunggu',
+                            'approved' => 'Disetujui',
+                            'rejected' => 'Ditolak',
+                        ])
+                        ->required()
+                        ->default('pending'),
+
+                    Forms\Components\Textarea::make('rejection_reason')
+                        ->label('Catatan / Alasan Penolakan')
+                        ->visible(fn ($get) => $get('status') === 'rejected'),
+                ]),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -143,6 +166,11 @@ class LeaveRequestResource extends Resource
                         'approved' => 'success',
                         'rejected' => 'danger',
                     }),
+                Tables\Columns\TextColumn::make('note')
+                    ->label('Catatan')
+                    ->limit(40)
+                    ->wrap()
+                    ->placeholder('-'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -153,7 +181,62 @@ class LeaveRequestResource extends Resource
                     ]),
             ])
             ->actions([
-                \Filament\Actions\EditAction::make(),
+                Action::make('approve')
+                    ->label('Setujui')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\Textarea::make('note')
+                            ->label('Catatan'),
+                    ])
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) =>
+                        auth()->user()->hasAnyRole(['super_admin', 'admin'])
+                        && $record->status === 'pending'
+                    )
+                    ->action(function ($record) {
+                        $record->update([
+                            'status' => 'approved',
+                            'note' => $data['note'],
+                            'approved_by' => auth()->id(),
+                        ]);
+                    }),
+                Action::make('reject')
+                    ->label('Tolak')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('danger')
+                    ->form([
+                        Forms\Components\Textarea::make('note')
+                            ->label('Catatan')
+                            ->required(),
+                    ])
+                    ->visible(fn ($record) =>
+                        auth()->user()->hasAnyRole(['super_admin', 'admin'])
+                        && $record->status === 'pending'
+                    )
+                    ->action(function ($record, array $data) {
+                        $record->update([
+                            'status' => 'rejected',
+                            'note' => $data['note'],
+                            'approved_by' => auth()->id(),
+                        ]);
+                    }),
+
+                // ✏️ Edit (admin selalu bisa, staff hanya pending miliknya)
+                EditAction::make()
+                    ->visible(function ($record) {
+                        $user = auth()->user();
+
+                    if ($user->hasAnyRole(['super_admin', 'admin'])) {
+                        return true;
+                    }
+
+                    return $user->hasRole('staff')
+                        && $user->employee
+                        && $record->data_induk_id === $user->employee->id
+                        && $record->status === 'pending';
+                }),
+                
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([

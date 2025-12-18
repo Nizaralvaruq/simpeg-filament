@@ -18,7 +18,8 @@ return new class extends Migration
             $table->date('end_date');
             $table->text('reason');
             $table->string('status')->default('pending'); // pending, approved, rejected
-            $table->text('rejection_reason')->nullable();
+            $table->string('upload_file')->nullable();
+            $table->text('note')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

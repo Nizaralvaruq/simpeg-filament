@@ -12,12 +12,12 @@ class ResignPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah', 'koor_jenjang', 'staff']);
+        return $user->hasAnyRole(['super_admin', 'kepala_sekolah', 'koor_jenjang', 'staff']);
     }
 
     public function view(User $user, Resign $resign): bool
     {
-        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah', 'koor_jenjang']) || $user->id === $resign->employee?->user_id;
+        return $user->hasAnyRole(['super_admin', 'kepala_sekolah', 'koor_jenjang']) || $user->id === $resign->employee?->user_id;
     }
 
     public function create(User $user): bool
@@ -27,7 +27,7 @@ class ResignPolicy
 
     public function update(User $user, Resign $resign): bool
     {
-        if ($user->hasAnyRole(['admin_hr', 'kepala_sekolah'])) {
+        if ($user->hasAnyRole(['super_admin', 'kepala_sekolah'])) {
             return true;
         }
 
@@ -37,6 +37,6 @@ class ResignPolicy
 
     public function delete(User $user, Resign $resign): bool
     {
-        return $user->hasRole('admin_hr');
+        return $user->hasRole('super_admin');
     }
 }

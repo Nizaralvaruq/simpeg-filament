@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 class ResignResource extends Resource
 {
     protected static ?string $model = Resign::class;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -42,7 +43,7 @@ class ResignResource extends Resource
         $user = auth()->user();
 
         // 1. Super Admin & Admin HR: View ALL
-        if ($user->hasRole('super_admin') || $user->hasRole('admin_hr')) {
+        if ($user->hasRole('super_admin') || $user->hasRole('super_admin')) {
             return $query;
         }
 
@@ -97,7 +98,7 @@ class ResignResource extends Resource
                     ->visible(function () {
                         /** @var \App\Models\User $user */
                         $user = auth()->user();
-                        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah']);
+                        return $user->hasAnyRole(['super_admin', 'kepala_sekolah']);
                     })
                     ->schema([
                         Forms\Components\Select::make('status')

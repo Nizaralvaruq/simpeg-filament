@@ -13,6 +13,7 @@ use Filament\Tables;
 class GolonganResource extends Resource
 {
     protected static ?string $model = Golongan::class;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -28,12 +29,16 @@ class GolonganResource extends Resource
     {
         return 'Golongan';
     }
+    public static function getPluralModelLabel(): string
+    {
+        return 'Golongan';
+    }
 
     public static function shouldRegisterNavigation(): bool
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
-        return $user->hasAnyRole(['super_admin', 'admin_hr']);
+        return $user->hasAnyRole(['super_admin']);
     }
 
     public static function form(Schema $schema): Schema
