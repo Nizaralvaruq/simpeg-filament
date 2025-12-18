@@ -67,7 +67,9 @@ class DataIndukResource extends Resource
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id')->all();
 
-                return $query->whereHas('units', fn ($q) =>
+                return $query->whereHas(
+                    'units',
+                    fn($q) =>
                     $q->whereIn('units.id', $unitIds)
                 );
             }
@@ -103,7 +105,7 @@ class DataIndukResource extends Resource
                         Forms\Components\TextInput::make('nik')
                             ->label('NIK')
                             ->maxLength(255),
-                        
+
                         Forms\Components\TextInput::make('no_hp')
                             ->label('No HP')
                             ->tel(),
@@ -205,7 +207,7 @@ class DataIndukResource extends Resource
                             ])
                             ->native(false)
                             ->required()
-                            ->live() 
+                            ->live()
                             ->afterStateUpdated(function ($state, Set $set) {
                                 if ($state === 'tetap') {
                                     $set('riwayatJabatans', []);
@@ -225,7 +227,7 @@ class DataIndukResource extends Resource
                                     ->required(),
                             ])
                             ->columns(2)
-                            ->visible(fn (Get $get) => $get('status_pindah_tugas') === 'pernah'),
+                            ->visible(fn(Get $get) => $get('status_pindah_tugas') === 'pernah'),
 
                         // Riwayat Golongan (kalau mau tetap selalu tampil, biarkan seperti ini)
                         Forms\Components\Repeater::make('riwayatGolongans')
@@ -248,7 +250,7 @@ class DataIndukResource extends Resource
                                 if (! is_array($state)) return;
 
                                 $latest = collect($state)
-                                    ->filter(fn ($row) => ! empty($row['tanggal']) && ! empty($row['golongan_id']))
+                                    ->filter(fn($row) => ! empty($row['tanggal']) && ! empty($row['golongan_id']))
                                     ->sortByDesc('tanggal')
                                     ->first();
 
@@ -276,7 +278,9 @@ class DataIndukResource extends Resource
                             ->label('Email Login')
                             ->email()
                             ->dehydrated(false)
-                            ->unique('users', 'email', ignoreRecord: true),
+                            ->rules([
+                                fn($record) => \Illuminate\Validation\Rule::unique('users', 'email')->ignore($record?->user_id),
+                            ]),
 
                         Forms\Components\TextInput::make('password')
                             ->label('Password')
@@ -305,11 +309,12 @@ class DataIndukResource extends Resource
                 Tables\Columns\TextColumn::make('jabatan'),
                 Tables\Columns\TextColumn::make('golongan.name')->badge(),
             ])
-            ->actions([ActionGroup::make([
+            ->actions([
+                ActionGroup::make([
                     Action::make('info')
                         ->label('Detail')
                         ->icon('heroicon-o-information-circle')
-                        ->url(fn ($record) => self::getUrl('view', ['record' => $record])),
+                        ->url(fn($record) => self::getUrl('view', ['record' => $record])),
 
                     EditAction::make()
                         ->label('Edit'),
@@ -319,8 +324,6 @@ class DataIndukResource extends Resource
                 ])->label('Aksi')
             ])
             ->actionsColumnLabel('Aksi');
-
-
     }
 
     public static function getRelations(): array
