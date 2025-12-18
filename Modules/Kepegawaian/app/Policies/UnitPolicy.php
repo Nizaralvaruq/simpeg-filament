@@ -5,6 +5,7 @@ namespace Modules\Kepegawaian\Policies;
 use App\Models\User;
 use Modules\MasterData\Models\Unit;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Modules\MasterData\Models\Unit as ModelsUnit;
 
 class UnitPolicy
 {
@@ -15,7 +16,7 @@ class UnitPolicy
         return $user->hasRole('super_admin');
     }
 
-    public function view(User $user, Unit $unit): bool
+    public function view(User $user, ModelsUnit $unit): bool
     {
         return $user->hasRole('super_admin');
     }
@@ -25,12 +26,12 @@ class UnitPolicy
         return $user->hasRole('super_admin');
     }
 
-    public function update(User $user, Unit $unit): bool
+    public function update(User $user, ModelsUnit $unit): bool
     {
         return $user->hasRole('super_admin');
     }
 
-    public function delete(User $user, Unit $unit): bool
+    public function delete(User $user, ModelsUnit $unit): bool
     {
         return $user->hasRole('super_admin');
     }

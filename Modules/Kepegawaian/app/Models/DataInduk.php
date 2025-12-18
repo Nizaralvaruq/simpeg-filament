@@ -28,4 +28,14 @@ class DataInduk extends Model
     {
         return $this->belongsTo(Golongan::class, 'golongan_id');
     }
+
+    public function riwayatJabatans()
+    {
+        return $this->hasMany(RiwayatJabatan::class, 'data_induk_id');
+    }
+
+    public function riwayatGolongans()
+    {
+        return $this->hasMany(RiwayatGolongan::class, 'data_induk_id');
+    }
 }

@@ -15,7 +15,9 @@ use Filament\Models\Contracts\FilamentUser;
 
 class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /**
+     * @mixin \Spatie\Permission\Traits\HasRoles
+     */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
 
     public function canAccessPanel(\Filament\Panel $panel): bool

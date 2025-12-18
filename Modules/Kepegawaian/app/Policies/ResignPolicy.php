@@ -14,12 +14,20 @@ class ResignPolicy
     
     public function viewAny(AuthUser $authUser): bool
     {
+<<<<<<< HEAD
         return $authUser->can('ViewAny:Resign');
+=======
+        return $user->hasAnyRole(['super_admin', 'kepala_sekolah', 'koor_jenjang', 'staff']);
+>>>>>>> origin/branch_dhevi
     }
 
     public function view(AuthUser $authUser, Resign $resign): bool
     {
+<<<<<<< HEAD
         return $authUser->can('View:Resign');
+=======
+        return $user->hasAnyRole(['super_admin', 'kepala_sekolah', 'koor_jenjang']) || $user->id === $resign->employee?->user_id;
+>>>>>>> origin/branch_dhevi
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,12 +37,25 @@ class ResignPolicy
 
     public function update(AuthUser $authUser, Resign $resign): bool
     {
+<<<<<<< HEAD
         return $authUser->can('Update:Resign');
+=======
+        if ($user->hasAnyRole(['super_admin', 'kepala_sekolah'])) {
+            return true;
+        }
+
+        // Staff can cannot update once submitted (unless we add logic for 'draft')
+        return false;
+>>>>>>> origin/branch_dhevi
     }
 
     public function delete(AuthUser $authUser, Resign $resign): bool
     {
+<<<<<<< HEAD
         return $authUser->can('Delete:Resign');
+=======
+        return $user->hasRole('super_admin');
+>>>>>>> origin/branch_dhevi
     }
 
     public function restore(AuthUser $authUser, Resign $resign): bool

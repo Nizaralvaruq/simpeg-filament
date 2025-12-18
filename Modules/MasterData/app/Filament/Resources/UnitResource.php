@@ -13,6 +13,7 @@ use Filament\Forms;
 class UnitResource extends Resource
 {
     protected static ?string $model = Unit::class;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -21,7 +22,7 @@ class UnitResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Manajemen Unit'; // Or 'Manajemen Jenjang' if preferred, user only said "Unit" -> "Jenjang"
+        return 'Data Master';
     }
 
     public static function getModelLabel(): string
@@ -43,7 +44,7 @@ class UnitResource extends Resource
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
-        return $user->hasRole('super_admin');
+        return $user->hasAnyRole(['super_admin']);
     }
 
     public static function form(Schema $schema): Schema

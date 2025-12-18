@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 class ResignResource extends Resource
 {
     protected static ?string $model = Resign::class;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -43,7 +44,11 @@ class ResignResource extends Resource
         $user = Auth::user();
 
         // 1. Super Admin & Admin HR: View ALL
+<<<<<<< HEAD
         if ($user->hasRole('super_admin')) {
+=======
+        if ($user->hasRole('super_admin') || $user->hasRole('super_admin')) {
+>>>>>>> origin/branch_dhevi
             return $query;
         }
 
@@ -97,8 +102,13 @@ class ResignResource extends Resource
                 \Filament\Schemas\Components\Section::make('Persetujuan')
                     ->visible(function () {
                         /** @var \App\Models\User $user */
+<<<<<<< HEAD
                         $user = Auth::user();
                         return $user->hasRole('super_admin');
+=======
+                        $user = auth()->user();
+                        return $user->hasAnyRole(['super_admin', 'kepala_sekolah']);
+>>>>>>> origin/branch_dhevi
                     })
                     ->schema([
                         Forms\Components\Select::make('status')

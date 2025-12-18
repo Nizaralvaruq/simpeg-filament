@@ -10,11 +10,13 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
+    protected static ?int $navigationSort = 15;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -23,26 +25,45 @@ class UserResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Pengaturan';
+        return 'Data Master';
     }
 
     public static function getModelLabel(): string
     {
         return 'User';
     }
-
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getPluralModelLabel(): string
     {
+<<<<<<< HEAD
         // Admin HR and Super Admin 
         if (!auth()->user()->hasAnyRole(['super_admin'])) {
             return parent::getEloquentQuery()->whereRaw('1=0');
         }
         return parent::getEloquentQuery();
+=======
+        return 'User';
+>>>>>>> origin/branch_dhevi
     }
 
     public static function shouldRegisterNavigation(): bool
     {
+<<<<<<< HEAD
         return auth()->user()->hasAnyRole(['super_admin']);
+=======
+        $user = Auth::user();
+        return $user?->hasAnyRole([ 'super_admin']) ?? false;
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = Auth::user();
+
+        if (! $user?->hasAnyRole([ 'super_admin'])) {
+            return parent::getEloquentQuery()->whereRaw('1=0');
+        }
+
+        return parent::getEloquentQuery();
+>>>>>>> origin/branch_dhevi
     }
 
     public static function form(Schema $schema): Schema
