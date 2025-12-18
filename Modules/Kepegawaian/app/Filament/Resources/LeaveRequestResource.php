@@ -46,11 +46,7 @@ class LeaveRequestResource extends Resource
         $user = Auth::user();
 
         // 1. Super Admin & Admin HR: View ALL
-<<<<<<< HEAD
         if ($user->hasRole('super_admin')) {
-=======
-        if ($user->hasRole('super_admin') || $user->hasRole('admin')) {
->>>>>>> origin/branch_dhevi
             return $query;
         }
 
@@ -96,27 +92,6 @@ class LeaveRequestResource extends Resource
                         ->default(fn () => auth()->user()->employee?->id)
                         ->visible(fn () => ! auth()->user()->hasRole('super_admin')),
 
-<<<<<<< HEAD
-                \Filament\Schemas\Components\Section::make('Persetujuan')
-                    ->visible(function () {
-                        /** @var \App\Models\User $user */
-                        $user = auth()->user();
-                        return $user->hasRole('super_admin');
-                    })
-                    ->schema([
-                        Forms\Components\Select::make('status')
-                            ->options([
-                                'pending' => 'Menunggu',
-                                'approved' => 'Disetujui',
-                                'rejected' => 'Ditolak',
-                            ])
-                            ->required(),
-                        Forms\Components\Textarea::make('rejection_reason')
-                            ->label('Catatan / Alasan Penolakan')
-                            ->visible(fn($get) => $get('status') === 'rejected'),
-                    ]),
-            ]);
-=======
                     \Filament\Schemas\Components\Grid::make(2)
                         ->schema([
                             Forms\Components\DatePicker::make('start_date')
@@ -169,7 +144,6 @@ class LeaveRequestResource extends Resource
                         ->visible(fn ($get) => $get('status') === 'rejected'),
                 ]),
         ]);
->>>>>>> origin/branch_dhevi
     }
 
     public static function table(Table $table): Table

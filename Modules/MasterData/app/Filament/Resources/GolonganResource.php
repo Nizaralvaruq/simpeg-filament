@@ -38,11 +38,7 @@ class GolonganResource extends Resource
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
-<<<<<<< HEAD
         return $user->hasRole('super_admin');
-=======
-        return $user->hasAnyRole(['super_admin']);
->>>>>>> origin/branch_dhevi
     }
 
     public static function form(Schema $schema): Schema
