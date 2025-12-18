@@ -33,8 +33,8 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        // Admin HR and Super Admin can manage users
-        if (!auth()->user()->hasAnyRole(['admin_hr', 'super_admin'])) {
+        // Admin HR and Super Admin 
+        if (!auth()->user()->hasAnyRole(['super_admin'])) {
             return parent::getEloquentQuery()->whereRaw('1=0');
         }
         return parent::getEloquentQuery();
@@ -42,7 +42,7 @@ class UserResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()->hasAnyRole(['admin_hr', 'super_admin']);
+        return auth()->user()->hasAnyRole(['super_admin']);
     }
 
     public static function form(Schema $schema): Schema
@@ -66,13 +66,7 @@ class UserResource extends Resource
                             ->dehydrated(fn($state) => filled($state))
                             ->required(fn(string $context): bool => $context === 'create')
                             ->maxLength(255),
-                        Forms\Components\Select::make('employee_id')
-                            ->relationship('employee', 'nama')
-                            ->searchable()
-                            ->preload()
-                            ->label('Terhubung ke Pegawai')
-                            ->placeholder('Pilih pegawai (opsional)')
-                            ->helperText('Optional: Hubungkan user ini dengan data pegawai'),
+
                         Forms\Components\Select::make('roles')
                             ->relationship('roles', 'name')
                             ->multiple()
@@ -94,11 +88,16 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('roles.name')
                     ->badge()
                     ->separator(','),
-                Tables\Columns\TextColumn::make('employee.nama')
-                    ->label('Terhubung ke Pegawai')
-                    ->placeholder('Belum Terhubung')
+
+                Tables\Columns\TextColumn::make('employee.jabatan')
+                    ->label('Jabatan')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
+                Tables\Columns\TextColumn::make('employee.units.name')
+                    ->label('Unit')
                     ->badge()
-                    ->color(fn($state) => $state ? 'success' : 'danger'),
+                    ->placeholder('-'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

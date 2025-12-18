@@ -12,12 +12,12 @@ class PegawaiPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah', 'koor_jenjang', 'staff']);
+        return $user->hasAnyRole(['super_admin', 'kepala_sekolah', 'koor_jenjang', 'staff']);
     }
 
     public function view(User $user, DataInduk $dataInduk): bool
     {
-        if ($user->hasRole('admin_hr')) {
+        if ($user->hasRole('super_admin')) {
             return true;
         }
 
@@ -43,31 +43,31 @@ class PegawaiPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin_hr', 'koor_jenjang']);
+        return $user->hasAnyRole(['super_admin', 'koor_jenjang']);
     }
 
     public function update(User $user, DataInduk $dataInduk): bool
     {
-        return $user->hasAnyRole(['admin_hr', 'koor_jenjang']);
+        return $user->hasAnyRole(['super_admin', 'koor_jenjang']);
     }
 
     public function delete(User $user, DataInduk $dataInduk): bool
     {
-        return $user->hasAnyRole(['admin_hr']);
+        return $user->hasAnyRole(['super_admin']);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->hasRole('admin_hr');
+        return $user->hasRole('super_admin');
     }
 
     public function restore(User $user, DataInduk $dataInduk): bool
     {
-        return $user->hasRole('admin_hr');
+        return $user->hasRole('super_admin');
     }
 
     public function forceDelete(User $user, DataInduk $dataInduk): bool
     {
-        return $user->hasRole('admin_hr');
+        return $user->hasRole('super_admin');
     }
 }

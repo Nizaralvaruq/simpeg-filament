@@ -10,6 +10,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class ResignResource extends Resource
 {
@@ -39,10 +40,10 @@ class ResignResource extends Resource
     {
         $query = parent::getEloquentQuery();
         /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = Auth::user();
 
         // 1. Super Admin & Admin HR: View ALL
-        if ($user->hasRole('super_admin') || $user->hasRole('admin_hr')) {
+        if ($user->hasRole('super_admin')) {
             return $query;
         }
 
@@ -78,7 +79,7 @@ class ResignResource extends Resource
                         Forms\Components\Hidden::make('data_induk_id')
                             ->default(function () {
                                 /** @var \App\Models\User $user */
-                                $user = auth()->user();
+                                $user = Auth::user();
                                 return $user->employee?->id;
                             }),
 
@@ -96,8 +97,8 @@ class ResignResource extends Resource
                 \Filament\Schemas\Components\Section::make('Persetujuan')
                     ->visible(function () {
                         /** @var \App\Models\User $user */
-                        $user = auth()->user();
-                        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah']);
+                        $user = Auth::user();
+                        return $user->hasRole('super_admin');
                     })
                     ->schema([
                         Forms\Components\Select::make('status')

@@ -43,7 +43,7 @@ class UnitResource extends Resource
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
-        return $user->hasAnyRole(['super_admin', 'admin_hr']);
+        return $user->hasRole('super_admin');
     }
 
     public static function form(Schema $schema): Schema

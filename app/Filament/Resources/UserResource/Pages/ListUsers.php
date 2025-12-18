@@ -15,7 +15,7 @@ class ListUsers extends ListRecords
         return [
             Actions\CreateAction::make(),
             Actions\Action::make('setup_koor')
-                ->label('Buat Akun Koor (Instan)')
+                ->label('Buat Akun Koor')
                 ->icon('heroicon-o-sparkles')
                 ->color('success')
                 ->form([

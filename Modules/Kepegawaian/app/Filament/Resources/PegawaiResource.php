@@ -22,7 +22,7 @@ class PegawaiResource extends Resource
         $user = Auth::user();
 
         // 1. Super Admin & Admin HR: View ALL
-        if ($user->hasRole('super_admin') || $user->hasRole('admin_hr')) {
+        if ($user->hasRole('super_admin')) {
             return $query;
         }
 

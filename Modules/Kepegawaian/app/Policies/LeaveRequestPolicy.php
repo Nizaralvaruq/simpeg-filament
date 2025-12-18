@@ -1,45 +1,70 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Kepegawaian\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Modules\Kepegawaian\Models\LeaveRequest;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class LeaveRequestPolicy
 {
     use HandlesAuthorization;
-
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('ViewAny:LeaveRequest');
+        return $authUser->can('ViewAny:LeaveRequest');
     }
 
-    public function view(User $user, LeaveRequest $leaveRequest): bool
+    public function view(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        // Owner typically needs ViewAny plus maybe View, or just scoping.
-        // If we strictly use permission, we rely on Scoping to hide others.
-        // But for explicit "view" action:
-        return $user->can('View:LeaveRequest');
+        return $authUser->can('View:LeaveRequest');
     }
 
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('Create:LeaveRequest');
+        return $authUser->can('Create:LeaveRequest');
     }
 
-    public function update(User $user, LeaveRequest $leaveRequest): bool
+    public function update(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('Update:LeaveRequest');
+        return $authUser->can('Update:LeaveRequest');
     }
 
-    public function delete(User $user, LeaveRequest $leaveRequest): bool
+    public function delete(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('Delete:LeaveRequest');
+        return $authUser->can('Delete:LeaveRequest');
     }
 
-    public function deleteAny(User $user): bool
+    public function restore(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('DeleteAny:LeaveRequest');
+        return $authUser->can('Restore:LeaveRequest');
     }
+
+    public function forceDelete(AuthUser $authUser, LeaveRequest $leaveRequest): bool
+    {
+        return $authUser->can('ForceDelete:LeaveRequest');
+    }
+
+    public function forceDeleteAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('ForceDeleteAny:LeaveRequest');
+    }
+
+    public function restoreAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('RestoreAny:LeaveRequest');
+    }
+
+    public function replicate(AuthUser $authUser, LeaveRequest $leaveRequest): bool
+    {
+        return $authUser->can('Replicate:LeaveRequest');
+    }
+
+    public function reorder(AuthUser $authUser): bool
+    {
+        return $authUser->can('Reorder:LeaveRequest');
+    }
+
 }

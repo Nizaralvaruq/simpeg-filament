@@ -30,21 +30,9 @@ class MyProfile extends Page implements HasForms, HasInfolists
 
     public function mount(): void
     {
-        $employee = DataInduk::with(['golongan', 'units'])->where('user_id', Auth::id())->first();
+        $employee = DataInduk::where('user_id', Auth::id())->first();
         if ($employee) {
             $this->form->fill($employee->toArray());
-            // Manually fill nested/dotted relationships if needed, but simple ones might work or need mapping.
-            // For readonly display, we can just flatten or use computed values.
-            // Actually, form fill with array works, but dotted keys like 'golongan.nama' need special handling in array
-            // or we use a model for the form.
-
-            // Simpler: Use model binding for the form if possible? 
-            // Better: just fill attributes manually for display.
-            $this->form->fill([
-                ...$employee->attributesToArray(),
-                'golongan.nama' => $employee->golongan?->nama,
-                'units.nama' => $employee->units->pluck('nama')->join(', '), // Units is many-to-many?
-            ]);
         }
     }
 
@@ -75,29 +63,6 @@ class MyProfile extends Page implements HasForms, HasInfolists
                                 TextEntry::make('alamat_ktp')
                                     ->label('Alamat (KTP)')
                                     ->columnSpanFull(),
-                            ]),
-                    ]),
-
-                Section::make('Kepegawaian')
-                    ->schema([
-                        Grid::make(2)
-                            ->schema([
-                                TextEntry::make('status_pegawai')
-                                    ->label('Status Pegawai')
-                                    ->badge()
-                                    ->color(fn(string $state): string => match ($state) {
-                                        'tetap' => 'success',
-                                        'kontrak' => 'warning',
-                                        default => 'gray',
-                                    }),
-                                TextEntry::make('tanggal_masuk')
-                                    ->label('Tanggal Masuk')
-                                    ->date('d F Y'),
-                                TextEntry::make('golongan.nama')
-                                    ->label('Golongan'),
-                                TextEntry::make('units.nama')
-                                    ->label('Unit Kerja')
-                                    ->badge(),
                             ]),
                     ]),
             ]);

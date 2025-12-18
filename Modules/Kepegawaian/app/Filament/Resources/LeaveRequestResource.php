@@ -43,7 +43,7 @@ class LeaveRequestResource extends Resource
         $user = Auth::user();
 
         // 1. Super Admin & Admin HR: View ALL
-        if ($user->hasRole('super_admin') || $user->hasRole('admin_hr')) {
+        if ($user->hasRole('super_admin')) {
             return $query;
         }
 
@@ -106,7 +106,7 @@ class LeaveRequestResource extends Resource
                     ->visible(function () {
                         /** @var \App\Models\User $user */
                         $user = auth()->user();
-                        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah']);
+                        return $user->hasRole('super_admin');
                     })
                     ->schema([
                         Forms\Components\Select::make('status')

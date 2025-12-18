@@ -1,108 +1,70 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Kepegawaian\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Modules\Kepegawaian\Models\DataInduk;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class DataIndukPolicy
 {
     use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('ViewAny:DataInduk');
+        return $authUser->can('ViewAny:DataInduk');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, DataInduk $dataInduk): bool
+    public function view(AuthUser $authUser, DataInduk $dataInduk): bool
     {
-        return $user->can('View:DataInduk');
+        return $authUser->can('View:DataInduk');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('Create:DataInduk');
+        return $authUser->can('Create:DataInduk');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, DataInduk $dataInduk): bool
+    public function update(AuthUser $authUser, DataInduk $dataInduk): bool
     {
-        return $user->can('Update:DataInduk');
+        return $authUser->can('Update:DataInduk');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, DataInduk $dataInduk): bool
+    public function delete(AuthUser $authUser, DataInduk $dataInduk): bool
     {
-        return $user->can('Delete:DataInduk');
+        return $authUser->can('Delete:DataInduk');
     }
 
-    /**
-     * Determine whether the user can bulk delete.
-     */
-    public function deleteAny(User $user): bool
+    public function restore(AuthUser $authUser, DataInduk $dataInduk): bool
     {
-        return $user->can('DeleteAny:DataInduk');
+        return $authUser->can('Restore:DataInduk');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, DataInduk $dataInduk): bool
+    public function forceDelete(AuthUser $authUser, DataInduk $dataInduk): bool
     {
-        return $user->can('Restore:DataInduk');
+        return $authUser->can('ForceDelete:DataInduk');
     }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
+    public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $user->can('RestoreAny:DataInduk');
+        return $authUser->can('ForceDeleteAny:DataInduk');
     }
 
-    /**
-     * Determine whether the user can replicate the model.
-     */
-    public function replicate(User $user, DataInduk $dataInduk): bool
+    public function restoreAny(AuthUser $authUser): bool
     {
-        return $user->can('Replicate:DataInduk');
+        return $authUser->can('RestoreAny:DataInduk');
     }
 
-    /**
-     * Determine whether the user can reorder the models.
-     */
-    public function reorder(User $user): bool
+    public function replicate(AuthUser $authUser, DataInduk $dataInduk): bool
     {
-        return $user->can('Reorder:DataInduk');
+        return $authUser->can('Replicate:DataInduk');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, DataInduk $dataInduk): bool
+    public function reorder(AuthUser $authUser): bool
     {
-        return $user->can('ForceDelete:DataInduk');
+        return $authUser->can('Reorder:DataInduk');
     }
 
-    /**
-     * Determine whether the user can bulk permanently delete.
-     */
-    public function forceDeleteAny(User $user): bool
-    {
-        return $user->can('ForceDeleteAny:DataInduk');
-    }
 }

@@ -1,42 +1,70 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Kepegawaian\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Modules\Kepegawaian\Models\Resign;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ResignPolicy
 {
     use HandlesAuthorization;
-
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah', 'koor_jenjang', 'staff']);
+        return $authUser->can('ViewAny:Resign');
     }
 
-    public function view(User $user, Resign $resign): bool
+    public function view(AuthUser $authUser, Resign $resign): bool
     {
-        return $user->hasAnyRole(['admin_hr', 'kepala_sekolah', 'koor_jenjang']) || $user->id === $resign->employee?->user_id;
+        return $authUser->can('View:Resign');
     }
 
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->hasRole('staff');
+        return $authUser->can('Create:Resign');
     }
 
-    public function update(User $user, Resign $resign): bool
+    public function update(AuthUser $authUser, Resign $resign): bool
     {
-        if ($user->hasAnyRole(['admin_hr', 'kepala_sekolah'])) {
-            return true;
-        }
-
-        // Staff can cannot update once submitted (unless we add logic for 'draft')
-        return false;
+        return $authUser->can('Update:Resign');
     }
 
-    public function delete(User $user, Resign $resign): bool
+    public function delete(AuthUser $authUser, Resign $resign): bool
     {
-        return $user->hasRole('admin_hr');
+        return $authUser->can('Delete:Resign');
     }
+
+    public function restore(AuthUser $authUser, Resign $resign): bool
+    {
+        return $authUser->can('Restore:Resign');
+    }
+
+    public function forceDelete(AuthUser $authUser, Resign $resign): bool
+    {
+        return $authUser->can('ForceDelete:Resign');
+    }
+
+    public function forceDeleteAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('ForceDeleteAny:Resign');
+    }
+
+    public function restoreAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('RestoreAny:Resign');
+    }
+
+    public function replicate(AuthUser $authUser, Resign $resign): bool
+    {
+        return $authUser->can('Replicate:Resign');
+    }
+
+    public function reorder(AuthUser $authUser): bool
+    {
+        return $authUser->can('Reorder:Resign');
+    }
+
 }
