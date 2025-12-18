@@ -34,36 +34,24 @@ class UserResource extends Resource
     }
     public static function getPluralModelLabel(): string
     {
-<<<<<<< HEAD
-        // Admin HR and Super Admin 
-        if (!auth()->user()->hasAnyRole(['super_admin'])) {
-            return parent::getEloquentQuery()->whereRaw('1=0');
-        }
-        return parent::getEloquentQuery();
-=======
         return 'User';
->>>>>>> origin/branch_dhevi
     }
 
     public static function shouldRegisterNavigation(): bool
     {
-<<<<<<< HEAD
-        return auth()->user()->hasAnyRole(['super_admin']);
-=======
         $user = Auth::user();
-        return $user?->hasAnyRole([ 'super_admin']) ?? false;
+        return $user?->hasAnyRole(['super_admin']) ?? false;
     }
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $user = Auth::user();
 
-        if (! $user?->hasAnyRole([ 'super_admin'])) {
+        if (! $user?->hasAnyRole(['super_admin'])) {
             return parent::getEloquentQuery()->whereRaw('1=0');
         }
 
         return parent::getEloquentQuery();
->>>>>>> origin/branch_dhevi
     }
 
     public static function form(Schema $schema): Schema
