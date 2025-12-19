@@ -40,6 +40,9 @@ return new class extends Migration
             $table->string('no_kjp_2p')->nullable();
             $table->string('no_kjp_3p')->nullable();
 
+            $table->enum('status', ['aktif', 'cuti', 'resign'])->default('aktif');
+            $table->text('keterangan')->nullable();
+
             $table->timestamps();
         });
 

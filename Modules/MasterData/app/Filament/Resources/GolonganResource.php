@@ -14,7 +14,6 @@ class GolonganResource extends Resource
 {
     protected static ?string $model = Golongan::class;
     protected static ?int $navigationSort = 10;
-
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
         return 'heroicon-o-list-bullet';

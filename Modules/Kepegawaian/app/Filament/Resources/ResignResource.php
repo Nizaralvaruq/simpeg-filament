@@ -2,6 +2,9 @@
 
 namespace Modules\Kepegawaian\Filament\Resources;
 
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
 use Modules\Kepegawaian\Filament\Resources\ResignResource\Pages;
 use Modules\Kepegawaian\Models\Resign;
 use Filament\Schemas\Schema;
@@ -77,12 +80,18 @@ class ResignResource extends Resource
                 \Filament\Schemas\Components\Section::make('Detail Pengajuan')
                     ->schema([
                         // Hidden field for employee ID, filled automatically on create
+                        Forms\Components\Select::make('data_induk_id')
+                            ->label('Nama Pegawai')
+                            ->relationship('employee', 'nama')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->visible(fn () => auth()->user()->hasRole('super_admin'))
+                            ->columnSpanFull(),
+
                         Forms\Components\Hidden::make('data_induk_id')
-                            ->default(function () {
-                                /** @var \App\Models\User $user */
-                                $user = Auth::user();
-                                return $user->employee?->id;
-                            }),
+                            ->default(fn () => auth()->user()->employee?->id)
+                            ->visible(fn () => ! auth()->user()->hasRole('super_admin')),
 
                         Forms\Components\DatePicker::make('tanggal_resign')
                             ->required()
@@ -93,14 +102,15 @@ class ResignResource extends Resource
                             ->required()
                             ->label('Alasan Resign')
                             ->columnSpanFull(),
+
+                        Forms\Components\Hidden::make('status')
+                            ->default('diajukan')
+                            ->dehydrated(true)
+                            ->visible(fn () => ! auth()->user()->hasAnyRole(['super_admin', 'admin'])),
                     ]),
 
                 \Filament\Schemas\Components\Section::make('Persetujuan')
-                    ->visible(function () {
-                        /** @var \App\Models\User $user */
-                        $user = Auth::user();
-                        return $user->hasAnyRole(['super_admin', 'kepala_sekolah']);
-                    })
+                    ->visible(fn () => auth()->user()->hasAnyRole(['super_admin', 'admin']))
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->options([
@@ -108,9 +118,13 @@ class ResignResource extends Resource
                                 'disetujui' => 'Disetujui',
                                 'ditolak' => 'Ditolak',
                             ])
-                            ->required(),
+                            ->required()
+                            ->live(),
+
                         Forms\Components\Textarea::make('keterangan_tindak_lanjut')
-                            ->label('Catatan Approval'),
+                            ->label('Catatan / Alasan Penolakan')
+                            ->visible(fn ($get) => $get('status') === 'ditolak')
+                            ->required(fn ($get) => $get('status') === 'ditolak'),
                     ]),
             ]);
     }
@@ -123,11 +137,15 @@ class ResignResource extends Resource
                     ->label('Nama Pegawai')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('employee.units.name')
-                    ->label('Jenjang')
+                    ->label('Unit Kerja')
+                    ->badge(),
+                Tables\Columns\TextColumn::make('employee.jabatan')
+                    ->label('Jabatan')
                     ->badge(),
                 Tables\Columns\TextColumn::make('tanggal_resign')
                     ->date(),
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'diajukan' => 'warning',
@@ -144,8 +162,51 @@ class ResignResource extends Resource
                     ]),
             ])
             ->actions([
-                \Filament\Actions\EditAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+
+                    Action::make('approve')
+                        ->label('Setujui')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) =>
+                            auth()->user()->hasAnyRole(['super_admin', 'admin'])
+                            && $record->status === 'diajukan'
+                        )
+                        ->action(function ($record) {
+                            $record->update([
+                                'status' => 'disetujui',
+                            ]);
+                            // UPDATE DATA INDUK
+                            $record->employee->update([
+                                'status' => 'resign',
+                                'keterangan' => $record->alasan,
+                            ]);
+                        }),
+
+                    Action::make('reject')
+                        ->label('Tolak')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('danger')
+                        ->form([
+                            Forms\Components\Textarea::make('keterangan_tindak_lanjut')
+                                ->label('Alasan Penolakan')
+                                ->required(),
+                        ])
+                        ->visible(fn ($record) =>
+                            auth()->user()->hasAnyRole(['super_admin', 'admin'])
+                            && $record->status === 'diajukan'
+                        )
+                        ->action(fn ($record, array $data) =>
+                            $record->update([
+                                'status' => 'ditolaK',
+                                'keterangan_tindak_lanjut' => $data['keterangan_tindak_lanjut'],
+                            ])
+                        ),
+                    ]),
             ])
+            ->actionsColumnLabel('Aksi')
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),
