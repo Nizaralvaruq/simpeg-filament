@@ -17,9 +17,9 @@ class PerformanceAssessmentResource extends Resource
 {
     protected static ?string $model = PerformanceAssessment::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-presentation-chart-line';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-line';
 
-    protected static ?string $navigationGroup = 'Penilaian Kinerja';
+    protected static string|\UnitEnum|null $navigationGroup = 'Penilaian Kinerja';
 
     protected static ?string $modelLabel = 'Penilaian Kinerja';
 

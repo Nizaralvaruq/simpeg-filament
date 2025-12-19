@@ -14,9 +14,9 @@ class KpiPeriodResource extends Resource
 {
     protected static ?string $model = KpiPeriod::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
 
-    protected static ?string $navigationGroup = 'Penilaian Kinerja';
+    protected static string|\UnitEnum|null $navigationGroup = 'Penilaian Kinerja';
 
     protected static ?string $modelLabel = 'Periode Penilaian';
 
