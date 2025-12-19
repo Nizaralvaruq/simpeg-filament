@@ -58,6 +58,7 @@ class DataIndukResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
+        /** @var \App\Models\User $user */
         $user  = Auth::user();
 
         if (! $user) {
@@ -175,6 +176,31 @@ class DataIndukResource extends Resource
                             ->required()
                             ->maxLength(255),
 
+                        Forms\Components\Select::make('data_induk_id')
+                            ->label('Nama Pegawai')
+                            ->relationship('employee', 'nama')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->visible(function (): bool {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                return $user?->hasRole('super_admin');
+                            })
+                            ->columnSpanFull(),
+
+                        Forms\Components\Hidden::make('data_induk_id')
+                            ->default(function (): ?int {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                return $user?->employee?->id;
+                            })
+                            ->visible(function (): bool {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                return ! $user?->hasRole('super_admin');
+                            }),
+
                         Forms\Components\Select::make('golongan_id')
                             ->label('Golongan Saat Ini')
                             ->relationship('golongan', 'name')
@@ -285,12 +311,21 @@ class DataIndukResource extends Resource
                             ->searchable()
                             ->preload()
                             ->live()
+                            ->visible(function (): bool {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                return $user?->hasRole('super_admin');
+                            })
                             ->columnSpanFull(),
 
                         Forms\Components\Placeholder::make('separator')
                             ->label('ATAU Buat Akun Baru')
                             ->content('Isi Email & Password di bawah jika ingin membuat akun baru.')
-                            ->visible(fn(Get $get) => empty($get('user_id')))
+                            ->visible(function (): bool {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                return ! $user?->hasRole('super_admin');
+                            })
                             ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('email')
@@ -331,10 +366,10 @@ class DataIndukResource extends Resource
                 Tables\Columns\TextColumn::make('golongan.name')->label('Golongan')->badge(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn ($state) => match ($state) {
-                            'Aktif' => 'success',
-                            'Cuti' => 'warning',
-                            'Resign' => 'danger',
+                    ->color(fn($state) => match ($state) {
+                        'Aktif' => 'success',
+                        'Cuti' => 'warning',
+                        'Resign' => 'danger',
                     }),
                 Tables\Columns\TextColumn::make('keterangan'),
             ])
@@ -343,14 +378,16 @@ class DataIndukResource extends Resource
                     Action::make('info')
                         ->label('Detail')
                         ->icon('heroicon-o-information-circle')
-                        ->url(fn($record) => self::getUrl('view', ['record' => $record])
+                        ->url(
+                            fn($record) => self::getUrl('view', ['record' => $record])
                         ),
                     Action::make('export')
                         ->label('Export Biodata')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(fn ($record) =>
+                        ->action(
+                            fn($record) =>
                             FacadesExcel::download(
-                                new DataIndukExport($record), 
+                                new DataIndukExport($record),
                                 'biodata-' . str($record->nama)->slug() . '.xlsx'
                             )
                         ),
@@ -368,8 +405,11 @@ class DataIndukResource extends Resource
                     BulkAction::make('export')
                         ->label('Export Terpilih')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(fn ($records) =>
-                            Excel::download(
+                        ->action(
+                            fn(
+                                \Illuminate\Support\Collection $records
+                            ) =>
+                            FacadesExcel::download(
                                 new DataIndukExport($records),
                                 'pegawai-terpilih.xlsx'
                             )
@@ -377,7 +417,7 @@ class DataIndukResource extends Resource
                 ]),
             ])
             ->recordUrl(
-                fn ($record) => self::getUrl('view', ['record' => $record])
+                fn($record) => self::getUrl('view', ['record' => $record])
             );
     }
 

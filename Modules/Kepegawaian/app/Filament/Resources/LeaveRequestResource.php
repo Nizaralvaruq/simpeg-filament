@@ -81,16 +81,16 @@ class LeaveRequestResource extends Resource
 
                     Forms\Components\Select::make('data_induk_id')
                         ->label('Nama Pegawai')
-                        ->relationship('employee', 'nama') 
+                        ->relationship('employee', 'nama')
                         ->searchable()
                         ->preload()
                         ->required()
-                        ->visible(fn () => auth()->user()->hasRole('super_admin'))
+                        ->visible(fn() => Auth::user()?->hasRole('super_admin'))
                         ->columnSpanFull(),
 
                     Forms\Components\Hidden::make('data_induk_id')
-                        ->default(fn () => auth()->user()->employee?->id)
-                        ->visible(fn () => ! auth()->user()->hasRole('super_admin')),
+                        ->default(fn() => Auth::user()?->employee?->id)
+                        ->visible(fn() => ! Auth::user()?->hasRole('super_admin')),
 
                     \Filament\Schemas\Components\Grid::make(2)
                         ->schema([
@@ -108,7 +108,7 @@ class LeaveRequestResource extends Resource
                         ->label('Alasan Cuti')
                         ->required()
                         ->columnSpanFull(),
-                    
+
                     Forms\Components\FileUpload::make('upload_file')
                         ->label('Upload Bukti (PDF/JPG/PNG)')
                         ->directory('upload_file')
@@ -117,18 +117,18 @@ class LeaveRequestResource extends Resource
                         ->preserveFilenames()
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                         ->maxSize(2048)
-                        ->required(fn () => auth()->user()->hasRole('staff'))
-                        ->visible(fn () => auth()->user()->hasAnyRole(['staff', 'super_admin']))
+                        ->required(fn() => Auth::user()?->hasRole('staff'))
+                        ->visible(fn() => Auth::user()?->hasAnyRole(['staff', 'super_admin']))
                         ->columnSpanFull(),
 
                     Forms\Components\Hidden::make('status')
                         ->default('pending')
                         ->dehydrated(true)
-                        ->visible(fn () => ! auth()->user()->hasAnyRole(['super_admin', 'admin'])),
+                        ->visible(fn() => ! Auth::user()?->hasAnyRole(['super_admin', 'admin'])),
                 ]),
 
             \Filament\Schemas\Components\Section::make('Persetujuan')
-                ->visible(fn () => auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                ->visible(fn() => Auth::user()?->hasAnyRole(['super_admin', 'admin']))
                 ->schema([
                     Forms\Components\Select::make('status')
                         ->options([
@@ -142,8 +142,8 @@ class LeaveRequestResource extends Resource
 
                     Forms\Components\Textarea::make('note')
                         ->label('Catatan / Alasan Penolakan')
-                        ->visible(fn ($get) => $get('status') === 'rejected')
-                        ->required(fn ($get) => $get('status') === 'rejected'),
+                        ->visible(fn($get) => $get('status') === 'rejected')
+                        ->required(fn($get) => $get('status') === 'rejected'),
                 ]),
         ]);
     }
@@ -163,7 +163,8 @@ class LeaveRequestResource extends Resource
                     ->label('Selesai'),
                 Tables\Columns\TextColumn::make('lama_cuti')
                     ->label('Lama Cuti')
-                    ->state(fn ($record) =>
+                    ->state(
+                        fn($record) =>
                         \Carbon\Carbon::parse($record->start_date)
                             ->diffInDays(\Carbon\Carbon::parse($record->end_date)) + 1 . ' hari'
                     ),
@@ -172,11 +173,11 @@ class LeaveRequestResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('upload_file')
                     ->label('Bukti')
-                    ->formatStateUsing(fn ($state) => $state ? 'Lihat/Download' : '-')
-                    ->url(fn ($record) => $record->upload_file ? asset('storage/' . $record->upload_file) : null, true)
+                    ->formatStateUsing(fn($state) => $state ? 'Lihat/Download' : '-')
+                    ->url(fn($record) => $record->upload_file ? asset('storage/' . $record->upload_file) : null, true)
                     ->openUrlInNewTab()
                     ->badge()
-                    ->color(fn ($record) => $record->upload_file ? 'info' : 'gray'),
+                    ->color(fn($record) => $record->upload_file ? 'info' : 'gray'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -198,7 +199,7 @@ class LeaveRequestResource extends Resource
                         }
                         return $record->keterangan_kembali ?? 'belum kembali';
                     })
-                    ->color(fn ($state) => match ($state) {
+                    ->color(fn($state) => match ($state) {
                         'belum kembali' => 'warning',
                         'sudah kembali' => 'success',
                     }),
@@ -218,16 +219,20 @@ class LeaveRequestResource extends Resource
                         ->icon('heroicon-o-check')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->visible(fn ($record) =>
-                            auth()->user()->hasAnyRole(['super_admin', 'admin'])
-                            && $record->status === 'pending'
+                        ->visible(
+                            fn($record) =>
+                            Auth::user()?->hasAnyRole(['super_admin', 'admin'])
+                                && $record->status === 'pending'
                         )
                         ->action(function ($record) {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+
                             // 1. UPDATE CUTI
                             $record->update([
                                 'status' => 'approved',
                                 'note' => 'OK',
-                                'approved_by' => auth()->id(),
+                                'approved_by' => $user->id,
                                 'keterangan_kembali' => 'belum kembali',
                             ]);
                             // 2. UPDATE DATA INDUK → CUTI
@@ -248,14 +253,15 @@ class LeaveRequestResource extends Resource
                                 ->label('Catatan')
                                 ->required(),
                         ])
-                        ->visible(fn ($record) =>
-                            auth()->user()->hasAnyRole(['super_admin', 'admin'])
-                            && $record->status === 'pending'
+                        ->visible(
+                            fn($record) =>
+                            Auth::user()?->hasAnyRole(['super_admin', 'admin'])
+                                && $record->status === 'pending'
                         )
-                        ->action(fn ($record, array $data) => $record->update([
+                        ->action(fn($record, array $data) => $record->update([
                             'status' => 'rejected',
                             'note' => $data['note'],
-                            'approved_by' => auth()->id(),
+                            'approved_by' => Auth::id(),
                         ])),
 
                     Action::make('kembali')
@@ -263,10 +269,11 @@ class LeaveRequestResource extends Resource
                         ->icon('heroicon-o-arrow-uturn-left')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->visible(fn ($record) =>
-                            auth()->user()->hasRole('super_admin')
-                            && $record->status === 'approved'
-                            && in_array($record->keterangan_kembali, [null, 'belum kembali'])
+                        ->visible(
+                            fn($record) =>
+                            Auth::user()?->hasRole('super_admin')
+                                && $record->status === 'approved'
+                                && in_array($record->keterangan_kembali, [null, 'belum kembali'])
                         )
                         ->action(function ($record) {
                             // 1. UPDATE CUTI
@@ -297,7 +304,7 @@ class LeaveRequestResource extends Resource
                         }),
 
                 ])
-                ->icon('heroicon-o-ellipsis-vertical'),
+                    ->icon('heroicon-o-ellipsis-vertical'),
             ])
             ->actionsColumnLabel('Aksi')
             ->bulkActions([

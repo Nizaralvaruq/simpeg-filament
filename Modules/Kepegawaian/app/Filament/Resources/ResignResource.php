@@ -86,12 +86,12 @@ class ResignResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->visible(fn () => auth()->user()->hasRole('super_admin'))
+                            ->visible(fn() => Auth::user()?->hasRole('super_admin'))
                             ->columnSpanFull(),
 
                         Forms\Components\Hidden::make('data_induk_id')
-                            ->default(fn () => auth()->user()->employee?->id)
-                            ->visible(fn () => ! auth()->user()->hasRole('super_admin')),
+                            ->default(fn() => Auth::user()?->employee?->id)
+                            ->visible(fn() => ! Auth::user()?->hasRole('super_admin')),
 
                         Forms\Components\DatePicker::make('tanggal_resign')
                             ->required()
@@ -106,11 +106,11 @@ class ResignResource extends Resource
                         Forms\Components\Hidden::make('status')
                             ->default('diajukan')
                             ->dehydrated(true)
-                            ->visible(fn () => ! auth()->user()->hasAnyRole(['super_admin', 'admin'])),
+                            ->visible(fn() => ! Auth::user()?->hasAnyRole(['super_admin', 'admin'])),
                     ]),
 
                 \Filament\Schemas\Components\Section::make('Persetujuan')
-                    ->visible(fn () => auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                    ->visible(fn() => Auth::user()?->hasAnyRole(['super_admin', 'admin']))
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->options([
@@ -123,8 +123,8 @@ class ResignResource extends Resource
 
                         Forms\Components\Textarea::make('keterangan_tindak_lanjut')
                             ->label('Catatan / Alasan Penolakan')
-                            ->visible(fn ($get) => $get('status') === 'ditolak')
-                            ->required(fn ($get) => $get('status') === 'ditolak'),
+                            ->visible(fn($get) => $get('status') === 'ditolak')
+                            ->required(fn($get) => $get('status') === 'ditolak'),
                     ]),
             ]);
     }
@@ -170,9 +170,10 @@ class ResignResource extends Resource
                         ->icon('heroicon-o-check')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->visible(fn ($record) =>
+                        ->visible(
+                            fn($record) =>
                             auth()->user()->hasAnyRole(['super_admin', 'admin'])
-                            && $record->status === 'diajukan'
+                                && $record->status === 'diajukan'
                         )
                         ->action(function ($record) {
                             $record->update([
@@ -180,7 +181,7 @@ class ResignResource extends Resource
                             ]);
                             // UPDATE DATA INDUK
                             $record->employee->update([
-                                'status' => 'resign',
+                                'status' => 'Resign',
                                 'keterangan' => $record->alasan,
                             ]);
                         }),
@@ -194,17 +195,19 @@ class ResignResource extends Resource
                                 ->label('Alasan Penolakan')
                                 ->required(),
                         ])
-                        ->visible(fn ($record) =>
+                        ->visible(
+                            fn($record) =>
                             auth()->user()->hasAnyRole(['super_admin', 'admin'])
-                            && $record->status === 'diajukan'
+                                && $record->status === 'diajukan'
                         )
-                        ->action(fn ($record, array $data) =>
+                        ->action(
+                            fn($record, array $data) =>
                             $record->update([
                                 'status' => 'ditolaK',
                                 'keterangan_tindak_lanjut' => $data['keterangan_tindak_lanjut'],
                             ])
                         ),
-                    ]),
+                ]),
             ])
             ->actionsColumnLabel('Aksi')
             ->bulkActions([
