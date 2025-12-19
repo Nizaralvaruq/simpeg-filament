@@ -42,12 +42,12 @@ class DataIndukResource extends Resource
         return 'Kepegawaian';
     }
 
-    public static function getModelLabel(): string
+    public static function getPluralModelLabel(): string
     {
         return 'Pegawai';
     }
 
-    public static function getPluralModelLabel(): string
+    public static function getModelLabel(): string
     {
         return 'Pegawai';
     }
@@ -407,7 +407,7 @@ class DataIndukResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(
                             fn(
-                                \Illuminate\Support\Collection $records
+                                mixed $records
                             ) =>
                             FacadesExcel::download(
                                 new DataIndukExport($records),

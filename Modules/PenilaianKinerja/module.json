@@ -1,0 +1,11 @@
+{
+    "name": "PenilaianKinerja",
+    "alias": "penilaiankinerja",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PenilaianKinerja\\Providers\\PenilaianKinerjaServiceProvider"
+    ],
+    "files": []
+}

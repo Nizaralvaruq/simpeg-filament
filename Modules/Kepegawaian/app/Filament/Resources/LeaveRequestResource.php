@@ -85,12 +85,20 @@ class LeaveRequestResource extends Resource
                         ->searchable()
                         ->preload()
                         ->required()
-                        ->visible(fn() => Auth::user()?->hasRole('super_admin'))
+                        ->visible(function () {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            return $user?->hasRole('super_admin');
+                        })
                         ->columnSpanFull(),
 
                     Forms\Components\Hidden::make('data_induk_id')
                         ->default(fn() => Auth::user()?->employee?->id)
-                        ->visible(fn() => ! Auth::user()?->hasRole('super_admin')),
+                        ->visible(function () {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            return ! $user?->hasRole('super_admin');
+                        }),
 
                     \Filament\Schemas\Components\Grid::make(2)
                         ->schema([
@@ -124,11 +132,19 @@ class LeaveRequestResource extends Resource
                     Forms\Components\Hidden::make('status')
                         ->default('pending')
                         ->dehydrated(true)
-                        ->visible(fn() => ! Auth::user()?->hasAnyRole(['super_admin', 'admin'])),
+                        ->visible(function () {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            return ! $user?->hasAnyRole(['super_admin', 'admin']);
+                        }),
                 ]),
 
             \Filament\Schemas\Components\Section::make('Persetujuan')
-                ->visible(fn() => Auth::user()?->hasAnyRole(['super_admin', 'admin']))
+                ->visible(function () {
+                    /** @var \App\Models\User $user */
+                    $user = Auth::user();
+                    return $user?->hasAnyRole(['super_admin', 'admin']);
+                })
                 ->schema([
                     Forms\Components\Select::make('status')
                         ->options([

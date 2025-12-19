@@ -2,5 +2,6 @@
     "Kepegawaian": true,
     "MasterData": true,
     "Presensi": true,
-    "Akademik": true
+    "Akademik": true,
+    "PenilaianKinerja": true
 }
