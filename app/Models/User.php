@@ -81,7 +81,7 @@ class User extends Authenticatable implements FilamentUser
             ->implode('');
     }
 
-    public function employee()
+    public function dataInduk()
     {
         return $this->hasOne(DataInduk::class, 'user_id');
     }

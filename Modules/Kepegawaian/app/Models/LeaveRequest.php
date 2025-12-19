@@ -17,7 +17,7 @@ class LeaveRequest extends Model
         'end_date' => 'date',
     ];
 
-    public function employee()
+    public function dataInduk()
     {
         return $this->belongsTo(DataInduk::class, 'data_induk_id');
     }

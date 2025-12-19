@@ -45,9 +45,9 @@ class AbsensiResource extends Resource
         }
 
         if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang'])) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id')->toArray();
-                return $query->whereHas('user.employee.units', function ($q) use ($unitIds) {
+            if ($user->user_id && $user->user_id->units->isNotEmpty()) {
+                $unitIds = $user->user_id->units->pluck('id')->toArray();
+                return $query->whereHas('user.user_id.units', function ($q) use ($unitIds) {
                     $q->whereIn('units.id', $unitIds);
                 });
             }

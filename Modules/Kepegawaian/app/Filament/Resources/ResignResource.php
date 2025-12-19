@@ -53,9 +53,9 @@ class ResignResource extends Resource
 
         // 2. Kepala Sekolah & Koor Jenjang: View Unit Resigns
         if ($user->hasRole('kepala_sekolah') || $user->hasRole('koor_jenjang')) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id');
-                return $query->whereHas('employee.units', function ($q) use ($unitIds) {
+            if ($user->user_id && $user->user_id->units->isNotEmpty()) {
+                $unitIds = $user->user_id->units->pluck('id');
+                return $query->whereHas('user_id.units', function ($q) use ($unitIds) {
                     $q->whereIn('units.id', $unitIds);
                 });
             }
@@ -64,8 +64,8 @@ class ResignResource extends Resource
 
         // 3. Staff: View Own Resigns
         if ($user->hasRole('staff')) {
-            if ($user->employee) {
-                return $query->where('data_induk_id', $user->employee->id);
+            if ($user->user_id) {
+                return $query->where('data_induk_id', $user->user_id->id);
             }
             return $query->whereRaw('1=0');
         }
@@ -79,18 +79,18 @@ class ResignResource extends Resource
             ->components([
                 \Filament\Schemas\Components\Section::make('Detail Pengajuan')
                     ->schema([
-                        // Hidden field for employee ID, filled automatically on create
+                        // Hidden field for user_id ID, filled automatically on create
                         Forms\Components\Select::make('data_induk_id')
                             ->label('Nama Pegawai')
-                            ->relationship('employee', 'nama')
+                            ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
                             ->required()
                             ->visible(fn() => Auth::user()?->hasRole('super_admin'))
                             ->columnSpanFull(),
 
-                        Forms\Components\Hidden::make('data_induk_id')
-                            ->default(fn() => Auth::user()?->employee?->id)
+                        Forms\Components\Hidden::make('user_id')
+                            ->default(fn () => Auth::id())
                             ->visible(fn() => ! Auth::user()?->hasRole('super_admin')),
 
                         Forms\Components\DatePicker::make('tanggal_resign')
@@ -101,6 +101,18 @@ class ResignResource extends Resource
                         Forms\Components\Textarea::make('alasan')
                             ->required()
                             ->label('Alasan Resign')
+                            ->columnSpanFull(),
+                        
+                        Forms\Components\FileUpload::make('upload_file')
+                            ->label('Upload Bukti (PDF/JPG/PNG)')
+                            ->directory('upload_file')
+                            ->disk('public')
+                            ->visibility('public')
+                            ->preserveFilenames()
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->maxSize(2048)
+                            ->required(fn() => Auth::user()?->hasRole('staff'))
+                            ->visible(fn() => Auth::user()?->hasAnyRole(['staff', 'super_admin']))
                             ->columnSpanFull(),
 
                         Forms\Components\Hidden::make('status')
@@ -133,17 +145,24 @@ class ResignResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('employee.nama')
+                Tables\Columns\TextColumn::make('user_id.nama')
                     ->label('Nama Pegawai')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('employee.units.name')
+                Tables\Columns\TextColumn::make('user_id.units.name')
                     ->label('Unit Kerja')
                     ->badge(),
-                Tables\Columns\TextColumn::make('employee.jabatan')
+                Tables\Columns\TextColumn::make('user_id.jabatan')
                     ->label('Jabatan')
                     ->badge(),
                 Tables\Columns\TextColumn::make('tanggal_resign')
                     ->date(),
+                Tables\Columns\TextColumn::make('upload_file')
+                    ->label('Bukti')
+                    ->formatStateUsing(fn($state) => $state ? 'Lihat/Download' : '-')
+                    ->url(fn($record) => $record->upload_file ? asset('storage/' . $record->upload_file) : null, true)
+                    ->openUrlInNewTab()
+                    ->badge()
+                    ->color(fn($record) => $record->upload_file ? 'info' : 'gray'),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -180,7 +199,7 @@ class ResignResource extends Resource
                                 'status' => 'disetujui',
                             ]);
                             // UPDATE DATA INDUK
-                            $record->employee->update([
+                            $record->user_id->update([
                                 'status' => 'Resign',
                                 'keterangan' => $record->alasan,
                             ]);

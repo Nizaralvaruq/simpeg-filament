@@ -16,7 +16,7 @@ class Resign extends Model
         'tanggal_resign' => 'date',
     ];
 
-    public function employee()
+    public function dataInduk()
     {
         return $this->belongsTo(DataInduk::class, 'data_induk_id');
     }

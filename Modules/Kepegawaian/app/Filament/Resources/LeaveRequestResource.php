@@ -51,25 +51,24 @@ class LeaveRequestResource extends Resource
             return $query;
         }
 
-        if ($user->hasRole('kepala_sekolah') || $user->hasRole('koor_jenjang')) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id');
-                return $query->whereHas('employee.units', function ($q) use ($unitIds) {
-                    $q->whereIn('units.id', $unitIds);
-                });
-            }
+        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang'])) {
+            if ($user->dataInduk && $user->dataInduk->units->isNotEmpty()) {
+                $unitIds = $user->dataInduk->units->pluck('id');
 
+                return $query->whereHas(
+                    'dataInduk.units',
+                    fn ($q) => $q->whereIn('units.id', $unitIds)
+                );
+            }
             return $query->whereRaw('1=0');
         }
 
         // Staff: View Own Requests
         if ($user->hasRole('staff')) {
-            if ($user->employee) {
-                return $query->where('data_induk_id', $user->employee->id);
-            }
-            return $query->whereRaw('1=0');
+            return $user->dataInduk
+                ? $query->where('data_induk_id', $user->dataInduk->id)
+                : $query->whereRaw('1=0');
         }
-
         return $query;
     }
 
@@ -81,15 +80,15 @@ class LeaveRequestResource extends Resource
 
                     Forms\Components\Select::make('data_induk_id')
                         ->label('Nama Pegawai')
-                        ->relationship('employee', 'nama')
+                        ->relationship('dataInduk', 'nama')
                         ->searchable()
                         ->preload()
                         ->required()
                         ->visible(fn() => Auth::user()?->hasRole('super_admin'))
                         ->columnSpanFull(),
 
-                    Forms\Components\Hidden::make('data_induk_id')
-                        ->default(fn() => Auth::user()?->employee?->id)
+                    Forms\Components\Hidden::make('user_id')
+                        ->default(fn () => Auth::id())
                         ->visible(fn() => ! Auth::user()?->hasRole('super_admin')),
 
                     \Filament\Schemas\Components\Grid::make(2)
@@ -152,7 +151,7 @@ class LeaveRequestResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('employee.nama')
+                Tables\Columns\TextColumn::make('dataInduk.nama')
                     ->label('Nama Pegawai')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('start_date')
@@ -236,9 +235,9 @@ class LeaveRequestResource extends Resource
                                 'keterangan_kembali' => 'belum kembali',
                             ]);
                             // 2. UPDATE DATA INDUK → CUTI
-                            if ($record->employee) {
-                                $record->employee->update([
-                                    'status' => 'cuti',
+                            if ($record->dataInduk) {
+                                $record->dataInduk->update([
+                                    'status' => 'Cuti',
                                     'keterangan' => $record->reason,
                                 ]);
                             }
@@ -281,9 +280,9 @@ class LeaveRequestResource extends Resource
                                 'keterangan_kembali' => 'sudah kembali',
                             ]);
                             // 2. UPDATE DATA INDUK → AKTIF
-                            if ($record->employee) {
-                                $record->employee->update([
-                                    'status' => 'aktif',
+                            if ($record->dataInduk) {
+                                $record->dataInduk->update([
+                                    'status' => 'Aktif',
                                     'keterangan' => null,
                                 ]);
                             }
@@ -298,8 +297,8 @@ class LeaveRequestResource extends Resource
                             }
 
                             return $user->hasRole('staff')
-                                && $user->employee
-                                && $record->data_induk_id === $user->employee->id
+                                && $user->user_id
+                                && $record->data_induk_id === $user->dataInduk?->id
                                 && $record->status === 'pending';
                         }),
 

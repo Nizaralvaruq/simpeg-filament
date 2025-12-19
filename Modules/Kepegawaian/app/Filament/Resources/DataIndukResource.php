@@ -70,25 +70,22 @@ class DataIndukResource extends Resource
         }
 
         if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang'])) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id')->all();
+            if ($user->dataInduk && $user->dataInduk->units->isNotEmpty()) {
+                $unitIds = $user->dataInduk->units->pluck('id')->all();
 
                 return $query->whereHas(
                     'units',
-                    fn($q) =>
-                    $q->whereIn('units.id', $unitIds)
+                    fn ($q) => $q->whereIn('units.id', $unitIds)
                 );
             }
-
             return $query->whereRaw('1=0');
         }
 
         if ($user->hasRole('staff')) {
-            return $user->employee
-                ? $query->where('id', $user->employee->id)
+            return $user->dataInduk
+                ? $query->where('id', $user->dataInduk->id)
                 : $query->whereRaw('1=0');
         }
-
         return $query->whereRaw('1=0');
     }
 
@@ -176,9 +173,9 @@ class DataIndukResource extends Resource
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\Select::make('data_induk_id')
+                        Forms\Components\Select::make('user_id')
                             ->label('Nama Pegawai')
-                            ->relationship('employee', 'nama')
+                            ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
                             ->required()
@@ -189,12 +186,9 @@ class DataIndukResource extends Resource
                             })
                             ->columnSpanFull(),
 
-                        Forms\Components\Hidden::make('data_induk_id')
-                            ->default(function (): ?int {
-                                /** @var \App\Models\User $user */
-                                $user = Auth::user();
-                                return $user?->employee?->id;
-                            })
+                        Forms\Components\Hidden::make('user_id')
+                            ->default(fn () => Auth::id())
+
                             ->visible(function (): bool {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
