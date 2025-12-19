@@ -37,12 +37,26 @@ class AbsensiResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        if (!Auth::user()->hasAnyRole(['super_admin',])) {
-            $query->where('user_id', Auth::id());
+        if ($user->hasRole('super_admin')) {
+            return $query;
         }
 
-        return $query;
+        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang'])) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id')->toArray();
+                return $query->whereHas('user.employee.units', function ($q) use ($unitIds) {
+                    $q->whereIn('units.id', $unitIds);
+                });
+            }
+            // If no units assigned, restricted to self
+            return $query->where('user_id', $user->id);
+        }
+
+        // Default: Staff sees only own data
+        return $query->where('user_id', $user->id);
     }
 
     public static function canCreate(): bool
@@ -129,8 +143,7 @@ class AbsensiResource extends Resource
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Pegawai')
                     ->sortable()
-                    ->searchable()
-                    ->hidden(fn() => !Auth::user()->hasAnyRole(['super_admin'])),
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('tanggal')
                     ->date()

@@ -274,19 +274,35 @@ class DataIndukResource extends Resource
                 Step::make('Buat Akun Login')
                     ->description('Opsional')
                     ->schema([
+                        Forms\Components\Select::make('user_id')
+                            ->label('Tautkan Akun User (Pilih User yang sudah ada)')
+                            ->relationship('user', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->columnSpanFull(),
+
+                        Forms\Components\Placeholder::make('separator')
+                            ->label('ATAU Buat Akun Baru')
+                            ->content('Isi Email & Password di bawah jika ingin membuat akun baru.')
+                            ->visible(fn(Get $get) => empty($get('user_id')))
+                            ->columnSpanFull(),
+
                         Forms\Components\TextInput::make('email')
                             ->label('Email Login')
                             ->email()
                             ->dehydrated(false)
                             ->rules([
                                 fn($record) => \Illuminate\Validation\Rule::unique('users', 'email')->ignore($record?->user_id),
-                            ]),
+                            ])
+                            ->visible(fn(Get $get) => empty($get('user_id'))),
 
                         Forms\Components\TextInput::make('password')
                             ->label('Password')
                             ->password()
                             ->dehydrated(false)
-                            ->requiredWith('email'),
+                            ->requiredWith('email')
+                            ->visible(fn(Get $get) => empty($get('user_id'))),
                     ])
                     ->columns(2),
             ])
