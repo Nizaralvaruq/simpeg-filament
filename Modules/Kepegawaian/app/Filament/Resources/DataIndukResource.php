@@ -14,6 +14,9 @@ use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Components\Utilities\Get;
@@ -21,6 +24,8 @@ use Filament\Schemas\Components\Utilities\Set;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel as FacadesExcel;
+use Modules\Kepegawaian\Exports\DataIndukExport;
 
 class DataIndukResource extends Resource
 {
@@ -319,19 +324,36 @@ class DataIndukResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('no')->label('No')->rowIndex(),
-                Tables\Columns\TextColumn::make('nama')->searchable(),
+                Tables\Columns\TextColumn::make('nama')->label('Nama')->searchable(),
                 // Tables\Columns\TextColumn::make('tmt_awal')->date('d M Y'),
-                Tables\Columns\TextColumn::make('units.name')->badge()->separator(', '),
-                Tables\Columns\TextColumn::make('jabatan'),
-                Tables\Columns\TextColumn::make('golongan.name')->badge(),
+                Tables\Columns\TextColumn::make('units.name')->label('Unit Kerja')->badge()->separator(', '),
+                Tables\Columns\TextColumn::make('jabatan')->label('Jabatan')->searchable(),
+                Tables\Columns\TextColumn::make('golongan.name')->label('Golongan')->badge(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                            'Aktif' => 'success',
+                            'Cuti' => 'warning',
+                            'Resign' => 'danger',
+                    }),
+                Tables\Columns\TextColumn::make('keterangan'),
             ])
             ->actions([
                 ActionGroup::make([
                     Action::make('info')
                         ->label('Detail')
                         ->icon('heroicon-o-information-circle')
-                        ->url(fn($record) => self::getUrl('view', ['record' => $record])),
-
+                        ->url(fn($record) => self::getUrl('view', ['record' => $record])
+                        ),
+                    Action::make('export')
+                        ->label('Export Biodata')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(fn ($record) =>
+                            FacadesExcel::download(
+                                new DataIndukExport($record), 
+                                'biodata-' . str($record->nama)->slug() . '.xlsx'
+                            )
+                        ),
                     EditAction::make()
                         ->label('Edit'),
 
@@ -339,7 +361,24 @@ class DataIndukResource extends Resource
                         ->label('Hapus'),
                 ])->label('Aksi')
             ])
-            ->actionsColumnLabel('Aksi');
+            ->actionsColumnLabel('Aksi')
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    BulkAction::make('export')
+                        ->label('Export Terpilih')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(fn ($records) =>
+                            Excel::download(
+                                new DataIndukExport($records),
+                                'pegawai-terpilih.xlsx'
+                            )
+                        ),
+                ]),
+            ])
+            ->recordUrl(
+                fn ($record) => self::getUrl('view', ['record' => $record])
+            );
     }
 
     public static function getRelations(): array

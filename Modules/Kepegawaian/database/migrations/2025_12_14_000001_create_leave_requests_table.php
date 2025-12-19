@@ -21,6 +21,9 @@ return new class extends Migration
             $table->string('upload_file')->nullable();
             $table->text('note')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->enum('keterangan_kembali', ['belum kembali', 'sudah kembali'])
+                ->default('belum kembali');
             $table->timestamps();
         });
     }

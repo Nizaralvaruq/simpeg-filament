@@ -19,11 +19,15 @@ class EditLeaveRequest extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Automatically set approved_by if status is changed to approved/rejected
+        // set approved_by if status is changed to approved/rejected
         if (isset($data['status']) && in_array($data['status'], ['approved', 'rejected'])) {
             $data['approved_by'] = auth()->id();
         }
 
         return $data;
+    }
+    protected function getRedirectUrl(): string
+    {
+        return static::$resource::getUrl('index');
     }
 }

@@ -27,4 +27,8 @@ class CreateLeaveRequest extends CreateRecord
 
         parent::mount();
     }
+    protected function getRedirectUrl(): string
+    {
+        return static::$resource::getUrl('index');
+    }
 }

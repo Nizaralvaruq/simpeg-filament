@@ -12,17 +12,22 @@ class CreateResign extends CreateRecord
 
     public function mount(): void
     {
-        if (! auth()->user()->employee) {
+        $user = auth()->user();
+        if ($user->hasRole('staff') && !$user->employee) {
             Notification::make()
                 ->title('Profil Belum Lengkap')
                 ->body('Anda harus melengkapi Data Induk Pegawai sebelum mengajukan resign.')
                 ->danger()
                 ->send();
 
-            $this->redirect($this->previousUrl ?? '/admin');
+            $this->redirect('/');
             return;
         }
 
         parent::mount();
+    }
+    protected function getRedirectUrl(): string
+    {
+        return static::$resource::getUrl('index');
     }
 }

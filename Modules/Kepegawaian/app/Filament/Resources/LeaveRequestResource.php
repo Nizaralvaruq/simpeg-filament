@@ -3,6 +3,7 @@
 namespace Modules\Kepegawaian\Filament\Resources;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Modules\Kepegawaian\Filament\Resources\LeaveRequestResource\Pages;
 use Modules\Kepegawaian\Models\LeaveRequest;
@@ -45,7 +46,7 @@ class LeaveRequestResource extends Resource
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // 1. Super Admin & Admin HR: View ALL
+        // Super Admin & Admin HR: View ALL
         if ($user->hasRole('super_admin')) {
             return $query;
         }
@@ -57,12 +58,11 @@ class LeaveRequestResource extends Resource
                     $q->whereIn('units.id', $unitIds);
                 });
             }
-            // If they have no unit assigned, they shouldn't see anything?
-            // Or default to empty.
+
             return $query->whereRaw('1=0');
         }
 
-        // 3. Staff: View Own Requests
+        // Staff: View Own Requests
         if ($user->hasRole('staff')) {
             if ($user->employee) {
                 return $query->where('data_induk_id', $user->employee->id);
@@ -118,7 +118,7 @@ class LeaveRequestResource extends Resource
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                         ->maxSize(2048)
                         ->required(fn () => auth()->user()->hasRole('staff'))
-                        ->visible(fn () => auth()->user()->hasRole('staff'))
+                        ->visible(fn () => auth()->user()->hasAnyRole(['staff', 'super_admin']))
                         ->columnSpanFull(),
 
                     Forms\Components\Hidden::make('status')
@@ -137,11 +137,13 @@ class LeaveRequestResource extends Resource
                             'rejected' => 'Ditolak',
                         ])
                         ->required()
-                        ->default('pending'),
+                        ->default('pending')
+                        ->live(), // penting biar note ikut refresh
 
-                    Forms\Components\Textarea::make('rejection_reason')
+                    Forms\Components\Textarea::make('note')
                         ->label('Catatan / Alasan Penolakan')
-                        ->visible(fn ($get) => $get('status') === 'rejected'),
+                        ->visible(fn ($get) => $get('status') === 'rejected')
+                        ->required(fn ($get) => $get('status') === 'rejected'),
                 ]),
         ]);
     }
@@ -159,6 +161,22 @@ class LeaveRequestResource extends Resource
                 Tables\Columns\TextColumn::make('end_date')
                     ->date()
                     ->label('Selesai'),
+                Tables\Columns\TextColumn::make('lama_cuti')
+                    ->label('Lama Cuti')
+                    ->state(fn ($record) =>
+                        \Carbon\Carbon::parse($record->start_date)
+                            ->diffInDays(\Carbon\Carbon::parse($record->end_date)) + 1 . ' hari'
+                    ),
+                Tables\Columns\TextColumn::make('reason')
+                    ->label('Alasan Cuti')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('upload_file')
+                    ->label('Bukti')
+                    ->formatStateUsing(fn ($state) => $state ? 'Lihat/Download' : '-')
+                    ->url(fn ($record) => $record->upload_file ? asset('storage/' . $record->upload_file) : null, true)
+                    ->openUrlInNewTab()
+                    ->badge()
+                    ->color(fn ($record) => $record->upload_file ? 'info' : 'gray'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -171,6 +189,19 @@ class LeaveRequestResource extends Resource
                     ->limit(40)
                     ->wrap()
                     ->placeholder('-'),
+                Tables\Columns\TextColumn::make('keterangan_kembali')
+                    ->label('Status Kembali')
+                    ->badge()
+                    ->formatStateUsing(function ($record) {
+                        if ($record->status !== 'approved') {
+                            return '-';
+                        }
+                        return $record->keterangan_kembali ?? 'belum kembali';
+                    })
+                    ->color(fn ($state) => match ($state) {
+                        'belum kembali' => 'warning',
+                        'sudah kembali' => 'success',
+                    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -181,63 +212,94 @@ class LeaveRequestResource extends Resource
                     ]),
             ])
             ->actions([
-                Action::make('approve')
-                    ->label('Setujui')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->form([
-                        Forms\Components\Textarea::make('note')
-                            ->label('Catatan'),
-                    ])
-                    ->requiresConfirmation()
-                    ->visible(fn ($record) =>
-                        auth()->user()->hasAnyRole(['super_admin', 'admin'])
-                        && $record->status === 'pending'
-                    )
-                    ->action(function ($record) {
-                        $record->update([
-                            'status' => 'approved',
-                            'note' => $data['note'],
-                            'approved_by' => auth()->id(),
-                        ]);
-                    }),
-                Action::make('reject')
-                    ->label('Tolak')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->form([
-                        Forms\Components\Textarea::make('note')
-                            ->label('Catatan')
-                            ->required(),
-                    ])
-                    ->visible(fn ($record) =>
-                        auth()->user()->hasAnyRole(['super_admin', 'admin'])
-                        && $record->status === 'pending'
-                    )
-                    ->action(function ($record, array $data) {
-                        $record->update([
+                ActionGroup::make([
+                    Action::make('approve')
+                        ->label('Setujui')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) =>
+                            auth()->user()->hasAnyRole(['super_admin', 'admin'])
+                            && $record->status === 'pending'
+                        )
+                        ->action(function ($record) {
+                            // 1. UPDATE CUTI
+                            $record->update([
+                                'status' => 'approved',
+                                'note' => 'OK',
+                                'approved_by' => auth()->id(),
+                                'keterangan_kembali' => 'belum kembali',
+                            ]);
+                            // 2. UPDATE DATA INDUK → CUTI
+                            if ($record->employee) {
+                                $record->employee->update([
+                                    'status' => 'cuti',
+                                    'keterangan' => $record->reason,
+                                ]);
+                            }
+                        }),
+
+                    Action::make('reject')
+                        ->label('Tolak')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('danger')
+                        ->form([
+                            Forms\Components\Textarea::make('note')
+                                ->label('Catatan')
+                                ->required(),
+                        ])
+                        ->visible(fn ($record) =>
+                            auth()->user()->hasAnyRole(['super_admin', 'admin'])
+                            && $record->status === 'pending'
+                        )
+                        ->action(fn ($record, array $data) => $record->update([
                             'status' => 'rejected',
                             'note' => $data['note'],
                             'approved_by' => auth()->id(),
-                        ]);
-                    }),
+                        ])),
 
-                // ✏️ Edit (admin selalu bisa, staff hanya pending miliknya)
-                EditAction::make()
-                    ->visible(function ($record) {
-                        $user = auth()->user();
+                    Action::make('kembali')
+                        ->label('Sudah Kembali')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) =>
+                            auth()->user()->hasRole('super_admin')
+                            && $record->status === 'approved'
+                            && in_array($record->keterangan_kembali, [null, 'belum kembali'])
+                        )
+                        ->action(function ($record) {
+                            // 1. UPDATE CUTI
+                            $record->update([
+                                'keterangan_kembali' => 'sudah kembali',
+                            ]);
+                            // 2. UPDATE DATA INDUK → AKTIF
+                            if ($record->employee) {
+                                $record->employee->update([
+                                    'status' => 'aktif',
+                                    'keterangan' => null,
+                                ]);
+                            }
+                        }),
 
-                    if ($user->hasAnyRole(['super_admin', 'admin'])) {
-                        return true;
-                    }
+                    EditAction::make()
+                        ->visible(function ($record) {
+                            $user = auth()->user();
 
-                    return $user->hasRole('staff')
-                        && $user->employee
-                        && $record->data_induk_id === $user->employee->id
-                        && $record->status === 'pending';
-                }),
-                
+                            if ($user->hasAnyRole(['super_admin', 'admin'])) {
+                                return true;
+                            }
+
+                            return $user->hasRole('staff')
+                                && $user->employee
+                                && $record->data_induk_id === $user->employee->id
+                                && $record->status === 'pending';
+                        }),
+
+                ])
+                ->icon('heroicon-o-ellipsis-vertical'),
             ])
+            ->actionsColumnLabel('Aksi')
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),

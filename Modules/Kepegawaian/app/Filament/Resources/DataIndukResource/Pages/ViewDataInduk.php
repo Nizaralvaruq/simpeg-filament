@@ -75,7 +75,7 @@ class ViewDataInduk extends ViewRecord
                                         TextEntry::make('jabatan')->label('Jabatan')->inlineLabel(),
                                         TextEntry::make('tmt_awal')->label('Mulai Bertugas')->date('d F Y')->inlineLabel(),
                                         TextEntry::make('units.name')->label('Unit Kerja')->badge()->separator(', ')->inlineLabel(),
-                                        TextEntry::make('status_kepegawaian')->label('Status')->badge()->inlineLabel(),
+                                        TextEntry::make('status_kepegawaian')->label('Status Kepegawaian')->badge()->inlineLabel(),
                                         TextEntry::make('golongan.name')->label('Golongan')->badge()->inlineLabel(),
                                         TextEntry::make('tanggal_golongan_terbaru')
                                             ->label('Tanggal Golongan')
@@ -89,6 +89,15 @@ class ViewDataInduk extends ViewRecord
                                                     ? $latest->tanggal->translatedFormat('d F Y')
                                                     : '-';
                                             }),
+                                        TextEntry::make('status')->label('Status')
+                                            ->badge()
+                                            ->color(fn ($state) => match ($state) {
+                                                    'Aktif' => 'success',
+                                                    'Cuti' => 'warning',
+                                                    'Resign' => 'danger',
+                                            })
+                                            ->inlineLabel(),
+                                        TextEntry::make('keterangan')->label('Keterangan')->inlineLabel(),
                                     ]),
                             ]),
 
