@@ -44,12 +44,12 @@ class DataIndukResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return 'Pegawai';
+        return 'Data Induk Pegawai';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Pegawai';
+        return 'Data Induk Pegawai';
     }
 
     /**
@@ -176,19 +176,6 @@ class DataIndukResource extends Resource
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\Select::make('data_induk_id')
-                            ->label('Nama Pegawai')
-                            ->relationship('employee', 'nama')
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->visible(function (): bool {
-                                /** @var \App\Models\User $user */
-                                $user = Auth::user();
-                                return $user?->hasRole('super_admin');
-                            })
-                            ->columnSpanFull(),
-
                         Forms\Components\Hidden::make('data_induk_id')
                             ->default(function (): ?int {
                                 /** @var \App\Models\User $user */
@@ -223,13 +210,11 @@ class DataIndukResource extends Resource
                                 'Magang'  => 'Magang',
                             ]),
                     ])
-                    ->columns(3),
+                    ->columns(2),
 
                 // Riwayat
-                Step::make('Riwayat Kepegawaian')
+               Step::make('Riwayat Kepegawaian')
                     ->schema([
-
-                        // PILIHAN STATUS PINDAH TUGAS
                         Forms\Components\Select::make('pindah_tugas')
                             ->label('Riwayat Tugas')
                             ->options([
@@ -243,9 +228,9 @@ class DataIndukResource extends Resource
                                 if ($state === 'tetap') {
                                     $set('riwayatJabatans', []);
                                 }
-                            }),
+                            })
+                            ->columnSpanFull(), // Tambahkan ini agar lebih jelas terpisah
 
-                        // Riwayat Jabatan (muncul hanya kalau "pernah pindah tugas")
                         Forms\Components\Repeater::make('riwayatJabatans')
                             ->relationship()
                             ->label('Riwayat Jabatan')
@@ -258,7 +243,7 @@ class DataIndukResource extends Resource
                                     ->required(),
                             ])
                             ->columns(2)
-                            ->visible(fn(Get $get) => $get('status_pindah_tugas') === 'pernah'),
+                            ->visible(fn(Get $get) => $get('pindah_tugas') === 'pernah'),
 
                         // Riwayat Golongan (kalau mau tetap selalu tampil, biarkan seperti ini)
                         Forms\Components\Repeater::make('riwayatGolongans')

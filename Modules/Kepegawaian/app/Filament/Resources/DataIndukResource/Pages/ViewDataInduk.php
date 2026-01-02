@@ -41,6 +41,7 @@ class ViewDataInduk extends ViewRecord
                                     ->schema([
                                         TextEntry::make('nama')->label('Nama Lengkap')->weight('bold')->inlineLabel(),
                                         TextEntry::make('nik')->label('NIK')->inlineLabel(),
+                                        TextEntry::make('no_hp')->label('Nomor HP')->inlineLabel(),
                                         TextEntry::make('ttl')
                                             ->label('Tempat, Tanggal Lahir')
                                             ->inlineLabel()
@@ -57,8 +58,8 @@ class ViewDataInduk extends ViewRecord
 
                                                 return $tempat ?: ($tanggal ?: '-');
                                             }),
-
-                                        TextEntry::make('no_hp')->label('Nomor HP')->inlineLabel(),
+                                        TextEntry::make('pendidikan')->label('Pendidikan')->inlineLabel(),
+                                        TextEntry::make('instansi')->label('Instansi')->inlineLabel(),
                                         TextEntry::make('status_perkawinan')->label('Status Perkawinan')->inlineLabel(),
                                         TextEntry::make('suami_istri')->label('Nama Suami / Istri')->inlineLabel(),
                                         TextEntry::make('alamat')->label('Alamat')->inlineLabel()->columnSpanFull(),
@@ -66,7 +67,7 @@ class ViewDataInduk extends ViewRecord
                                     ]),
                             ]),
 
-                        Tab::make('Data Kepegawaian')
+                        Tab::make('Data Induk')
                             ->schema([
                                 Section::make()
                                     ->columns(1)
@@ -82,7 +83,7 @@ class ViewDataInduk extends ViewRecord
                                             ->inlineLabel()
                                             ->state(function ($record) {
                                                 $latest = $record->riwayatGolongans
-                                                    ?->sortByDesc('tanggal')
+                                                    ?->sortBy('tanggal')
                                                     ->first();
 
                                                 return $latest?->tanggal
@@ -118,14 +119,24 @@ class ViewDataInduk extends ViewRecord
                                 Section::make('Riwayat Jabatan')
                                     ->schema([
                                         TextEntry::make('riwayat_jabatan')
-                                            ->state(fn ($record) =>
-                                                $record->riwayatJabatans?->sortByDesc('tanggal')
-                                                    ->map(fn ($r) =>
-                                                        ($r->tanggal?->format('d M Y') ?? '-') .
-                                                        ' — ' . ($r->nama_jabatan ?? '-')
-                                                    )->implode("\n")
-                                                ?: 'Belum ada riwayat jabatan'
-                                            )
+                                            ->state(function ($record) {
+
+                                                if ($record->pindah_tugas === 'tetap') {
+                                                    return 'Tetap pada amanahnya – ' . ($record->jabatan ?? '-');
+                                                }
+
+                                                if ($record->riwayatJabatans && $record->riwayatJabatans->count()) {
+                                                    return $record->riwayatJabatans
+                                                        ->sortBy('tanggal')
+                                                        ->map(fn ($r) =>
+                                                            ($r->tanggal?->format('d M Y') ?? '-') .
+                                                            ' — ' . ($r->nama_jabatan ?? '-')
+                                                        )
+                                                        ->implode('<br>');
+                                                }
+
+                                                return '-';
+                                            })
                                             ->markdown(),
                                     ]),
 
@@ -133,11 +144,11 @@ class ViewDataInduk extends ViewRecord
                                     ->schema([
                                         TextEntry::make('riwayat_golongan')
                                             ->state(fn ($record) =>
-                                                $record->riwayatGolongans?->sortByDesc('tanggal')
+                                                $record->riwayatGolongans?->sortBy('tanggal')
                                                     ->map(fn ($r) =>
                                                         ($r->tanggal?->format('d M Y') ?? '-') .
                                                         ' — ' . (optional($r->golongan)->name ?? '-')
-                                                    )->implode("\n")
+                                                    )->implode('<br>')
                                                 ?: 'Belum ada riwayat golongan'
                                             )
                                             ->markdown(),

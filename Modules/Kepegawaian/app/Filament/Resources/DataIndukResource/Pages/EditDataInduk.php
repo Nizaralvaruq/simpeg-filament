@@ -15,15 +15,27 @@ class EditDataInduk extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if ($this->record->riwayatJabatans()->exists()) {
+            $data['pindah_tugas'] = 'pernah';
+        } else {
+            $data['pindah_tugas'] = 'tetap';
+        }
+
+        return $data;
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $state = $this->form->getState();
 
-        // ===== JABATAN =====
-        if (($state['status_riwayat_jabatan'] ?? 'tetap') === 'tetap') {
+        // ===== RIWAYAT JABATAN =====
+        if (($state['pindah_tugas'] ?? 'tetap') === 'tetap') {
+            // Hanya hapus riwayat, JANGAN ubah jabatan
             $this->record->riwayatJabatans()->delete();
-            $data['jabatan'] = 'Tetap pada amanahnya';
         } else {
+            // Kalau pernah pindah → update jabatan dari riwayat terakhir
             if (! empty($state['riwayatJabatans'])) {
                 $latest = collect($state['riwayatJabatans'])
                     ->filter(fn ($r) => ! empty($r['tanggal']) && ! empty($r['nama_jabatan']))
@@ -50,5 +62,6 @@ class EditDataInduk extends EditRecord
 
         return $data;
     }
+
 
 }

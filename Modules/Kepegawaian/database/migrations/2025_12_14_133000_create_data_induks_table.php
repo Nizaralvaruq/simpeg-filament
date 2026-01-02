@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('instansi')->nullable();
             $table->string('jabatan')->nullable();
             $table->string('status_kepegawaian')->nullable();
-            $table->string('pindah_tugas')->comment('pernah | tetap')->nullable();
+            $table->string('pindah_tugas')->nullable()->after('jabatan');
 
             // snapshot golongan aktif
             $table->foreignId('golongan_id')->nullable()->constrained('golongans')->nullOnDelete();

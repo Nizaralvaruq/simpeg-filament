@@ -16,7 +16,7 @@ class DataInduk extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function units()
@@ -38,4 +38,5 @@ class DataInduk extends Model
     {
         return $this->hasMany(RiwayatGolongan::class, 'data_induk_id');
     }
+    
 }
