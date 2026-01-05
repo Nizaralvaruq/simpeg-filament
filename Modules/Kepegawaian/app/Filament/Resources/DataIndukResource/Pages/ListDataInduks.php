@@ -10,6 +10,8 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DataIndukImport;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class ListDataInduks extends ListRecords
 {
@@ -20,12 +22,13 @@ class ListDataInduks extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->label('Tambah Data'),
-                
+
             Actions\Action::make('importExcel')
                 ->label('Import Data')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
-                ->form([
+                ->visible(fn() => Auth::check() && Auth::user()->hasRole('super_admin'))
+                ->fillForm([
                     FileUpload::make('file')
                         ->label('File Excel')
                         ->helperText('Gunakan template Excel sesuai form Create Pegawai')

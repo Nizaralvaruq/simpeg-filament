@@ -29,7 +29,12 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->profile()
+            ->brandName('Sistem Kepegawaian')
+            ->brandLogo(asset('images/logo1.png'))
+            ->brandLogoHeight('3rem')
+            ->databaseNotifications(false)
+            ->globalSearch(false)
+            ->profile(\App\Filament\Pages\EditProfile::class)
             ->colors([
                 'primary' => Color::Blue,
             ])
@@ -37,7 +42,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: base_path('Modules/Kepegawaian/app/Filament/Resources'), for: 'Modules\\Kepegawaian\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/MasterData/app/Filament/Resources'), for: 'Modules\\MasterData\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/Presensi/app/Filament/Resources'), for: 'Modules\\Presensi\\Filament\\Resources')
+            ->discoverResources(in: base_path('Modules/Resign/app/Filament/Resources'), for: 'Modules\\Resign\\Filament\\Resources')
+            ->discoverResources(in: base_path('Modules/Leave/app/Filament/Resources'), for: 'Modules\\Leave\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/PenilaianKinerja/app/Filament/Resources'), for: 'Modules\\PenilaianKinerja\\Filament\\Resources')
+
 
 
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -45,9 +53,12 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+
+                \App\Filament\Widgets\GenderStatsOverview::class,
+                \App\Filament\Widgets\HRStatsOverview::class,
+                \App\Filament\Widgets\EmployeeDistributionChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

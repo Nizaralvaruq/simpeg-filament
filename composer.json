@@ -36,7 +36,9 @@
             "Modules\\MasterData\\": "Modules/MasterData/app/",
             "Modules\\Presensi\\": "Modules/Presensi/app/",
             "Modules\\Akademik\\": "Modules/Akademik/app/",
-            "Modules\\PenilaianKinerja\\": "Modules/PenilaianKinerja/app/"
+            "Modules\\PenilaianKinerja\\": "Modules/PenilaianKinerja/app/",
+            "Modules\\Resign\\": "Modules/Resign/app/",
+            "Modules\\Leave\\": "Modules/Leave/app/"
         }
     },
     "autoload-dev": {

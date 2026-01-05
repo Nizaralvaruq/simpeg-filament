@@ -19,6 +19,7 @@ class RolePermissionSeeder extends Seeder
         $staff = Role::firstOrCreate(['name' => 'staff']);
         $kepalaSekolah = Role::firstOrCreate(['name' => 'kepala_sekolah']);
         $koorJenjang = Role::firstOrCreate(['name' => 'koor_jenjang']);
+        $adminUnit = Role::firstOrCreate(['name' => 'admin_unit']);
 
         // Absensi permissions
         $absensiPermissions = [
@@ -59,11 +60,21 @@ class RolePermissionSeeder extends Seeder
             'Absensi:view',
         ]);
 
+        // Admin Unit: full CRUD (scoped to their unit)
+        $adminUnit->syncPermissions([
+            'Absensi:viewAny',
+            'Absensi:view',
+            'Absensi:create',
+            'Absensi:update',
+            'Absensi:delete',
+        ]);
+
         $this->command->info('Roles and permissions created successfully!');
         $this->command->info('- super_admin: all permissions (via Shield config)');
 
         $this->command->info('- staff: full CRUD');
         $this->command->info('- kepala_sekolah: view only');
         $this->command->info('- koor_jenjang: view only');
+        $this->command->info('- admin_unit: full CRUD (unit-scoped)');
     }
 }

@@ -4,6 +4,7 @@ namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Kepegawaian\Models\DataInduk;
 
 class Unit extends Model
 {

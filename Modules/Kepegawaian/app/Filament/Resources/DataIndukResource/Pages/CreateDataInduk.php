@@ -5,6 +5,7 @@ namespace Modules\Kepegawaian\Filament\Resources\DataIndukResource\Pages;
 use Filament\Resources\Pages\CreateRecord;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Modules\Kepegawaian\Filament\Resources\DataIndukResource;
@@ -25,7 +26,14 @@ class CreateDataInduk extends CreateRecord
                 'password' => Hash::make($data['password']),
             ]);
 
-            $user->assignRole('staff');
+            // Assign role based on who is creating the account
+            /** @var \App\Models\User $creator */
+            $creator = Auth::user();
+            if ($creator && $creator->hasRole('admin_unit')) {
+                $user->assignRole('admin_unit');
+            } else {
+                $user->assignRole('staff');
+            }
 
             $record->update(['user_id' => $user->id]);
 
@@ -42,31 +50,6 @@ class CreateDataInduk extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // sinkron jabatan dari riwayat
-        if (! empty($data['riwayatJabatans'])) {
-            $latest = collect($data['riwayatJabatans'])
-                ->filter(fn ($r) => ! empty($r['tanggal']) && ! empty($r['nama_jabatan']))
-                ->sortByDesc('tanggal')
-                ->first();
-
-            if ($latest) {
-                $data['jabatan'] = $latest['nama_jabatan'];
-            }
-        }
-
-        // sinkron golongan dari riwayat
-        if (! empty($data['riwayatGolongans'])) {
-            $latest = collect($data['riwayatGolongans'])
-                ->filter(fn ($r) => ! empty($r['tanggal']) && ! empty($r['golongan_id']))
-                ->sortByDesc('tanggal')
-                ->first();
-
-            if ($latest) {
-                $data['golongan_id'] = $latest['golongan_id'];
-            }
-        }
-
         return $data;
     }
-
 }

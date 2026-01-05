@@ -102,7 +102,7 @@ class AbsensiResource extends Resource
                         Forms\Components\Select::make('status')
                             ->options([
                                 'hadir' => 'Hadir',
-                                'izin' => 'Izin',
+                                'izin' =>  'Izin',
                                 'sakit' => 'Sakit',
                                 'alpha' => 'Alpha',
                             ])

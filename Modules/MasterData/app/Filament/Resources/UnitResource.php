@@ -9,6 +9,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms;
+use Illuminate\Support\Facades\Auth;
 
 class UnitResource extends Resource
 {
@@ -43,8 +44,8 @@ class UnitResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         /** @var \App\Models\User $user */
-        $user = auth()->user();
-        return $user->hasAnyRole(['super_admin']);
+        $user = Auth::user();
+        return $user?->hasAnyRole(['super_admin']);
     }
 
     public static function form(Schema $schema): Schema

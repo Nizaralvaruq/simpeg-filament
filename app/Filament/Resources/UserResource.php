@@ -39,19 +39,40 @@ class UserResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
+        /** @var User|null $user */
         $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin']) ?? false;
+        return $user?->hasAnyRole(['super_admin', 'admin_unit']) ?? false;
     }
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
+        $query = parent::getEloquentQuery();
+        /** @var User|null $user */
         $user = Auth::user();
 
-        if (! $user?->hasAnyRole(['super_admin'])) {
-            return parent::getEloquentQuery()->whereRaw('1=0');
+        if (!$user) {
+            return $query->whereRaw('1=0');
         }
 
-        return parent::getEloquentQuery();
+        // Super admin sees all users
+        if ($user->hasRole('super_admin')) {
+            return $query;
+        }
+
+        // Admin unit sees users from their unit(s)
+        if ($user->hasRole('admin_unit')) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id')->all();
+
+                return $query->whereHas('employee.units', function ($q) use ($unitIds) {
+                    $q->whereIn('units.id', $unitIds);
+                });
+            }
+            return $query->whereRaw('1=0');
+        }
+
+        // Others cannot access
+        return $query->whereRaw('1=0');
     }
 
     public static function form(Schema $schema): Schema
@@ -62,9 +83,16 @@ class UserResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('employee_id')
                             ->label('Pilih Pegawai (Data Induk)')
-                            ->options(function () {
-                                return \Modules\Kepegawaian\Models\DataInduk::whereNull('user_id')
-                                    ->pluck('nama', 'id');
+                            ->options(function ($record) {
+                                // Show employees without user OR the current employee
+                                $query = \Modules\Kepegawaian\Models\DataInduk::query()
+                                    ->where(function ($q) use ($record) {
+                                        $q->whereNull('user_id');
+                                        if ($record && $record->employee) {
+                                            $q->orWhere('id', $record->employee->id);
+                                        }
+                                    });
+                                return $query->pluck('nama', 'id');
                             })
                             ->searchable()
                             ->live()
@@ -73,10 +101,11 @@ class UserResource extends Resource
                                     $employee = \Modules\Kepegawaian\Models\DataInduk::find($state);
                                     if ($employee) {
                                         $set('name', $employee->nama);
+                                        $set('email', $employee->user->email ?? '');
                                     }
                                 }
                             })
-                            ->dehydrated(false)
+                            ->default(fn($record) => $record?->employee?->id)
                             ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('name')
@@ -134,11 +163,11 @@ class UserResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
+            ->recordActions([
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),
                 ]),

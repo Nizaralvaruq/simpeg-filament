@@ -1,0 +1,9 @@
+{
+    "name": "Leave",
+    "alias": "leave",
+    "description": "Leave/Cuti Management",
+    "keywords": [],
+    "priority": 0,
+    "providers": [],
+    "files": []
+}

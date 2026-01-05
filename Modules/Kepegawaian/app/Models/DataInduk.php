@@ -14,6 +14,12 @@ class DataInduk extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'tanggal_lahir' => 'date',
+        'tmt_awal' => 'date',
+        'tmt_akhir' => 'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

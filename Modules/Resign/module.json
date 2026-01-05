@@ -1,0 +1,9 @@
+{
+    "name": "Resign",
+    "alias": "resign",
+    "description": "Resignment Management",
+    "keywords": [],
+    "priority": 0,
+    "providers": [],
+    "files": []
+}

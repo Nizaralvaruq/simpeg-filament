@@ -53,6 +53,30 @@ class DataIndukResource extends Resource
     }
 
     /**
+     * Badge pada menu navigasi
+     */
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('status', 'Aktif')->count();
+    }
+
+    /**
+     * Tooltip untuk badge navigasi
+     */
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Total pegawai aktif';
+    }
+
+    /**
+     * Warna badge navigasi
+     */
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'success';
+    }
+
+    /**
      * Query berdasarkan role
      */
     public static function getEloquentQuery(): Builder
@@ -69,7 +93,7 @@ class DataIndukResource extends Resource
             return $query;
         }
 
-        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang'])) {
+        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang', 'admin_unit'])) {
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id')->all();
 
@@ -106,7 +130,24 @@ class DataIndukResource extends Resource
                         Forms\Components\TextInput::make('nama')
                             ->label('Nama Lengkap')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                if (empty($get('email')) && !empty($state)) {
+                                    $set('email', str($state)->lower()->replace(' ', '.')->append('@domain.com')->toString());
+                                }
+                                if (empty($get('password'))) {
+                                    $set('password', 'password123');
+                                }
+                            }),
+
+                        Forms\Components\Select::make('jenis_kelamin')
+                            ->label('Jenis Kelamin')
+                            ->options([
+                                'Laki-laki' => 'Laki-laki',
+                                'Perempuan' => 'Perempuan',
+                            ])
+                            ->native(false),
 
                         Forms\Components\TextInput::make('nik')
                             ->label('NIK')
@@ -163,7 +204,7 @@ class DataIndukResource extends Resource
                 Step::make('Data Induk')
                     ->schema([
                         Forms\Components\TextInput::make('nip')
-                            ->label('NIP')
+                            ->label('NPA')
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
 
@@ -175,31 +216,6 @@ class DataIndukResource extends Resource
                             ->label('Jabatan Saat Ini')
                             ->required()
                             ->maxLength(255),
-
-                        Forms\Components\Select::make('data_induk_id')
-                            ->label('Nama Pegawai')
-                            ->relationship('employee', 'nama')
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->visible(function (): bool {
-                                /** @var \App\Models\User $user */
-                                $user = Auth::user();
-                                return $user?->hasRole('super_admin');
-                            })
-                            ->columnSpanFull(),
-
-                        Forms\Components\Hidden::make('data_induk_id')
-                            ->default(function (): ?int {
-                                /** @var \App\Models\User $user */
-                                $user = Auth::user();
-                                return $user?->employee?->id;
-                            })
-                            ->visible(function (): bool {
-                                /** @var \App\Models\User $user */
-                                $user = Auth::user();
-                                return ! $user?->hasRole('super_admin');
-                            }),
 
                         Forms\Components\Select::make('golongan_id')
                             ->label('Golongan Saat Ini')
@@ -258,7 +274,20 @@ class DataIndukResource extends Resource
                                     ->required(),
                             ])
                             ->columns(2)
-                            ->visible(fn(Get $get) => $get('status_pindah_tugas') === 'pernah'),
+                            ->visible(fn(Get $get) => $get('pindah_tugas') === 'pernah')
+                            ->live()
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                if (! is_array($state)) return;
+
+                                $latest = collect($state)
+                                    ->filter(fn($r) => ! empty($r['tanggal']) && ! empty($r['nama_jabatan']))
+                                    ->sortByDesc('tanggal')
+                                    ->first();
+
+                                if ($latest) {
+                                    $set('jabatan', $latest['nama_jabatan']);
+                                }
+                            }),
 
                         // Riwayat Golongan (kalau mau tetap selalu tampil, biarkan seperti ini)
                         Forms\Components\Repeater::make('riwayatGolongans')
@@ -314,17 +343,17 @@ class DataIndukResource extends Resource
                             ->visible(function (): bool {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
-                                return $user?->hasRole('super_admin');
+                                return $user?->hasAnyRole(['super_admin', 'admin_unit']);
                             })
                             ->columnSpanFull(),
 
                         Forms\Components\Placeholder::make('separator')
                             ->label('ATAU Buat Akun Baru')
                             ->content('Isi Email & Password di bawah jika ingin membuat akun baru.')
-                            ->visible(function (): bool {
+                            ->visible(function (Get $get): bool {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
-                                return ! $user?->hasRole('super_admin');
+                                return $user?->hasAnyRole(['super_admin', 'admin_unit']) && empty($get('user_id'));
                             })
                             ->columnSpanFull(),
 
@@ -360,7 +389,7 @@ class DataIndukResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('no')->label('No')->rowIndex(),
                 Tables\Columns\TextColumn::make('nama')->label('Nama')->searchable(),
-                // Tables\Columns\TextColumn::make('tmt_awal')->date('d M Y'),
+                Tables\Columns\TextColumn::make('jenis_kelamin')->label('JK')->toggleable(),
                 Tables\Columns\TextColumn::make('units.name')->label('Unit Kerja')->badge()->separator(', '),
                 Tables\Columns\TextColumn::make('jabatan')->label('Jabatan')->searchable(),
                 Tables\Columns\TextColumn::make('golongan.name')->label('Golongan')->badge(),
@@ -373,7 +402,7 @@ class DataIndukResource extends Resource
                     }),
                 Tables\Columns\TextColumn::make('keterangan'),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
                     Action::make('info')
                         ->label('Detail')
@@ -398,8 +427,8 @@ class DataIndukResource extends Resource
                         ->label('Hapus'),
                 ])->label('Aksi')
             ])
-            ->actionsColumnLabel('Aksi')
-            ->bulkActions([
+            ->recordActionsColumnLabel('Aksi')
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     BulkAction::make('export')

@@ -1,11 +1,9 @@
 {
     "name": "PenilaianKinerja",
     "alias": "penilaiankinerja",
-    "description": "",
+    "description": "360 Performance Assessment System",
     "keywords": [],
     "priority": 0,
-    "providers": [
-        "Modules\\PenilaianKinerja\\Providers\\PenilaianKinerjaServiceProvider"
-    ],
+    "providers": [],
     "files": []
 }

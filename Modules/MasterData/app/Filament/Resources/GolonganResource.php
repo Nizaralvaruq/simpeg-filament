@@ -9,6 +9,7 @@ use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Forms;
 use Filament\Tables;
+use Illuminate\Support\Facades\Auth;
 
 class GolonganResource extends Resource
 {
@@ -36,8 +37,8 @@ class GolonganResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         /** @var \App\Models\User $user */
-        $user = auth()->user();
-        return $user->hasRole('super_admin');
+        $user = Auth::user();
+        return $user?->hasRole('super_admin');
     }
 
     public static function form(Schema $schema): Schema
