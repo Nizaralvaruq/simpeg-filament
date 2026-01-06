@@ -27,7 +27,11 @@ class ListDataInduks extends ListRecords
                 ->label('Import Data')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
-                ->visible(fn() => Auth::check() && Auth::user()->hasRole('super_admin'))
+                ->visible(function () {
+                    /** @var \App\Models\User $user */
+                    $user = Auth::user();
+                    return $user && $user->hasRole('super_admin');
+                })
                 ->fillForm([
                     FileUpload::make('file')
                         ->label('File Excel')
