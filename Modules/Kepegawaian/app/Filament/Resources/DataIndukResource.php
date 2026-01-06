@@ -250,7 +250,7 @@ class DataIndukResource extends Resource
                             ->label('Riwayat Tugas')
                             ->options([
                                 'pernah' => 'Pernah pindah tugas',
-                                'tetap'  => 'Tetap pada amanahnya',
+                                'tetap'  => 'Tetap',
                             ])
                             ->native(false)
                             ->required()

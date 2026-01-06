@@ -76,6 +76,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
+            ])
+            ->navigationGroups([
+                'Kepegawaian',
+                'Presensi',
+                'Penilaian Kinerja',
+                'Data Master',
+                'Authorization',
             ]);
     }
 }

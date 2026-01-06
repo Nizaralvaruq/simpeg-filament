@@ -26,7 +26,7 @@ class AbsensiResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Kepegawaian';
+        return 'Presensi';
     }
 
     public static function getModelLabel(): string

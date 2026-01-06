@@ -27,7 +27,7 @@ class AppraisalReportResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Penilaian 360';
+        return 'Penilaian Kinerja';
     }
 
     public static function getModelLabel(): string
@@ -37,7 +37,7 @@ class AppraisalReportResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return 'Laporan Penilaian 360';
+        return 'Laporan Penilaian';
     }
 
     public static function table(Table $table): Table

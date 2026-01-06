@@ -36,7 +36,7 @@ class MyAppraisalAssignmentResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Penilaian 360';
+        return 'Penilaian Kinerja';
     }
 
     public static function getModelLabel(): string
