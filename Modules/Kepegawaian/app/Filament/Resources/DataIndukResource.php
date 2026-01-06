@@ -21,6 +21,7 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Section;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -347,9 +348,8 @@ class DataIndukResource extends Resource
                             })
                             ->columnSpanFull(),
 
-                        Forms\Components\Placeholder::make('separator')
-                            ->label('ATAU Buat Akun Baru')
-                            ->content('Isi Email & Password di bawah jika ingin membuat akun baru.')
+                        Section::make('ATAU Buat Akun Baru')
+                            ->description('Isi Email & Password di bawah jika ingin membuat akun baru.')
                             ->visible(function (Get $get): bool {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
