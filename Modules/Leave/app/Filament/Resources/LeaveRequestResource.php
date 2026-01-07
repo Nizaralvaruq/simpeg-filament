@@ -45,6 +45,12 @@ class LeaveRequestResource extends Resource
      */
     public static function getNavigationBadge(): ?string
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user?->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit'])) {
+            return null;
+        }
+
         $count = static::getModel()::where('status', 'pending')->count();
         return $count > 0 ? (string) $count : null;
     }
