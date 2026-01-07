@@ -157,8 +157,12 @@ class AppraisalAssignmentResource extends Resource
                     ->relationship('session', 'name'),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    EditAction::make()
+                        ->label('Ubah'),
+                    DeleteAction::make()
+                        ->label('Hapus'),
+                ])->label('Aksi'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -169,7 +173,7 @@ class AppraisalAssignmentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['session', 'rater', 'ratee']);
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
