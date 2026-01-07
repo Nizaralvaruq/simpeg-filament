@@ -152,11 +152,14 @@ class DataIndukResource extends Resource
 
                         Forms\Components\TextInput::make('nik')
                             ->label('NIK')
+                            ->numeric()
+                            ->length(16)
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('no_hp')
                             ->label('No HP')
-                            ->tel(),
+                            ->tel()
+                            ->numeric(),
 
                         Forms\Components\TextInput::make('tempat_lahir')
                             ->label('Tempat Lahir'),

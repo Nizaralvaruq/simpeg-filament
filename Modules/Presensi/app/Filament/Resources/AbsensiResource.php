@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -230,47 +231,49 @@ class AbsensiResource extends Resource
                     })
             ])
             ->recordActions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                ActionGroup::make([
+                    EditAction::make()
                         ->label('Ubah')
-                        /** @var \App\Models\User $user */
-                        $user = Auth::user();
-                        if (!$user) return false;
+                        ->visible(function (Absensi $record) {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            if (!$user) return false;
 
-                        if ($user->hasRole('super_admin')) return true;
+                            if ($user->hasRole('super_admin')) return true;
 
-                        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
-                            /** @var \App\Models\User $manager */
-                            $manager = $user;
-                            $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];
-                            $recordOwnerUnitIds = $record->user?->employee?->units->pluck('id')->all() ?? [];
+                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                                /** @var \App\Models\User $manager */
+                                $manager = $user;
+                                $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];
+                                $recordOwnerUnitIds = $record->user?->employee?->units->pluck('id')->all() ?? [];
 
-                            return !empty(array_intersect($managerUnitIds, $recordOwnerUnitIds));
-                        }
+                                return !empty(array_intersect($managerUnitIds, $recordOwnerUnitIds));
+                            }
 
-                        // Staff can only edit their own
-                        return $user->can('Update:Absensi') && $record->user_id === $user->id;
-                    }),
-                DeleteAction::make()
-                    ->visible(function (Absensi $record) {
-                        /** @var \App\Models\User $user */
-                        $user = Auth::user();
-                        if (!$user) return false;
+                            // Staff can only edit their own
+                            return $user->can('Update:Absensi') && $record->user_id === $user->id;
+                        }),
+                    DeleteAction::make()
+                        ->label('Hapus')
+                        ->visible(function (Absensi $record) {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            if (!$user) return false;
 
-                        if ($user->hasRole('super_admin')) return true;
+                            if ($user->hasRole('super_admin')) return true;
 
-                        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
-                            /** @var \App\Models\User $manager */
-                            $manager = $user;
-                            $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];
-                            $recordOwnerUnitIds = $record->user?->employee?->units->pluck('id')->all() ?? [];
+                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                                /** @var \App\Models\User $manager */
+                                $manager = $user;
+                                $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];
+                                $recordOwnerUnitIds = $record->user?->employee?->units->pluck('id')->all() ?? [];
 
-                            return !empty(array_intersect($managerUnitIds, $recordOwnerUnitIds));
-                        }
+                                return !empty(array_intersect($managerUnitIds, $recordOwnerUnitIds));
+                            }
 
-                        // Staff can only delete their own
-                        return $user->can('Delete:Absensi') && $record->user_id === $user->id;
-                    }),
+                            // Staff can only delete their own
+                            return $user->can('Delete:Absensi') && $record->user_id === $user->id;
+                        }),
                 ])->label('Aksi'),
             ])
             ->groupedBulkActions([
