@@ -74,8 +74,8 @@ class ResignResource extends Resource
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // 1. Super Admin & Admin HR: View ALL
-        if ($user->hasRole('super_admin')) {
+        // 1. Super Admin & Ketua PSDM: View ALL
+        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return $query;
         }
 
