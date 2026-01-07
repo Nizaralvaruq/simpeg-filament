@@ -10,6 +10,9 @@ use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
@@ -61,21 +64,20 @@ class AbsensiResource extends Resource
 
     public static function canCreate(): bool
     {
-        $panel = \Filament\Facades\Filament::getCurrentPanel()->getId();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        // Staff panel: allow create
-        if ($panel === 'staff') {
+        if (!$user) {
+            return false;
+        }
+
+        // Allow creating in staff panel
+        if (\Filament\Facades\Filament::getCurrentPanel()?->getId() === 'staff') {
             return true;
         }
 
-        // Admin panel: only super_admin can create
-        if ($panel === 'admin') {
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
-            return $user->hasRole('super_admin');
-        }
-
-        return false;
+        // In admin panel, allow super_admin OR users with Absensi:create permission (like staff)
+        return $user->hasRole('super_admin') || $user->can('Absensi:create');
     }
 
     public static function form(Schema $schema): Schema
@@ -89,14 +91,22 @@ class AbsensiResource extends Resource
                             ->default(Auth::id())
                             ->required()
                             ->label('Nama Pegawai')
-                            ->disabled(fn() => !Auth::user()->hasAnyRole(['super_admin']))
+                            ->disabled(function () {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                return ! ($user?->hasRole('super_admin') ?? false);
+                            })
                             ->dehydrated(),
 
                         Forms\Components\DatePicker::make('tanggal')
                             ->required()
                             ->default(now())
                             ->label('Tanggal')
-                            ->disabled(fn() => !Auth::user()->hasAnyRole(['super_admin']))
+                            ->disabled(function () {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                return ! ($user?->hasRole('super_admin') ?? false);
+                            })
                             ->dehydrated(),
 
                         Forms\Components\Select::make('status')
@@ -184,7 +194,7 @@ class AbsensiResource extends Resource
                         'alpha' => 'Alpha',
                     ]),
                 Tables\Filters\Filter::make('tanggal')
-                    ->form([
+                    ->schema([
                         Forms\Components\DatePicker::make('dari_tanggal'),
                         Forms\Components\DatePicker::make('sampai_tanggal'),
                     ])
@@ -201,25 +211,35 @@ class AbsensiResource extends Resource
                     })
             ])
             ->actions([
-                \Filament\Actions\EditAction::make()
-                    ->hidden(function () {
+                EditAction::make()
+                    ->visible(function (Absensi $record) {
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
-                        return \Filament\Facades\Filament::getCurrentPanel()->getId() === 'admin' && !$user->hasRole('super_admin');
+                        if (!$user) return false;
+
+                        if ($user->hasRole('super_admin')) return true;
+
+                        // Staff can only edit their own
+                        return $user->can('Absensi:update') && $record->user_id === $user->id;
                     }),
-                \Filament\Actions\DeleteAction::make()
-                    ->hidden(function () {
+                DeleteAction::make()
+                    ->visible(function (Absensi $record) {
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
-                        return \Filament\Facades\Filament::getCurrentPanel()->getId() === 'admin' && !$user->hasRole('super_admin');
+                        if (!$user) return false;
+
+                        if ($user->hasRole('super_admin')) return true;
+
+                        // Staff can only delete their own
+                        return $user->can('Absensi:delete') && $record->user_id === $user->id;
                     }),
             ])
             ->groupedBulkActions([
-                \Filament\Actions\DeleteBulkAction::make()
-                    ->hidden(function () {
+                DeleteBulkAction::make()
+                    ->visible(function () {
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
-                        return \Filament\Facades\Filament::getCurrentPanel()->getId() === 'admin' && !$user->hasRole('super_admin');
+                        return $user?->hasRole('super_admin') ?? false;
                     }),
             ]);
     }

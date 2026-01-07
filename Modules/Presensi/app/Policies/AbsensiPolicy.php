@@ -4,67 +4,56 @@ declare(strict_types=1);
 
 namespace Modules\Presensi\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
+use App\Models\User;
 use Modules\Presensi\Models\Absensi;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class AbsensiPolicy
 {
     use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('ViewAny:Absensi');
+        return $user->can('Absensi:viewAny');
     }
 
-    public function view(AuthUser $authUser, Absensi $absensi): bool
+    public function view(User $user, Absensi $absensi): bool
     {
-        return $authUser->can('View:Absensi');
+        return $user->can('Absensi:view');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Create:Absensi');
+        return $user->can('Absensi:create');
     }
 
-    public function update(AuthUser $authUser, Absensi $absensi): bool
+    public function update(User $user, Absensi $absensi): bool
     {
-        return $authUser->can('Update:Absensi');
+        // Staff can only update their own attendance
+        if ($user->hasRole('staff')) {
+            return $user->can('Absensi:update') && $absensi->user_id === $user->id;
+        }
+
+        return $user->hasRole('super_admin') || $user->can('Absensi:update');
     }
 
-    public function delete(AuthUser $authUser, Absensi $absensi): bool
+    public function delete(User $user, Absensi $absensi): bool
     {
-        return $authUser->can('Delete:Absensi');
+        // Staff can only delete their own attendance
+        if ($user->hasRole('staff')) {
+            return $user->can('Absensi:delete') && $absensi->user_id === $user->id;
+        }
+
+        return $user->hasRole('super_admin') || $user->can('Absensi:delete');
     }
 
-    public function restore(AuthUser $authUser, Absensi $absensi): bool
+    public function restore(User $user, Absensi $absensi): bool
     {
-        return $authUser->can('Restore:Absensi');
+        return $user->can('Absensi:restore') || $user->hasRole('super_admin');
     }
 
-    public function forceDelete(AuthUser $authUser, Absensi $absensi): bool
+    public function forceDelete(User $user, Absensi $absensi): bool
     {
-        return $authUser->can('ForceDelete:Absensi');
+        return $user->can('Absensi:forceDelete') || $user->hasRole('super_admin');
     }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:Absensi');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:Absensi');
-    }
-
-    public function replicate(AuthUser $authUser, Absensi $absensi): bool
-    {
-        return $authUser->can('Replicate:Absensi');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:Absensi');
-    }
-
 }

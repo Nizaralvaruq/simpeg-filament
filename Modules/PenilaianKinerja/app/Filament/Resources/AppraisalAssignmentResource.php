@@ -181,6 +181,17 @@ class AppraisalAssignmentResource extends Resource
         return $query;
     }
 
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user) return false;
+
+        // Sembunyikan dari staff, tampilkan untuk role lainnya (admin, kepala sekolah, koor)
+        return !$user->hasRole('staff');
+    }
+
     public static function getPages(): array
     {
         return [
