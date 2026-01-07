@@ -5,6 +5,7 @@ namespace Modules\Leave\Filament\Resources;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 use Modules\Leave\Filament\Resources\LeaveRequestResource\Pages;
 use Modules\Leave\Models\LeaveRequest;
 use Filament\Schemas\Schema;

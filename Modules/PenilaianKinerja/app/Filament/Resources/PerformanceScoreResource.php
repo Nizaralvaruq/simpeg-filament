@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
+use Filament\Actions\ActionGroup;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
@@ -216,7 +217,7 @@ class PerformanceScoreResource extends Resource
                     ]),
             ])
             ->recordActions([
-                Tables\Actions\ActionGroup::make([
+                ActionGroup::make([
                     ViewAction::make()
                         ->label('Lihat'),
                     EditAction::make()
