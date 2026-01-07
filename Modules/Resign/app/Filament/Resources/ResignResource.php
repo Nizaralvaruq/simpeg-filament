@@ -241,6 +241,13 @@ class ResignResource extends Resource
                     EditAction::make()
                         ->label('Ubah'),
 
+                    Action::make('approve')
+                        ->label('Setujui')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(function ($record) {
+                            /** @var \App\Models\User $user */
                             $user = Auth::user();
                             return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit'])
                                 && $record->status === 'diajukan';
@@ -278,7 +285,9 @@ class ResignResource extends Resource
                                 'keterangan_tindak_lanjut' => $data['keterangan_tindak_lanjut'],
                             ])
                         ),
-                ]),
+                    DeleteAction::make()
+                        ->label('Hapus'),
+                ])->label('Aksi'),
             ])
             ->recordActionsColumnLabel('Aksi')
             ->toolbarActions([

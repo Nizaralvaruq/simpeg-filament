@@ -356,6 +356,15 @@ class LeaveRequestResource extends Resource
                                 && $record->status === 'pending';
                         }),
 
+                    DeleteAction::make()
+                        ->label('Hapus')
+                        ->visible(function ($record) {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            return $user?->hasRole('super_admin') ||
+                                ($user?->hasRole('staff') && $record->status === 'pending' && $record->data_induk_id === $user->employee?->id);
+                        }),
+
                 ])
                     ->icon('heroicon-o-ellipsis-vertical'),
             ])

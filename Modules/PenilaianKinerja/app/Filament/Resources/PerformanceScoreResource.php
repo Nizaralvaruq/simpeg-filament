@@ -216,9 +216,14 @@ class PerformanceScoreResource extends Resource
                     ]),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    ViewAction::make()
+                        ->label('Lihat'),
+                    EditAction::make()
+                        ->label('Ubah'),
+                    DeleteAction::make()
+                        ->label('Hapus'),
+                ])->label('Aksi'),
             ]);
     }
 
@@ -236,7 +241,7 @@ class PerformanceScoreResource extends Resource
     {
         $user = Auth::user();
         /** @var \App\Models\User $user */
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['employee', 'penilai']);
 
         if ($user->hasRole('staff')) {
             return $query->where('penilai_id', $user->id)
