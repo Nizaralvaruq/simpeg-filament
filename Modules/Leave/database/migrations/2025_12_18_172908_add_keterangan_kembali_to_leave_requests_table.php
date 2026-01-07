@@ -12,9 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('leave_requests', function (Blueprint $table) {
-            $table->string('keterangan_kembali')
-                ->nullable()
-                ->after('status');
+            if (!Schema::hasColumn('leave_requests', 'keterangan_kembali')) {
+                $table->string('keterangan_kembali')
+                    ->nullable()
+                    ->after('status');
+            }
         });
     }
 
@@ -24,7 +26,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('leave_requests', function (Blueprint $table) {
-            
+            if (Schema::hasColumn('leave_requests', 'keterangan_kembali')) {
+                $table->dropColumn('keterangan_kembali');
+            }
         });
     }
 };

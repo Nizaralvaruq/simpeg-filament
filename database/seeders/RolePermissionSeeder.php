@@ -20,53 +20,100 @@ class RolePermissionSeeder extends Seeder
         $kepalaSekolah = Role::firstOrCreate(['name' => 'kepala_sekolah']);
         $koorJenjang = Role::firstOrCreate(['name' => 'koor_jenjang']);
         $adminUnit = Role::firstOrCreate(['name' => 'admin_unit']);
+        $ketuaPsdm = Role::firstOrCreate(['name' => 'ketua_psdm']);
 
-        // Absensi permissions
-        $absensiPermissions = [
-            'Absensi:viewAny',
-            'Absensi:view',
-            'Absensi:create',
-            'Absensi:update',
-            'Absensi:delete',
+        // Permissions categories
+        $modules = [
+            'Absensi',
+            'DataInduk',
+            'AppraisalAssignment',
+            'LeaveRequest',
+            'Resign',
+            'PerformanceScore',
+            'Unit',
+            'Golongan'
         ];
 
-        foreach ($absensiPermissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+        $actions = ['ViewAny', 'View', 'Create', 'Update', 'Delete'];
+
+        foreach ($modules as $module) {
+            foreach ($actions as $action) {
+                Permission::firstOrCreate(['name' => "{$action}:{$module}"]);
+            }
         }
 
         // Assign permissions to roles
 
-        // Admin HR: only view permissions
-
-
-        // Staff: full CRUD permissions
+        // Staff: full CRUD permissions on self-related items
         $staff->syncPermissions([
-            'Absensi:viewAny',
-            'Absensi:view',
-            'Absensi:create',
-            'Absensi:update',
-            'Absensi:delete',
+            'ViewAny:Absensi',
+            'View:Absensi',
+            'Create:Absensi',
+            'Update:Absensi',
+            'Delete:Absensi',
+            'ViewAny:LeaveRequest',
+            'Create:LeaveRequest',
+            'ViewAny:Resign',
+            'Create:Resign',
         ]);
 
         // Kepala Sekolah: view only
         $kepalaSekolah->syncPermissions([
-            'Absensi:viewAny',
-            'Absensi:view',
+            'ViewAny:Absensi',
+            'View:Absensi',
+            'ViewAny:DataInduk',
+            'ViewAny:AppraisalAssignment',
+            'ViewAny:LeaveRequest',
+            'ViewAny:Resign',
         ]);
 
         // Koor Jenjang: view only
         $koorJenjang->syncPermissions([
-            'Absensi:viewAny',
-            'Absensi:view',
+            'ViewAny:Absensi',
+            'View:Absensi',
+            'ViewAny:DataInduk',
+            'ViewAny:AppraisalAssignment',
+            'ViewAny:LeaveRequest',
+            'ViewAny:Resign',
         ]);
 
         // Admin Unit: full CRUD (scoped to their unit)
         $adminUnit->syncPermissions([
-            'Absensi:viewAny',
-            'Absensi:view',
-            'Absensi:create',
-            'Absensi:update',
-            'Absensi:delete',
+            'ViewAny:Absensi',
+            'View:Absensi',
+            'Create:Absensi',
+            'Update:Absensi',
+            'Delete:Absensi',
+            'ViewAny:DataInduk',
+            'Update:DataInduk',
+            'ViewAny:AppraisalAssignment',
+            'Create:AppraisalAssignment',
+            'ViewAny:LeaveRequest',
+            'Update:LeaveRequest',
+            'ViewAny:Resign',
+            'Update:Resign',
+        ]);
+
+        // Ketua PSDM: full CRUD (Global)
+        $ketuaPsdm->syncPermissions([
+            'ViewAny:Absensi',
+            'View:Absensi',
+            'Create:Absensi',
+            'Update:Absensi',
+            'Delete:Absensi',
+            'ViewAny:DataInduk',
+            'View:DataInduk',
+            'Create:DataInduk',
+            'Update:DataInduk',
+            'Delete:DataInduk',
+            'ViewAny:AppraisalAssignment',
+            'View:AppraisalAssignment',
+            'Create:AppraisalAssignment',
+            'Update:AppraisalAssignment',
+            'Delete:AppraisalAssignment',
+            'ViewAny:PerformanceScore',
+            'ViewAny:Unit',
+            'ViewAny:Golongan',
         ]);
 
         $this->command->info('Roles and permissions created successfully!');

@@ -63,7 +63,7 @@ class UnitEmployeeListWidget extends BaseWidget
                         'Belum Dinilai' => 'danger',
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('nilai')
                     ->label('Beri Nilai')
                     ->icon('heroicon-m-pencil-square')

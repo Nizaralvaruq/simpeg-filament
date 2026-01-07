@@ -43,22 +43,26 @@ class AbsensiResource extends Resource
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($user->hasRole('super_admin')) {
+        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return $query;
         }
 
-        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang'])) {
+        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang', 'admin_unit'])) {
             if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id')->toArray();
-                return $query->whereHas('user.employee.units', function ($q) use ($unitIds) {
-                    $q->whereIn('units.id', $unitIds);
-                });
+                $unitIds = $user->employee->units->pluck('id')->all();
+
+                return $query->whereHas(
+                    'user.employee.units',
+                    fn($q) => $q->whereIn('units.id', $unitIds)
+                );
             }
-            // If no units assigned, restricted to self
-            return $query->where('user_id', $user->id);
+
+            // Optional: If no units assigned, usually they shouldn't see anything or just self
+            // Following DataIndukResource standard:
+            return $query->whereRaw('1=0');
         }
 
-        // Default: Staff sees only own data
+        // Staff sees only own data
         return $query->where('user_id', $user->id);
     }
 
@@ -76,8 +80,8 @@ class AbsensiResource extends Resource
             return true;
         }
 
-        // In admin panel, allow super_admin OR users with Absensi:create permission (like staff)
-        return $user->hasRole('super_admin') || $user->can('Absensi:create');
+        // In admin panel, allow super_admin OR users with Create:Absensi permission (like staff)
+        return $user->hasRole('super_admin') || $user->can('Create:Absensi');
     }
 
     public static function form(Schema $schema): Schema
@@ -87,14 +91,27 @@ class AbsensiResource extends Resource
                 Section::make('Data Absensi')
                     ->schema([
                         Forms\Components\Select::make('user_id')
-                            ->relationship('user', 'name')
+                            ->relationship('user', 'name', modifyQueryUsing: function (Builder $query) {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                if (!$user || $user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+                                    return $query;
+                                }
+
+                                if ($user->employee && $user->employee->units->isNotEmpty()) {
+                                    $unitIds = $user->employee->units->pluck('id')->all();
+                                    return $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+                                }
+
+                                return $query->where('id', $user->id);
+                            })
                             ->default(Auth::id())
                             ->required()
                             ->label('Nama Pegawai')
                             ->disabled(function () {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
-                                return ! ($user?->hasRole('super_admin') ?? false);
+                                return ! ($user?->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'ketua_psdm']) ?? false);
                             })
                             ->dehydrated(),
 
@@ -105,7 +122,7 @@ class AbsensiResource extends Resource
                             ->disabled(function () {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
-                                return ! ($user?->hasRole('super_admin') ?? false);
+                                return ! ($user?->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'ketua_psdm']) ?? false);
                             })
                             ->dehydrated(),
 
@@ -210,7 +227,7 @@ class AbsensiResource extends Resource
                             );
                     })
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make()
                     ->visible(function (Absensi $record) {
                         /** @var \App\Models\User $user */
@@ -219,8 +236,17 @@ class AbsensiResource extends Resource
 
                         if ($user->hasRole('super_admin')) return true;
 
+                        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                            /** @var \App\Models\User $manager */
+                            $manager = $user;
+                            $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];
+                            $recordOwnerUnitIds = $record->user?->employee?->units->pluck('id')->all() ?? [];
+
+                            return !empty(array_intersect($managerUnitIds, $recordOwnerUnitIds));
+                        }
+
                         // Staff can only edit their own
-                        return $user->can('Absensi:update') && $record->user_id === $user->id;
+                        return $user->can('Update:Absensi') && $record->user_id === $user->id;
                     }),
                 DeleteAction::make()
                     ->visible(function (Absensi $record) {
@@ -230,8 +256,17 @@ class AbsensiResource extends Resource
 
                         if ($user->hasRole('super_admin')) return true;
 
+                        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                            /** @var \App\Models\User $manager */
+                            $manager = $user;
+                            $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];
+                            $recordOwnerUnitIds = $record->user?->employee?->units->pluck('id')->all() ?? [];
+
+                            return !empty(array_intersect($managerUnitIds, $recordOwnerUnitIds));
+                        }
+
                         // Staff can only delete their own
-                        return $user->can('Absensi:delete') && $record->user_id === $user->id;
+                        return $user->can('Delete:Absensi') && $record->user_id === $user->id;
                     }),
             ])
             ->groupedBulkActions([

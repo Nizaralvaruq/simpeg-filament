@@ -156,11 +156,11 @@ class AppraisalAssignmentResource extends Resource
                     ->label('Filter Sesi')
                     ->relationship('session', 'name'),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

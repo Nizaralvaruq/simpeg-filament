@@ -274,7 +274,7 @@ class ResignResource extends Resource
                         ->action(
                             fn($record, array $data) =>
                             $record->update([
-                                'status' => 'ditolaK',
+                                'status' => 'ditolak',
                                 'keterangan_tindak_lanjut' => $data['keterangan_tindak_lanjut'],
                             ])
                         ),

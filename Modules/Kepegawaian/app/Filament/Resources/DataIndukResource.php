@@ -90,7 +90,7 @@ class DataIndukResource extends Resource
             return $query->whereRaw('1=0');
         }
 
-        if ($user->hasRole('super_admin')) {
+        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return $query;
         }
 

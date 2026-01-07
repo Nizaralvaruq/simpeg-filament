@@ -79,7 +79,7 @@ class AppraisalReportResource extends Resource
                     ->label('Filter Sesi')
                     ->options(AppraisalSession::whereNotNull('name')->pluck('name', 'id')),
             ])
-            ->actions([
+            ->recordActions([
                 ViewAction::make()
                     ->label('Detail Laporan'),
             ]);

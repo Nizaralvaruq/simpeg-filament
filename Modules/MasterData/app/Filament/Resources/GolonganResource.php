@@ -74,11 +74,11 @@ class GolonganResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
+            ->recordActions([
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),
                 ]),

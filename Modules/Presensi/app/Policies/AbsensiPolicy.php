@@ -14,37 +14,51 @@ class AbsensiPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('Absensi:viewAny');
+        return $user->can('ViewAny:Absensi');
     }
 
     public function view(User $user, Absensi $absensi): bool
     {
-        return $user->can('Absensi:view');
+        return $user->can('View:Absensi');
     }
 
     public function create(User $user): bool
     {
-        return $user->can('Absensi:create');
+        return $user->can('Create:Absensi');
     }
 
     public function update(User $user, Absensi $absensi): bool
     {
-        // Staff can only update their own attendance
-        if ($user->hasRole('staff')) {
-            return $user->can('Absensi:update') && $absensi->user_id === $user->id;
+        if ($user->hasRole('super_admin')) return true;
+
+        // Managers can update any record in their scope
+        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah', 'ketua_psdm'])) {
+            return $user->can('Update:Absensi');
         }
 
-        return $user->hasRole('super_admin') || $user->can('Absensi:update');
+        // Staff can only update their own attendance
+        if ($user->hasRole('staff')) {
+            return $user->can('Update:Absensi') && $absensi->user_id === $user->id;
+        }
+
+        return $user->can('Update:Absensi');
     }
 
     public function delete(User $user, Absensi $absensi): bool
     {
-        // Staff can only delete their own attendance
-        if ($user->hasRole('staff')) {
-            return $user->can('Absensi:delete') && $absensi->user_id === $user->id;
+        if ($user->hasRole('super_admin')) return true;
+
+        // Managers can delete any record in their scope
+        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah', 'ketua_psdm'])) {
+            return $user->can('Delete:Absensi');
         }
 
-        return $user->hasRole('super_admin') || $user->can('Absensi:delete');
+        // Staff can only delete their own attendance
+        if ($user->hasRole('staff')) {
+            return $user->can('Delete:Absensi') && $absensi->user_id === $user->id;
+        }
+
+        return $user->can('Delete:Absensi');
     }
 
     public function restore(User $user, Absensi $absensi): bool
