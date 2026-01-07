@@ -112,6 +112,12 @@ class RolePermissionSeeder extends Seeder
             'Update:AppraisalAssignment',
             'Delete:AppraisalAssignment',
             'ViewAny:PerformanceScore',
+            'ViewAny:LeaveRequest',
+            'View:LeaveRequest',
+            'Update:LeaveRequest',
+            'ViewAny:Resign',
+            'View:Resign',
+            'Update:Resign',
             'ViewAny:Unit',
             'ViewAny:Golongan',
         ]);
