@@ -76,7 +76,7 @@ class ResignResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['employee.units']);
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -238,7 +238,8 @@ class ResignResource extends Resource
             ])
             ->recordActions([
                 ActionGroup::make([
-                    EditAction::make(),
+                    EditAction::make()
+                        ->label('Ubah'),
 
                     Action::make('approve')
                         ->label('Setujui')

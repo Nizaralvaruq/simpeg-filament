@@ -82,7 +82,7 @@ class DataIndukResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['units', 'golongan']);
         /** @var \App\Models\User $user */
         $user  = Auth::user();
 
@@ -421,7 +421,7 @@ class DataIndukResource extends Resource
                             )
                         ),
                     EditAction::make()
-                        ->label('Edit'),
+                        ->label('Ubah'),
 
                     DeleteAction::make()
                         ->label('Hapus'),

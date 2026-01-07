@@ -39,7 +39,7 @@ class AbsensiResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['user.employee.units']);
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -138,10 +138,12 @@ class AbsensiResource extends Resource
                             ->native(false),
 
                         Forms\Components\TimePicker::make('jam_masuk')
+                            ->label('Jam Masuk')
                             ->default(now())
                             ->required(fn($get) => $get('status') === 'hadir'),
 
-                        Forms\Components\TimePicker::make('jam_keluar'),
+                        Forms\Components\TimePicker::make('jam_keluar')
+                            ->label('Jam Keluar'),
 
                         Forms\Components\Textarea::make('keterangan')
                             ->columnSpanFull(),
@@ -228,8 +230,9 @@ class AbsensiResource extends Resource
                     })
             ])
             ->recordActions([
-                EditAction::make()
-                    ->visible(function (Absensi $record) {
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->label('Ubah')
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
                         if (!$user) return false;
@@ -268,6 +271,7 @@ class AbsensiResource extends Resource
                         // Staff can only delete their own
                         return $user->can('Delete:Absensi') && $record->user_id === $user->id;
                     }),
+                ])->label('Aksi'),
             ])
             ->groupedBulkActions([
                 DeleteBulkAction::make()

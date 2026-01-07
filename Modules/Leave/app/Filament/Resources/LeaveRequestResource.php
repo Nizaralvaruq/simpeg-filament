@@ -73,7 +73,7 @@ class LeaveRequestResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['employee']);
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -341,6 +341,7 @@ class LeaveRequestResource extends Resource
                         }),
 
                     EditAction::make()
+                        ->label('Ubah')
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
