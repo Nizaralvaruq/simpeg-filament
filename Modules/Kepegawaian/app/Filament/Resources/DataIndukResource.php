@@ -236,6 +236,8 @@ class DataIndukResource extends Resource
                             ->preload(),
 
                         Forms\Components\Select::make('status_kepegawaian')
+
+
                             ->label('Status Kepegawaian')
                             ->options([
                                 'Tetap'   => 'Tetap',

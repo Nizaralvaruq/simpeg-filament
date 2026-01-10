@@ -4,6 +4,8 @@
     "description": "Leave/Cuti Management",
     "keywords": [],
     "priority": 0,
-    "providers": [],
+    "providers": [
+        "Modules\\Leave\\Providers\\LeaveServiceProvider"
+    ],
     "files": []
 }

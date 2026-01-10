@@ -53,11 +53,12 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->discoverWidgets(in: base_path('Modules/Presensi/app/Filament/Widgets'), for: 'Modules\\Presensi\\Filament\\Widgets')
+
 
             ->widgets([
                 \App\Filament\Widgets\HRStatsOverview::class,
                 \App\Filament\Widgets\EmployeeDistributionChart::class,
-                \App\Filament\Widgets\PerformanceDistributionChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -32,7 +32,7 @@ class ListAbsensiReports extends ListRecords
                     // Difficult in Header Action.
                     // Alternative: Use a Modal Form in Export Action.
                 })
-                ->form([
+                ->schema([
                     \Filament\Forms\Components\DatePicker::make('start_date')->default(now()->startOfMonth()),
                     \Filament\Forms\Components\DatePicker::make('end_date')->default(now()->endOfMonth()),
                 ])

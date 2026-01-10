@@ -30,7 +30,7 @@ class ListAppraisalAssignments extends ListRecords
                 ->label('Generate Otomatis')
                 ->icon('heroicon-o-sparkles')
                 ->color('success')
-                ->form([
+                ->schema([
                     Select::make('session_id')
                         ->label('Sesi Penilaian')
                         ->options(AppraisalSession::where('is_active', true)->whereNotNull('name')->pluck('name', 'id'))

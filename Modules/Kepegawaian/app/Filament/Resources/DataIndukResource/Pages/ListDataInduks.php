@@ -32,7 +32,7 @@ class ListDataInduks extends ListRecords
                     $user = Auth::user();
                     return $user && $user->hasRole('super_admin');
                 })
-                ->form([
+                ->schema([
                     FileUpload::make('file')
                         ->label('File Excel')
                         ->helperText('Gunakan template Excel sesuai form Create Pegawai')

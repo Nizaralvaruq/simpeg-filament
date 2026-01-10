@@ -203,6 +203,16 @@ class AbsensiResource extends Resource
                     ->limit(50)
                     ->tooltip(fn($record) => strip_tags($record->uraian_harian ?? ''))
                     ->placeholder('Tidak ada uraian'),
+
+                Tables\Columns\TextColumn::make('late_minutes')
+                    ->label('Keterangan Terlambat')
+                    ->state(function (Absensi $record) {
+                        $late = $record->late_minutes;
+                        return $late > 0 ? "Terlambat $late menit" : 'Tepat Waktu';
+                    })
+                    ->badge()
+                    ->color(fn($state) => str_contains($state, 'Terlambat') ? 'danger' : 'success')
+                    ->visible(fn($record) => $record?->status === 'hadir'),
             ])
             ->defaultSort('tanggal', 'desc')
             ->filters([

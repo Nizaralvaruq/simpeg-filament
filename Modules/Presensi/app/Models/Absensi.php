@@ -29,4 +29,20 @@ class Absensi extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getLateMinutesAttribute(): int
+    {
+        if ($this->status !== 'hadir' || !$this->jam_masuk) {
+            return 0;
+        }
+
+        $jamMasuk = \Carbon\Carbon::parse($this->jam_masuk);
+        $startTime = \Carbon\Carbon::parse('07:00:00');
+
+        if ($jamMasuk->lte($startTime)) {
+            return 0;
+        }
+
+        return $jamMasuk->diffInMinutes($startTime);
+    }
 }

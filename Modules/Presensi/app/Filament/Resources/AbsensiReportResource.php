@@ -16,6 +16,9 @@ use Carbon\Carbon;
 use Filament\Tables\Columns\TextColumn;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Presensi\Exports\AbsensiExport; // Re-use or create new Summary Export if needed
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+
 
 class AbsensiReportResource extends Resource
 {
@@ -138,7 +141,7 @@ class AbsensiReportResource extends Resource
             ])
             ->filters([
                 Filter::make('period')
-                    ->form([
+                    ->schema([
                         Select::make('month')
                             ->options([
                                 1 => 'Januari',
@@ -165,9 +168,11 @@ class AbsensiReportResource extends Resource
                     ])
                     ->query(fn(Builder $query) => $query), // Filters don't filter the *Rows* (Employees), they filter the *Data* calculation
             ])
-            ->actions([])
-            ->bulkActions([
-                // We'll add Export here later
+            ->recordActions([])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    // We'll add Export here later
+                ]),
             ]);
     }
 
