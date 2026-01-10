@@ -18,6 +18,7 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Filters\SelectFilter;
@@ -157,7 +158,7 @@ class AppraisalAssignmentResource extends Resource
                     ->relationship('session', 'name'),
             ])
             ->recordActions([
-                Tables\Actions\ActionGroup::make([
+                ActionGroup::make([
                     EditAction::make()
                         ->label('Ubah'),
                     DeleteAction::make()
@@ -177,9 +178,13 @@ class AppraisalAssignmentResource extends Resource
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($user && $user->hasRole('koor_jenjang')) {
-            $unitIds = $user->employee->units->pluck('id');
-            $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+        if ($user && $user->hasAnyRole(['koor_jenjang', 'admin_unit'])) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id');
+                $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+            } else {
+                return $query->whereRaw('1=0');
+            }
         }
 
         return $query;

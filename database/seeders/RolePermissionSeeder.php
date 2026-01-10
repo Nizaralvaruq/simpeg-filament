@@ -88,6 +88,8 @@ class RolePermissionSeeder extends Seeder
             'Update:DataInduk',
             'ViewAny:AppraisalAssignment',
             'Create:AppraisalAssignment',
+            'Update:AppraisalAssignment',
+            'Delete:AppraisalAssignment',
             'ViewAny:LeaveRequest',
             'Update:LeaveRequest',
             'ViewAny:Resign',

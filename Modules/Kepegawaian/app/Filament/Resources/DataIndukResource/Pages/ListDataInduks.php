@@ -32,7 +32,7 @@ class ListDataInduks extends ListRecords
                     $user = Auth::user();
                     return $user && $user->hasRole('super_admin');
                 })
-                ->fillForm([
+                ->form([
                     FileUpload::make('file')
                         ->label('File Excel')
                         ->helperText('Gunakan template Excel sesuai form Create Pegawai')
@@ -57,7 +57,8 @@ class ListDataInduks extends ListRecords
                     Excel::queueImport(new DataIndukImport, $path);
 
                     Notification::make()
-                        ->title('Import masuk antrian (queue).')
+                        ->title('Import masuk antrian.')
+                        ->body('Data akan diproses di background. Cek log jika data tidak muncul.')
                         ->success()
                         ->send();
                 }),

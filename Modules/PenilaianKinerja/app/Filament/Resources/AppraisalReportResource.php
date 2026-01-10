@@ -18,7 +18,7 @@ class AppraisalReportResource extends Resource
 {
     protected static ?string $model = AppraisalAssignment::class;
 
-    protected static ?int $navigationSort = 80;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -91,9 +91,13 @@ class AppraisalReportResource extends Resource
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($user && $user->hasRole('koor_jenjang')) {
-            $unitIds = $user->employee->units->pluck('id');
-            $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+        if ($user && $user->hasAnyRole(['koor_jenjang', 'admin_unit'])) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id');
+                $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+            } else {
+                return $query->whereRaw('1=0');
+            }
         }
 
         return $query;

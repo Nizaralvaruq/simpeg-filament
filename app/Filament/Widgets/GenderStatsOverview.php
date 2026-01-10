@@ -8,7 +8,7 @@ use Modules\Kepegawaian\Models\DataInduk;
 class GenderStatsOverview extends ChartWidget
 {
     protected ?string $heading = 'Distribusi Gender Pegawai';
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
     protected int | string | array $columnSpan = 'md';
 
 

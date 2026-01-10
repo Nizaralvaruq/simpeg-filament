@@ -9,7 +9,7 @@ use Modules\MasterData\Models\Unit;
 class EmployeeDistributionChart extends ChartWidget
 {
     protected ?string $heading = 'Distribusi Pegawai per Unit';
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
     protected int | string | array $columnSpan = 'md';
 
 

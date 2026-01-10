@@ -14,7 +14,6 @@ class ListPerformanceScores extends ListRecords
     {
         return [
             \Modules\PenilaianKinerja\Filament\Widgets\UnitEmployeeListWidget::class,
-            \App\Filament\Widgets\PerformanceStatsWidget::class,
         ];
     }
 }

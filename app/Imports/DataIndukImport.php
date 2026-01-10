@@ -12,8 +12,12 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Illuminate\Support\Facades\Log;
 
-class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunkReading, WithBatchInserts, WithMapping
+class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunkReading, WithBatchInserts, WithMapping, WithValidation
 {
     public function map($row): array
     {
@@ -25,6 +29,16 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
         return $row;
     }
 
+    public function rules(): array
+    {
+        return [
+            'nik' => 'required',
+            'nama' => 'required|string',
+            'nip' => 'nullable',
+            'email' => 'nullable|email',
+        ];
+    }
+
     public function model(array $row)
     {
         $nik  = trim((string) ($row['nik'] ?? ''));
@@ -34,11 +48,16 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
             return null;
         }
 
-        // Lookup Golongan ID by Name
+        // Lookup Golongan ID by Name - EXACT MATCH
         $golonganId = null;
         if (!empty($row['golongan'])) {
-            $golongan = Golongan::where('name', 'like', '%' . trim($row['golongan']) . '%')->first();
+            $golonganName = trim($row['golongan']);
+            $golongan = Golongan::where('name', $golonganName)->first();
             $golonganId = $golongan?->id;
+
+            if (!$golongan) {
+                Log::warning("Import DataInduk: Golongan '{$golonganName}' tidak ditemukan untuk NIK {$nik}");
+            }
         }
 
         /** @var DataInduk $dataInduk */
@@ -46,6 +65,7 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
             ['nik' => $nik],
             [
                 'nama'              => $nama,
+                'nip'               => $row['nip'] ?? null,
                 'no_hp'             => $row['no_hp'] ?? null,
                 'tempat_lahir'      => $row['tempat_lahir'] ?? null,
                 'tanggal_lahir'     => $row['tanggal_lahir'] ?? null,
@@ -67,20 +87,42 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
             ]
         );
 
-        // Sync Units if provided
+        // Handle User Creation if email is provided and doesn't exist on employee
+        if (!empty($row['email']) && !$dataInduk->user_id) {
+            $user = User::where('email', $row['email'])->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'name' => $nama,
+                    'email' => $row['email'],
+                    'password' => Hash::make('password123'), // Default password
+                ]);
+                $user->assignRole('staff');
+                Log::info("Import DataInduk: Akun baru dibuat untuk {$nama} ({$row['email']})");
+            }
+
+            $dataInduk->update(['user_id' => $user->id]);
+        }
+
+        // Sync Units if provided - EXACT MATCH
         if (!empty($row['unit_kerja'])) {
             $unitNames = explode(',', $row['unit_kerja']);
             $unitIds = [];
             foreach ($unitNames as $name) {
-                $unit = Unit::where('name', 'like', '%' . trim($name) . '%')->first();
+                $trimmedName = trim($name);
+                $unit = Unit::where('name', $trimmedName)->first();
                 if ($unit) {
                     $unitIds[] = $unit->id;
+                } else {
+                    Log::warning("Import DataInduk: Unit '{$trimmedName}' tidak ditemukan untuk NIK {$nik}");
                 }
             }
             if (!empty($unitIds)) {
                 $dataInduk->units()->sync($unitIds);
             }
         }
+
+        Log::info("Import DataInduk: Berhasil memproses {$nama} (NIK: {$nik})");
 
         return $dataInduk;
     }

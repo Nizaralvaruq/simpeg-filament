@@ -19,6 +19,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 
@@ -137,7 +138,7 @@ class AppraisalSessionResource extends Resource
                 //
             ])
             ->recordActions([
-                Tables\Actions\ActionGroup::make([
+                ActionGroup::make([
                     EditAction::make()
                         ->label('Ubah'),
                     DeleteAction::make()

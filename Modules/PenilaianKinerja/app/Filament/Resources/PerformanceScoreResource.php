@@ -30,6 +30,11 @@ class PerformanceScoreResource extends Resource
     protected static ?string $model = PerformanceScore::class;
     protected static ?int $navigationSort = 20;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function getNavigationIcon(): string|\BackedEnum|null
     {
         return 'heroicon-o-presentation-chart-line';

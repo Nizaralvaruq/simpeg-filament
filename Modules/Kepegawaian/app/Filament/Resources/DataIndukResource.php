@@ -58,7 +58,7 @@ class DataIndukResource extends Resource
      */
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status', 'Aktif')->count();
+        return static::getEloquentQuery()->where('status', 'Aktif')->count();
     }
 
     /**

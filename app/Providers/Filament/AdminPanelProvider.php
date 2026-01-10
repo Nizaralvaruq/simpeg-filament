@@ -55,10 +55,9 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
 
             ->widgets([
-
-                \App\Filament\Widgets\GenderStatsOverview::class,
                 \App\Filament\Widgets\HRStatsOverview::class,
                 \App\Filament\Widgets\EmployeeDistributionChart::class,
+                \App\Filament\Widgets\PerformanceDistributionChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,
