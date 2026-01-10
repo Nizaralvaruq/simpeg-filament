@@ -19,6 +19,11 @@ class ListAbsensiReports extends ListRecords
             Action::make('export')
                 ->label('Export Laporan')
                 ->icon('heroicon-o-arrow-down-tray')
+                ->visible(function () {
+                    /** @var \App\Models\User $user */
+                    $user = \Illuminate\Support\Facades\Auth::user();
+                    return !$user->hasRole('staff');
+                })
                 ->action(function () {
                     // Logic to export based on current filters?
                     // Accessing filters from Action is tricky without form state.
