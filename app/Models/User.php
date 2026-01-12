@@ -12,8 +12,9 @@ use Spatie\Permission\Traits\HasRoles;
 use Modules\Kepegawaian\Models\DataInduk;
 
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     /**
      * @mixin \Spatie\Permission\Traits\HasRoles
@@ -39,6 +40,7 @@ class User extends Authenticatable implements FilamentUser
     protected $fillable = [
         'name',
         'email',
+        'avatar_url',
         'password',
     ];
 
@@ -82,5 +84,14 @@ class User extends Authenticatable implements FilamentUser
     public function employee()
     {
         return $this->hasOne(DataInduk::class, 'user_id');
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        if (!$this->avatar_url) {
+            return null;
+        }
+
+        return asset('storage/' . $this->avatar_url);
     }
 }
