@@ -14,9 +14,11 @@ class CreateAbsensi extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $user = Auth::user();
+
         // Enforce user_id for non-admins
-        if (!Auth::user()->hasRole('super_admin')) {
-            $data['user_id'] = Auth::id();
+        if ($user instanceof \App\Models\User && !$user->hasRole('super_admin')) {
+            $data['user_id'] = $user->id;
             $data['tanggal'] = now()->toDateString();
         }
 

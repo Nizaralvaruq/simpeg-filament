@@ -166,7 +166,7 @@ class ResignResource extends Resource
                     ->visible(function () {
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
-                        return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit']);
+                        return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm']);
                     })
                     ->schema([
                         Forms\Components\Select::make('status')
@@ -239,7 +239,20 @@ class ResignResource extends Resource
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->label('Ubah'),
+                        ->label('Ubah')
+                        ->visible(function ($record) {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+
+                            if ($user?->hasRole('super_admin')) {
+                                return true;
+                            }
+
+                            return $user?->hasRole('staff')
+                                && $user->employee
+                                && $record->data_induk_id === $user->employee->id
+                                && $record->status === 'diajukan';
+                        }),
 
                     Action::make('approve')
                         ->label('Setujui')
@@ -249,7 +262,7 @@ class ResignResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
                                 && $record->status === 'diajukan';
                         })
                         ->action(function ($record) {
@@ -275,7 +288,7 @@ class ResignResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
                                 && $record->status === 'diajukan';
                         })
                         ->action(

@@ -175,7 +175,7 @@ class LeaveRequestResource extends Resource
                 ->visible(function () {
                     /** @var \App\Models\User $user */
                     $user = Auth::user();
-                    return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit']);
+                    return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm']);
                 })
                 ->schema([
                     Forms\Components\Select::make('status')
@@ -271,7 +271,7 @@ class LeaveRequestResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
                                 && $record->status === 'pending';
                         })
                         ->action(function ($record) {
@@ -306,7 +306,7 @@ class LeaveRequestResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
                                 && $record->status === 'pending';
                         })
                         ->action(fn($record, array $data) => $record->update([
