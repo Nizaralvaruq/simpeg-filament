@@ -21,7 +21,7 @@ class ListDataInduks extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Data'),
+                ->label('Tambah Pegawai'),
 
             Actions\Action::make('importExcel')
                 ->label('Import Data')

@@ -11,7 +11,6 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Facades\Auth;
-use Filament\Actions\ViewAction;
 use Illuminate\Database\Eloquent\Builder;
 
 class AppraisalReportResource extends Resource
@@ -54,6 +53,7 @@ class AppraisalReportResource extends Resource
                             ->groupBy('session_id', 'ratee_id'),
                         'appraisal_assignments'
                     )
+                    ->with(['session', 'ratee'])
             )
             ->columns([
                 TextColumn::make('session.name')
@@ -80,8 +80,7 @@ class AppraisalReportResource extends Resource
                     ->options(AppraisalSession::whereNotNull('name')->pluck('name', 'id')),
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->label('Detail Laporan'),
+                //
             ]);
     }
 

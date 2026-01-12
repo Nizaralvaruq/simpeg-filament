@@ -25,7 +25,8 @@ class ListAppraisalAssignments extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah Penugasan Manual'),
             Actions\Action::make('bulk_generate')
                 ->label('Generate Otomatis')
                 ->icon('heroicon-o-sparkles')

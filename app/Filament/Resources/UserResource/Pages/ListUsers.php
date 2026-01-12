@@ -13,7 +13,8 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah User'),
             Actions\Action::make('setup_koor')
                 ->label('Buat Akun Koor')
                 ->icon('heroicon-o-sparkles')
