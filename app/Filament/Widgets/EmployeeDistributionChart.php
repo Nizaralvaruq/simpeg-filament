@@ -12,6 +12,13 @@ class EmployeeDistributionChart extends ChartWidget
     protected static ?int $sort = 3;
     protected int | string | array $columnSpan = 'md';
 
+    public static function canView(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = \Illuminate\Support\Facades\Auth::user();
+        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
+    }
+
 
     protected function getData(): array
     {

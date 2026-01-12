@@ -14,6 +14,13 @@ class HRStatsOverview extends BaseWidget
     protected static ?int $sort = 1;
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = \Illuminate\Support\Facades\Auth::user();
+        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
+    }
+
     protected function getColumns(): int
     {
         return 3;

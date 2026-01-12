@@ -13,6 +13,13 @@ class RecentAbsensiWidget extends BaseWidget
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user && $user->hasRole('staff');
+    }
+
     public function table(Table $table): Table
     {
         return $table

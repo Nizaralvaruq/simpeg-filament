@@ -17,6 +17,13 @@ class DashboardStatsOverview extends BaseWidget
     protected int | string | array $columnSpan = 'full';
     protected ?string $pollingInterval = '60s';
 
+    public static function canView(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit', 'koor_jenjang']);
+    }
+
     protected function getColumns(): int
     {
         return 3;

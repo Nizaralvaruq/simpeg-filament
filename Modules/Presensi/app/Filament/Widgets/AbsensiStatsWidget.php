@@ -10,6 +10,12 @@ use Carbon\Carbon;
 
 class AbsensiStatsWidget extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user && $user->hasRole('staff');
+    }
     protected function getStats(): array
     {
         $userId = Auth::id();
