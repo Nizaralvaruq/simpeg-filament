@@ -20,10 +20,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Set timezone to Indonesia (WIB)
+        date_default_timezone_set('Asia/Jakarta');
+
         Carbon::setLocale('id');
 
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
             return $user->hasRole('super_admin') ? true : null;
         });
+
+        // Register Kegiatan Policy
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Presensi\Models\Kegiatan::class,
+            \Modules\Presensi\Policies\KegiatanPolicy::class
+        );
     }
 }
