@@ -197,8 +197,12 @@ class AppraisalAssignmentResource extends Resource
 
         if (!$user) return false;
 
-        // Sembunyikan dari staff, tampilkan untuk role lainnya (admin, kepala sekolah, koor)
-        return !$user->hasRole('staff');
+        // Sembunyikan dari staff DAN kepala_sekolah
+        if ($user->hasRole('staff') || $user->hasRole('kepala_sekolah')) {
+            return false;
+        }
+
+        return true;
     }
 
     public static function getPages(): array

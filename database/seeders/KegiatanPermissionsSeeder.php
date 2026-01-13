@@ -23,6 +23,15 @@ class KegiatanPermissionsSeeder extends Seeder
             'ViewAny:Kegiatan',
         ]);
 
-        $this->command->info('✓ Permissions assigned to staff role for Kegiatan');
+        // Get or create role kepala_sekolah
+        $ksRole = Role::firstOrCreate(['name' => 'kepala_sekolah']);
+
+        // Kepala Sekolah assigned same viewing permissions
+        $ksRole->givePermissionTo([
+            'View:Kegiatan',
+            'ViewAny:Kegiatan',
+        ]);
+
+        $this->command->info('✓ Permissions assigned to staff & kepala_sekolah roles for Kegiatan');
     }
 }

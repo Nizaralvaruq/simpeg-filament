@@ -69,6 +69,16 @@ class AbsensiKegiatansRelationManager extends RelationManager
             ])
             ->headerActions([
                 // Tables\Actions\CreateAction::make(),
+                \Filament\Actions\Action::make('export')
+                    ->label('Export Excel')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function ($livewire) {
+                        $kegiatan = $livewire->ownerRecord;
+                        return \Maatwebsite\Excel\Facades\Excel::download(
+                            new \Modules\Presensi\Exports\AbsensiKegiatanExport($kegiatan->id),
+                            'absensi-' . str($kegiatan->nama_kegiatan)->slug() . '.xlsx'
+                        );
+                    }),
             ])
             ->actions([
                 EditAction::make(),
