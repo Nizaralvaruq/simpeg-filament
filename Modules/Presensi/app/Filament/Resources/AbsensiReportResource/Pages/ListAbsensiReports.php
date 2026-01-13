@@ -22,7 +22,8 @@ class ListAbsensiReports extends ListRecords
                 ->visible(function () {
                     /** @var \App\Models\User $user */
                     $user = \Illuminate\Support\Facades\Auth::user();
-                    return !$user->hasRole('staff');
+                    // Hidden from staff and kepala_sekolah
+                    return !$user->hasRole('staff') && !$user->hasRole('kepala_sekolah');
                 })
                 ->action(function () {
                     // Logic to export based on current filters?

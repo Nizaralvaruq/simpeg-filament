@@ -72,6 +72,11 @@ class AbsensiKegiatansRelationManager extends RelationManager
                 \Filament\Actions\Action::make('export')
                     ->label('Export Excel')
                     ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(function () {
+                        /** @var \App\Models\User $user */
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return $user && $user->hasRole('super_admin');
+                    })
                     ->action(function ($livewire) {
                         $kegiatan = $livewire->ownerRecord;
                         return \Maatwebsite\Excel\Facades\Excel::download(

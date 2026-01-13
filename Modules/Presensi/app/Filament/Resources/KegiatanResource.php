@@ -241,7 +241,7 @@ class KegiatanResource extends Resource
                     ->visible(function () {
                         /** @var User $user */
                         $user = Auth::user();
-                        return $user instanceof User && $user->hasAnyRole(['super_admin', 'kepala_sekolah']);
+                        return $user instanceof User && $user->hasRole('super_admin');
                     }),
                 EditAction::make()
                     ->visible(function () {
@@ -272,8 +272,8 @@ class KegiatanResource extends Resource
         /** @var User $user */
         $user = Auth::user();
 
-        // Only Super Admin and Kepala Sekolah can see the Attendance Report (Relation Manager)
-        if ($user instanceof User && $user->hasAnyRole(['super_admin', 'kepala_sekolah'])) {
+        // Only Super Admin can see the Attendance Report (Relation Manager)
+        if ($user instanceof User && $user->hasRole('super_admin')) {
             return [
                 KegiatanResource\RelationManagers\AbsensiKegiatansRelationManager::class,
             ];

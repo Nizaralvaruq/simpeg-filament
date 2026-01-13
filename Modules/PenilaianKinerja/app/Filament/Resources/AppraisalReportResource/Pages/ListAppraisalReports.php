@@ -20,6 +20,12 @@ class ListAppraisalReports extends ListRecords
                 ->label('Export Excel')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
+                ->visible(function () {
+                    /** @var \App\Models\User $user */
+                    $user = \Illuminate\Support\Facades\Auth::user();
+                    // Only visible for super_admin
+                    return $user && $user->hasRole('super_admin');
+                })
                 ->action(function () {
                     $records = $this->getFilteredTableQuery()->get();
 
