@@ -42,6 +42,22 @@ class AbsensiKegiatansRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                /** @var \App\Models\User $user */
+                $user = \Illuminate\Support\Facades\Auth::user();
+
+                // Admin Unit & Koor Jenjang: Only see attendance records from employees in their units
+                if ($user && $user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                    if ($user->employee && $user->employee->units->isNotEmpty()) {
+                        $unitIds = $user->employee->units->pluck('id');
+                        $query->whereHas('user.employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+                    } else {
+                        $query->whereRaw('1=0'); // No units assigned, show nothing
+                    }
+                }
+
+                return $query;
+            })
             ->recordTitleAttribute('status')
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
@@ -75,7 +91,7 @@ class AbsensiKegiatansRelationManager extends RelationManager
                     ->visible(function () {
                         /** @var \App\Models\User $user */
                         $user = \Illuminate\Support\Facades\Auth::user();
-                        return $user && $user->hasRole('super_admin');
+                        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
                     })
                     ->action(function ($livewire) {
                         $kegiatan = $livewire->ownerRecord;

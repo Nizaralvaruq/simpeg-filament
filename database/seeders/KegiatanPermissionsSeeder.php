@@ -32,6 +32,33 @@ class KegiatanPermissionsSeeder extends Seeder
             'ViewAny:Kegiatan',
         ]);
 
-        $this->command->info('✓ Permissions assigned to staff & kepala_sekolah roles for Kegiatan');
+        // Get or create role admin_unit
+        $adminUnitRole = Role::firstOrCreate(['name' => 'admin_unit']);
+
+        // Admin Unit can view activities and see filtered reports
+        $adminUnitRole->givePermissionTo([
+            'View:Kegiatan',
+            'ViewAny:Kegiatan',
+        ]);
+
+        // Get or create role ketua_psdm
+        $psdmRole = Role::firstOrCreate(['name' => 'ketua_psdm']);
+
+        // Ketua PSDM can view activities and see all reports
+        $psdmRole->givePermissionTo([
+            'View:Kegiatan',
+            'ViewAny:Kegiatan',
+        ]);
+
+        // Get or create role koor_jenjang
+        $koorRole = Role::firstOrCreate(['name' => 'koor_jenjang']);
+
+        // Koor Jenjang can view activities and see filtered reports
+        $koorRole->givePermissionTo([
+            'View:Kegiatan',
+            'ViewAny:Kegiatan',
+        ]);
+
+        $this->command->info('✓ Permissions assigned to staff, kepala_sekolah, admin_unit, ketua_psdm & koor_jenjang roles for Kegiatan');
     }
 }

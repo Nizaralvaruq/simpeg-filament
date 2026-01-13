@@ -52,7 +52,19 @@ class LeaveRequestResource extends Resource
             return null;
         }
 
-        $count = static::getModel()::where('status', 'pending')->count();
+        $query = static::getModel()::where('status', 'pending');
+
+        // Admin Unit: Only count pending requests from their units
+        if ($user->hasRole('admin_unit')) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id');
+                $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+            } else {
+                return null; // No units assigned
+            }
+        }
+
+        $count = $query->count();
         return $count > 0 ? (string) $count : null;
     }
 

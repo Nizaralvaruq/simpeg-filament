@@ -23,8 +23,8 @@ class ListAppraisalReports extends ListRecords
                 ->visible(function () {
                     /** @var \App\Models\User $user */
                     $user = \Illuminate\Support\Facades\Auth::user();
-                    // Only visible for super_admin
-                    return $user && $user->hasRole('super_admin');
+                    // Only visible for super_admin and ketua_psdm
+                    return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
                 })
                 ->action(function () {
                     $records = $this->getFilteredTableQuery()->get();
