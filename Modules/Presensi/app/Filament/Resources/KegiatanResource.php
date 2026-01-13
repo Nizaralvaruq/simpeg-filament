@@ -41,6 +41,27 @@ class KegiatanResource extends Resource
         return 'Kegiatan';
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Admin: Show Total Activities Today
+        if ($user && $user->hasRole('super_admin')) {
+            return (string) static::getModel()::whereDate('tanggal', now())->count();
+        }
+
+        // Staff: Show "Remaining" Activities (Unattended)
+        return (string) static::getModel()::whereDate('tanggal', now())
+            ->whereDoesntHave('absensiKegiatans', fn($q) => $q->where('user_id', Auth::id()))
+            ->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return (int) self::getNavigationBadge() > 0 ? 'success' : 'gray';
+    }
+
     public static function infolist(Schema $schema): Schema
     {
         // Custom infolist for View page - returning empty to hide "Informasi Kegiatan" section
@@ -248,9 +269,17 @@ class KegiatanResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            KegiatanResource\RelationManagers\AbsensiKegiatansRelationManager::class,
-        ];
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Only Super Admin can see the Attendance Report (Relation Manager)
+        if ($user instanceof User && $user->hasRole('super_admin')) {
+            return [
+                KegiatanResource\RelationManagers\AbsensiKegiatansRelationManager::class,
+            ];
+        }
+
+        return [];
     }
 
     public static function getRecordUrl(\Illuminate\Database\Eloquent\Model $record): ?string

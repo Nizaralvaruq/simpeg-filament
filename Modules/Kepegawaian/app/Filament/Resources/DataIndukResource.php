@@ -48,6 +48,18 @@ class DataIndukResource extends Resource
         return 'Pegawai';
     }
 
+    public static function getNavigationLabel(): string
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if ($user && $user->hasRole('staff')) {
+            return 'Biodata Saya';
+        }
+
+        return 'Pegawai';
+    }
+
     public static function getModelLabel(): string
     {
         return 'Pegawai';
