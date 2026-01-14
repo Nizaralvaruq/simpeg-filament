@@ -18,11 +18,13 @@ class Kegiatan extends Model
         'lokasi',
         'keterangan',
         'is_wajib',
+        'is_closed',
     ];
 
     protected $casts = [
         'tanggal' => 'date',
         'is_wajib' => 'boolean',
+        'is_closed' => 'boolean',
     ];
 
     public function absensiKegiatans(): HasMany

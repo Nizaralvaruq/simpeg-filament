@@ -94,6 +94,9 @@ class KegiatanResource extends Resource
                         Forms\Components\Toggle::make('is_wajib')
                             ->label('Kegiatan Wajib')
                             ->default(false),
+                        Forms\Components\Toggle::make('is_closed')
+                            ->label('Status Selesai')
+                            ->default(false),
                         Forms\Components\Textarea::make('keterangan')
                             ->columnSpanFull()
                             ->label('Keterangan'),
@@ -154,11 +157,18 @@ class KegiatanResource extends Resource
                         $user = Auth::user();
                         return $user instanceof User && !$user->hasRole('super_admin');
                     }),
+                Tables\Columns\IconColumn::make('is_closed')
+                    ->label('Status Selesai')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-lock-closed')
+                    ->falseIcon('heroicon-o-lock-open')
+                    ->trueColor('danger')
+                    ->falseColor('success'),
             ])
             ->filters([
                 //
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('absen_hadir')
                     ->label('Absen Hadir')
                     ->color('success')
@@ -170,6 +180,9 @@ class KegiatanResource extends Resource
                         if ($user instanceof User && $user->hasRole('super_admin')) {
                             return false;
                         }
+
+                        // Cannot attend if closed
+                        if ($record->is_closed) return false;
 
                         // Check if already absented
                         $exists = $record->absensiKegiatans()->where('user_id', Auth::id())->exists();
@@ -211,6 +224,9 @@ class KegiatanResource extends Resource
                             return false;
                         }
 
+                        // Cannot attend if closed
+                        if ($record->is_closed) return false;
+
                         // Check if already absented
                         $exists = $record->absensiKegiatans()->where('user_id', Auth::id())->exists();
                         if ($exists) return false;
@@ -223,7 +239,7 @@ class KegiatanResource extends Resource
 
                         return $now->between($startTime, $endTime);
                     })
-                    ->form([
+                    ->schema([
                         Forms\Components\Textarea::make('keterangan')
                             ->required()
                             ->label('Alasan Tidak Hadir'),
@@ -243,6 +259,43 @@ class KegiatanResource extends Resource
                         $user = Auth::user();
                         return $user instanceof User && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang']);
                     }),
+                Action::make('finalizeAttendance')
+                    ->label('Tutup Absensi')
+                    ->icon('heroicon-o-lock-closed')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Tutup Absensi Kegiatan?')
+                    ->modalDescription('Semua pegawai yang belum melakukan absen akan secara otomatis dicatat sebagai "Tidak Hadir" dengan keterangan "Tanpa Keterangan/Lupa".')
+                    ->visible(function (Kegiatan $record) {
+                        /** @var User $user */
+                        $user = Auth::user();
+                        // Only Super Admin and Ketua PSDM can close
+                        return $user instanceof User &&
+                            $user->hasAnyRole(['super_admin', 'ketua_psdm']) &&
+                            !$record->is_closed;
+                    })
+                    ->action(function (Kegiatan $record) {
+                        // 1. Get all Active Employees
+                        $activeEmployees = \Modules\Kepegawaian\Models\DataInduk::where('status', 'Aktif')->get();
+
+                        // 2. Get existing attendance user IDs for this activity
+                        $absenteeIds = $record->absensiKegiatans()->pluck('user_id')->toArray();
+
+                        // 3. Find employees who haven't absented
+                        foreach ($activeEmployees as $employee) {
+                            if (!in_array($employee->user_id, $absenteeIds)) {
+                                $record->absensiKegiatans()->create([
+                                    'user_id' => $employee->user_id,
+                                    'jam_absen' => now(),
+                                    'status' => 'tidak_hadir',
+                                    'keterangan' => 'Tanpa Keterangan / Lupa Absen',
+                                ]);
+                            }
+                        }
+
+                        // 4. Mark activity as closed
+                        $record->update(['is_closed' => true]);
+                    }),
                 EditAction::make()
                     ->visible(function () {
                         /** @var User $user */
@@ -256,7 +309,7 @@ class KegiatanResource extends Resource
                         return $user instanceof User && $user->hasRole('super_admin');
                     }),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ])->visible(function () {

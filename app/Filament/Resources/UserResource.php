@@ -84,7 +84,7 @@ class UserResource extends Resource
                         Forms\Components\Select::make('employee_id')
                             ->label('Pilih Pegawai (Data Induk)')
                             ->options(function ($record) {
-                                // Show employees without user OR the current employee
+                                // Sh 7,LLLLP.....H///'/ow employees without user OR the current employee
                                 $query = \Modules\Kepegawaian\Models\DataInduk::query()
                                     ->where(function ($q) use ($record) {
                                         $q->whereNull('user_id');
