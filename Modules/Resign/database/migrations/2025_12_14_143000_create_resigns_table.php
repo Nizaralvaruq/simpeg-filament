@@ -17,6 +17,8 @@ return new class extends Migration
             $table->date('tanggal_resign');
             $table->text('alasan');
             $table->string('status')->default('diajukan'); // diajukan, disetujui, ditolak
+            $table->string('upload_file')->nullable();
+            $table->text('rejection_reason')->nullable();
             $table->text('keterangan_tindak_lanjut')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

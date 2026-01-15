@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('lokasi');
             $table->text('keterangan')->nullable();
             $table->boolean('is_wajib')->default(false);
+            $table->boolean('is_closed')->default(false);
             $table->timestamps();
         });
     }

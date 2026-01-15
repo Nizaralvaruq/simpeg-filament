@@ -4,6 +4,8 @@
     "description": "Resignment Management",
     "keywords": [],
     "priority": 0,
-    "providers": [],
+    "providers": [
+        "Modules\\Resign\\Providers\\ResignServiceProvider"
+    ],
     "files": []
 }

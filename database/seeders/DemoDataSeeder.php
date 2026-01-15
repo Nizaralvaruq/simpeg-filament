@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace Database\Seeders;
 
@@ -337,7 +337,6 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
         DataInduk::create([
             'id' => 268,
@@ -367,7 +366,6 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
         DataInduk::create([
             'id' => 269,
@@ -397,7 +395,6 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
         DataInduk::create([
             'id' => 271,
@@ -427,7 +424,6 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
         DataInduk::create([
             'id' => 272,
@@ -457,7 +453,6 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
         DataInduk::create([
             'id' => 273,
@@ -487,7 +482,6 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
         DataInduk::create([
             'id' => 274,
@@ -517,7 +511,6 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
         DataInduk::create([
             'id' => 275,
@@ -547,26 +540,25 @@ class DemoDataSeeder extends Seeder
             'pindah_tugas' => 'tetap',
             'status' => 'Aktif',
             'keterangan' => null,
-            'shift_id' => null,
         ]);
 
         // Sync Roles
-        if($user = User::find(39)) $user->assignRole('kepala_sekolah');
-        if($user = User::find(40)) $user->assignRole('staff');
-        if($user = User::find(41)) $user->assignRole('koor_jenjang');
-        if($user = User::find(43)) $user->assignRole('staff');
-        if($user = User::find(46)) $user->assignRole('staff');
-        if($user = User::find(47)) $user->assignRole('ketua_psdm');
-        if($user = User::find(48)) $user->assignRole('super_admin');
-        if($user = User::find(50)) $user->assignRole('admin_unit');
+        if ($user = User::find(39)) $user->assignRole('kepala_sekolah');
+        if ($user = User::find(40)) $user->assignRole('staff');
+        if ($user = User::find(41)) $user->assignRole('koor_jenjang');
+        if ($user = User::find(43)) $user->assignRole('staff');
+        if ($user = User::find(46)) $user->assignRole('staff');
+        if ($user = User::find(47)) $user->assignRole('ketua_psdm');
+        if ($user = User::find(48)) $user->assignRole('super_admin');
+        if ($user = User::find(50)) $user->assignRole('admin_unit');
 
         // Sync Employee Units
-        if($emp = DataInduk::find(267)) $emp->units()->sync([10]);
-        if($emp = DataInduk::find(268)) $emp->units()->sync([8]);
-        if($emp = DataInduk::find(269)) $emp->units()->sync([1]);
-        if($emp = DataInduk::find(271)) $emp->units()->sync([10]);
-        if($emp = DataInduk::find(272)) $emp->units()->sync([1]);
-        if($emp = DataInduk::find(275)) $emp->units()->sync([10]);
+        if ($emp = DataInduk::find(267)) $emp->units()->sync([10]);
+        if ($emp = DataInduk::find(268)) $emp->units()->sync([8]);
+        if ($emp = DataInduk::find(269)) $emp->units()->sync([1]);
+        if ($emp = DataInduk::find(271)) $emp->units()->sync([10]);
+        if ($emp = DataInduk::find(272)) $emp->units()->sync([1]);
+        if ($emp = DataInduk::find(275)) $emp->units()->sync([10]);
 
         // Absensi
         Absensi::create([
@@ -628,8 +620,7 @@ class DemoDataSeeder extends Seeder
             'upload_file' => null,
             'status' => 'pending',
             'note' => null,
-            'keterangan_kembali' => null,
-            'rejection_reason' => null,
+            'keterangan_kembali' => 'belum kembali',
             'approved_by' => null,
             'created_at' => '2026-01-07T13:50:21.000000Z',
             'updated_at' => '2026-01-07T13:50:21.000000Z',

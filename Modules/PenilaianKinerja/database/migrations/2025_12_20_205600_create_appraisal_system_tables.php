@@ -16,6 +16,9 @@ return new class extends Migration
             $table->date('end_date');
             $table->boolean('is_active')->default(false);
             $table->enum('status', ['Draft', 'Published', 'Closed'])->default('Draft');
+            $table->integer('superior_weight')->default(50)->nullable();
+            $table->integer('peer_weight')->default(30)->nullable();
+            $table->integer('self_weight')->default(20)->nullable();
             $table->timestamps();
         });
 
@@ -55,10 +58,43 @@ return new class extends Migration
             $table->unsignedTinyInteger('score'); // 1-5
             $table->timestamps();
         });
+
+        // 6. Performance Scores (Self-Assessment / Manual Scores)
+        Schema::create('performance_scores', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('data_induk_id')->constrained('data_induks')->onDelete('cascade');
+            $table->foreignId('penilai_id')->constrained('users')->onDelete('cascade');
+            $table->enum('tipe_penilai', ['atasan', 'rekan']);
+            $table->string('periode'); // Format: YYYY-MM
+
+            // Kualitas (1-5)
+            $table->unsignedTinyInteger('kualitas_hasil')->default(3);
+            $table->unsignedTinyInteger('ketelitian')->default(3);
+
+            // Produktivitas (1-5)
+            $table->unsignedTinyInteger('kuantitas_hasil')->default(3);
+            $table->unsignedTinyInteger('ketepatan_waktu')->default(3);
+
+            // Disiplin (1-5)
+            $table->unsignedTinyInteger('kehadiran')->default(3);
+            $table->unsignedTinyInteger('kepatuhan_aturan')->default(3);
+
+            // Perilaku (1-5)
+            $table->unsignedTinyInteger('etika_kerja')->default(3);
+            $table->unsignedTinyInteger('tanggung_jawab')->default(3);
+
+            // Kerjasama (1-5)
+            $table->unsignedTinyInteger('komunikasi')->default(3);
+            $table->unsignedTinyInteger('kerjasama_tim')->default(3);
+
+            $table->text('catatan')->nullable();
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('performance_scores');
         Schema::dropIfExists('appraisal_results');
         Schema::dropIfExists('appraisal_assignments');
         Schema::dropIfExists('appraisal_indicators');

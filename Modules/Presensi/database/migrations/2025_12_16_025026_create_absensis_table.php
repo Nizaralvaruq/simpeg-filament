@@ -19,6 +19,7 @@ return new class extends Migration
             $table->time('jam_masuk')->nullable();
             $table->time('jam_keluar')->nullable();
             $table->text('keterangan')->nullable();
+            $table->text('uraian_harian')->nullable();
 
             // Constraint: 1 user, 1 attendance per day
             $table->unique(['user_id', 'tanggal']);

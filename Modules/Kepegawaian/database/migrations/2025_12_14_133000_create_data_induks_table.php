@@ -14,6 +14,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
 
             $table->string('nama');
+            $table->string('jenis_kelamin')->nullable();
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->string('nik')->nullable();
@@ -40,12 +41,11 @@ return new class extends Migration
             $table->string('no_kjp_2p')->nullable();
             $table->string('no_kjp_3p')->nullable();
 
-            $table->enum('status', ['aktif', 'cuti', 'resign'])->default('aktif');
+            $table->enum('status', ['Aktif', 'Cuti', 'Resign'])->default('Aktif');
             $table->text('keterangan')->nullable();
 
             $table->timestamps();
         });
-
     }
 
     public function down(): void

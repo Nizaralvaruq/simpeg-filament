@@ -2,5 +2,8 @@
     "Kepegawaian": true,
     "MasterData": true,
     "Presensi": true,
-    "Akademik": true
+    "Akademik": true,
+    "Leave": true,
+    "Resign": true,
+    "PenilaianKinerja": true
 }

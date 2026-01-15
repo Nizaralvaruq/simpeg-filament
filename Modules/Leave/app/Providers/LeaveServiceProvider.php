@@ -13,6 +13,7 @@ class LeaveServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadMigrationsFrom(module_path('Leave', 'database/migrations'));
         LeaveRequest::observe(LeaveRequestObserver::class);
     }
 

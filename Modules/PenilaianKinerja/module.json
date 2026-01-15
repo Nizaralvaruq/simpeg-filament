@@ -4,6 +4,8 @@
     "description": "360 Performance Assessment System",
     "keywords": [],
     "priority": 0,
-    "providers": [],
+    "providers": [
+        "Modules\\PenilaianKinerja\\Providers\\PenilaianKinerjaServiceProvider"
+    ],
     "files": []
 }
