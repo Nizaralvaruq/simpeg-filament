@@ -11,6 +11,12 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
+use Illuminate\Support\HtmlString;
+use Filament\Actions\Action;
 
 
 class UserResource extends Resource
@@ -130,6 +136,13 @@ class UserResource extends Resource
                             ->preload()
                             ->searchable()
                             ->label('Role (Akses)'),
+
+                        // NIP Field from Employee (Read-only view)
+                        Forms\Components\TextInput::make('employee.nip')
+                            ->label('NIP / NPA (QR Code Source)')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->visible(fn($record) => $record?->employee?->nip !== null),
                     ]),
             ]);
     }
@@ -164,6 +177,38 @@ class UserResource extends Resource
                 //
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('view_qr')
+                    ->label('ID Card QR')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->modalHeading(fn(User $record) => "QR Code: " . $record->name)
+                    ->modalContent(function (User $record) {
+                        $qrCode = $record->employee?->nip ?? null;
+
+                        if (!$qrCode) {
+                            return new HtmlString('<div class="p-4 text-center text-danger-500">User ini belum memiliki NIP/NPA di data kepegawaian.</div>');
+                        }
+
+                        // Generate QR Code using BaconQrCode
+                        $renderer = new ImageRenderer(
+                            new RendererStyle(200),
+                            new SvgImageBackEnd()
+                        );
+                        $writer = new Writer($renderer);
+                        $qrCodeSvg = $writer->writeString($qrCode);
+
+                        return new HtmlString('
+                        <div class="flex flex-col items-center justify-center p-4">
+                            <div class="bg-white p-4 rounded-xl shadow-lg mb-4">
+                                ' . $qrCodeSvg . '
+                            </div>
+                            <p class="text-sm text-gray-500 font-mono">' . $qrCode . '</p>
+                            <p class="text-xs text-gray-400 mt-2">Gunakan QR ini pada Kartu ID Staff</p>
+                        </div>
+                    ');
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup'),
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\DeleteAction::make(),
             ])

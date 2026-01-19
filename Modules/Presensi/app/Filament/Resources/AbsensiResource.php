@@ -213,6 +213,22 @@ class AbsensiResource extends Resource
                     ->badge()
                     ->color(fn($state) => str_contains($state, 'Terlambat') ? 'danger' : 'success')
                     ->visible(fn($record) => $record?->status === 'hadir'),
+
+                Tables\Columns\TextColumn::make('location')
+                    ->label('Lokasi')
+                    ->state(function ($record) {
+                        return $record?->latitude && $record?->longitude
+                            ? "Maps"
+                            : '-';
+                    })
+                    ->url(
+                        fn($record) => $record?->latitude && $record?->longitude
+                            ? "https://www.google.com/maps?q={$record->latitude},{$record->longitude}"
+                            : null
+                    )
+                    ->openUrlInNewTab()
+                    ->color('info')
+                    ->icon(fn($record) => $record?->latitude && $record?->longitude ? 'heroicon-o-map-pin' : null),
             ])
             ->defaultSort('tanggal', 'desc')
             ->filters([
@@ -238,7 +254,7 @@ class AbsensiResource extends Resource
                                 $data['sampai_tanggal'],
                                 fn(Builder $query, $date) => $query->whereDate('tanggal', '<=', $date),
                             );
-                    })
+                    }),
             ])
             ->recordActions([
                 ActionGroup::make([

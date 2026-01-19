@@ -42,6 +42,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'email',
         'avatar_url',
         'password',
+        'qr_token',
+        'qr_token_generated_at',
     ];
 
     /**
@@ -66,7 +68,35 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'qr_token_generated_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (!$user->qr_token) {
+                $user->qr_token = static::generateUniqueQrToken();
+                $user->qr_token_generated_at = now();
+            }
+        });
+    }
+
+    public static function generateUniqueQrToken(): string
+    {
+        do {
+            $token = Str::random(32);
+        } while (static::where('qr_token', $token)->exists());
+
+        return $token;
+    }
+
+    public function regenerateQrToken(): void
+    {
+        $this->update([
+            'qr_token' => static::generateUniqueQrToken(),
+            'qr_token_generated_at' => now(),
+        ]);
     }
 
     /**

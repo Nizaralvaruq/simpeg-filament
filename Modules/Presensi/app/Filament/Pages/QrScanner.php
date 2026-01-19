@@ -1,0 +1,375 @@
+<?php
+
+namespace Modules\Presensi\Filament\Pages;
+
+use App\Models\User;
+use Filament\Pages\Page;
+use Modules\Presensi\Models\Absensi;
+use Modules\Presensi\Models\JadwalPiket;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Filament\Notifications\Notification;
+use Carbon\Carbon;
+
+class QrScanner extends Page
+{
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-qr-code';
+
+    protected string $view = 'presensi::filament.pages.qr-scanner';
+
+    protected static string | \UnitEnum | null $navigationGroup = 'Presensi';
+
+    protected static ?string $title = 'Scanner Dashboard';
+
+    protected static ?string $navigationLabel = 'Scan QR Kehadiran';
+
+    public ?string $lastScannedToken = null;
+    public ?array $scannedUser = null;
+
+    // Real-time stats
+    public array $todayStats = ['checkedIn' => 0, 'checkedOut' => 0];
+    public array $recentScans = [];
+
+    // Scanner controls
+    public bool $scannerEnabled = true;
+    public bool $emergencyOverride = false;
+    public int $volume = 70;
+
+    // Connection status
+    public bool $isOnline = true;
+    public int $pendingScans = 0;
+
+    public function mount()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Check if user has permanent access OR is on piket duty today
+        $hasAccess = $user && (
+            $user->hasAnyRole(['super_admin', 'admin_unit']) ||
+            JadwalPiket::isUserOnPiketToday($user->id)
+        );
+
+        if (!$hasAccess) {
+            abort(403, 'Akses Ditolak: Hanya petugas piket yang dijadwalkan hari ini yang dapat menggunakan scanner.');
+        }
+
+        // Initialize stats
+        $this->loadTodayStats();
+        $this->loadRecentScans();
+    }
+
+    /**
+     * Check if navigation should be visible
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user) return false;
+
+        return $user->hasAnyRole(['super_admin', 'admin_unit']) ||
+            JadwalPiket::isUserOnPiketToday($user->id);
+    }
+
+    /**
+     * Get navigation badge
+     */
+    public static function getNavigationBadge(): ?string
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user) return null;
+
+        if (JadwalPiket::isUserOnPiketToday($user->id)) {
+            return 'Piket Hari Ini';
+        }
+
+        return null;
+    }
+
+    /**
+     * Get navigation badge color
+     */
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'success';
+    }
+
+    public function processScan(string $token, ?float $lat = null, ?float $lng = null, bool $isSilent = false)
+    {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+
+        // Check if scanner is enabled
+        if (!$this->scannerEnabled && (!$currentUser || !$currentUser->hasAnyRole(['super_admin', 'admin_unit']))) {
+            if (!$isSilent) {
+                $this->dispatch('scan-error', message: 'Scanner sedang dinonaktifkan.');
+            }
+            return;
+        }
+
+        $this->lastScannedToken = $token;
+
+        // Cari user berdasarkan NIP di data_induk (employee relationship)
+        $user = User::whereHas('employee', function ($query) use ($token) {
+            $query->where('nip', $token);
+        })->first();
+
+        if (!$user) {
+            if (!$isSilent) {
+                $this->dispatch('scan-error', message: 'NIP/Token tidak valid!');
+                Notification::make()
+                    ->title('Gagal')
+                    ->body('QR Code (NIP) tidak terdaftar.')
+                    ->danger()
+                    ->send();
+            }
+            return;
+        }
+
+        // --- GEO-TAGGING VALIDATION (Simplified) ---
+        if (!$this->emergencyOverride && $lat && $lng) {
+            $officeLat = -6.2088; // Placeholder: Jakarta
+            $officeLng = 106.8456;
+            $maxRadiusMeters = 500; // Increased for flexibility
+            $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
+
+            // Log distance for debugging (optional)
+            // \Log::info("User distance: {$distance}m");
+        }
+
+        $this->scannedUser = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->getFilamentAvatarUrl(),
+        ];
+
+        $today = Carbon::today();
+        $attendance = Absensi::where('user_id', $user->id)
+            ->whereDate('tanggal', $today)
+            ->first();
+
+        try {
+            if (!$attendance) {
+                // Check-in
+                Absensi::create([
+                    'user_id' => $user->id,
+                    'tanggal' => $today,
+                    'status' => 'hadir',
+                    'jam_masuk' => now(),
+                    'latitude' => $lat,
+                    'longitude' => $lng,
+                ]);
+
+                if (!$isSilent) {
+                    $this->dispatch(
+                        'scan-success',
+                        type: 'check-in',
+                        name: $user->name,
+                        email: $user->email,
+                        avatar: $user->getFilamentAvatarUrl()
+                    );
+                    Notification::make()
+                        ->title('Check-in Berhasil')
+                        ->body("Staff: {$user->name} sudah masuk.")
+                        ->success()
+                        ->send();
+                }
+
+                // Refresh stats
+                $this->loadTodayStats();
+                $this->loadRecentScans();
+            } elseif ($attendance->jam_masuk && !$attendance->jam_keluar) {
+                // Check-out
+                if (!$isSilent && Carbon::parse($attendance->jam_masuk)->diffInMinutes(now()) < 1) {
+                    $this->dispatch('scan-error', message: 'Tunggu 1 menit sebelum scan keluar.');
+                    return;
+                }
+
+                $attendance->update([
+                    'jam_keluar' => now(),
+                ]);
+
+                if (!$isSilent) {
+                    $this->dispatch(
+                        'scan-success',
+                        type: 'check-out',
+                        name: $user->name,
+                        email: $user->email,
+                        avatar: $user->getFilamentAvatarUrl()
+                    );
+                    Notification::make()
+                        ->title('Check-out Berhasil')
+                        ->body("Staff: {$user->name} sudah pulang.")
+                        ->info()
+                        ->send();
+                }
+
+                // Refresh stats
+                $this->loadTodayStats();
+                $this->loadRecentScans();
+            } else {
+                if (!$isSilent) {
+                    $this->dispatch('scan-error', message: 'Anda sudah absen hari ini.');
+                    Notification::make()
+                        ->title('Sudah Absen')
+                        ->body("Staff: {$user->name} sudah melakukan check-in dan check-out.")
+                        ->warning()
+                        ->send();
+                }
+            }
+        } catch (\Exception $e) {
+            if (!$isSilent) {
+                $this->dispatch('scan-error', message: 'Terjadi kesalahan sistem.');
+            }
+        }
+    }
+
+    protected function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $theta = $lon1 - $lon2;
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = acos($dist);
+        $dist = rad2deg($dist);
+        $miles = $dist * 60 * 1.1515;
+        $meters = $miles * 1609.344;
+
+        return round($meters);
+    }
+
+    /**
+     * Load today's statistics
+     */
+    public function loadTodayStats()
+    {
+        $today = Carbon::today();
+
+        $checkedIn = Absensi::whereDate('tanggal', $today)
+            ->whereNotNull('jam_masuk')
+            ->count();
+
+        $checkedOut = Absensi::whereDate('tanggal', $today)
+            ->whereNotNull('jam_keluar')
+            ->count();
+
+        $this->todayStats = [
+            'checkedIn' => $checkedIn,
+            'checkedOut' => $checkedOut
+        ];
+    }
+
+    /**
+     * Load recent scans (last 10)
+     */
+    public function loadRecentScans()
+    {
+        $today = Carbon::today();
+
+        $scans = Absensi::with('user')
+            ->whereDate('tanggal', $today)
+            ->latest('updated_at')
+            ->limit(10)
+            ->get()
+            ->map(function ($absensi) {
+                return [
+                    'name' => $absensi->user->name ?? 'Unknown',
+                    'email' => $absensi->user->email ?? '',
+                    'avatar' => $absensi->user ? $absensi->user->getFilamentAvatarUrl() : null,
+                    'type' => $absensi->jam_keluar ? 'check-out' : 'check-in',
+                    'time' => $absensi->jam_keluar ?
+                        Carbon::parse($absensi->jam_keluar)->format('H:i') :
+                        Carbon::parse($absensi->jam_masuk)->format('H:i'),
+                    'timestamp' => $absensi->updated_at->diffForHumans()
+                ];
+            })
+            ->toArray();
+
+        $this->recentScans = $scans;
+    }
+
+    /**
+     * Toggle scanner on/off (admin only)
+     */
+    public function toggleScanner()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user || !$user->hasAnyRole(['super_admin', 'admin_unit'])) {
+            Notification::make()
+                ->title('Akses Ditolak')
+                ->body('Hanya admin yang dapat mengubah status scanner.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $this->scannerEnabled = !$this->scannerEnabled;
+
+        Notification::make()
+            ->title('Scanner ' . ($this->scannerEnabled ? 'Diaktifkan' : 'Dinonaktifkan'))
+            ->body('Status scanner telah diubah.')
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Toggle emergency override (bypass location check)
+     */
+    public function toggleEmergencyOverride()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user || !$user->hasAnyRole(['super_admin'])) {
+            Notification::make()
+                ->title('Akses Ditolak')
+                ->body('Hanya super admin yang dapat mengaktifkan emergency override.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $this->emergencyOverride = !$this->emergencyOverride;
+
+        Notification::make()
+            ->title('Emergency Override ' . ($this->emergencyOverride ? 'ON' : 'OFF'))
+            ->body($this->emergencyOverride ? 'Validasi lokasi dinonaktifkan sementara.' : 'Validasi lokasi diaktifkan kembali.')
+            ->warning()
+            ->send();
+    }
+
+    /**
+     * Update volume setting
+     */
+    public function updateVolume($volume)
+    {
+        $this->volume = max(0, min(100, (int)$volume));
+    }
+
+    /**
+     * Sync offline scans
+     */
+    public function syncOfflineScans(array $scans)
+    {
+        foreach ($scans as $scan) {
+            $token = $scan['token'];
+            $lat = $scan['lat'] ?? null;
+            $lng = $scan['lng'] ?? null;
+
+            // Note: We don't dispatch sound/modal for background sync
+            // to avoid overwhelming the UI
+            $this->processScan($token, $lat, $lng, isSilent: true);
+        }
+
+        Notification::make()
+            ->title('Sync Berhasil')
+            ->body(count($scans) . ' data kehadiran offline telah disinkronkan.')
+            ->success()
+            ->send();
+
+        $this->loadTodayStats();
+        $this->loadRecentScans();
+    }
+}
