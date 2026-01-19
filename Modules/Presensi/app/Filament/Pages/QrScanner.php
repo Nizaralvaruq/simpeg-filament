@@ -128,15 +128,28 @@ class QrScanner extends Page
             return;
         }
 
-        // --- GEO-TAGGING VALIDATION (Simplified) ---
+        // --- GEO-TAGGING VALIDATION ---
         if (!$this->emergencyOverride && $lat && $lng) {
-            $officeLat = -6.2088; // Placeholder: Jakarta
-            $officeLng = 106.8456;
-            $maxRadiusMeters = 500; // Increased for flexibility
-            $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
+            $settings = \Modules\MasterData\Models\Setting::get();
+            $officeLat = $settings->office_latitude;
+            $officeLng = $settings->office_longitude;
+            $maxRadiusMeters = $settings->office_radius ?? 100;
 
-            // Log distance for debugging (optional)
-            // \Log::info("User distance: {$distance}m");
+            if ($officeLat && $officeLng) {
+                $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
+
+                if ($distance > $maxRadiusMeters) {
+                    if (!$isSilent) {
+                        $this->dispatch('scan-error', message: "Lokasi terlalu jauh! ({$distance}m)");
+                        Notification::make()
+                            ->title('Gagal: Diluar Lokasi')
+                            ->body("Anda berada {$distance}m dari kantor. Batas maksimal adalah {$maxRadiusMeters}m.")
+                            ->danger()
+                            ->send();
+                    }
+                    return;
+                }
+            }
         }
 
         $this->scannedUser = [

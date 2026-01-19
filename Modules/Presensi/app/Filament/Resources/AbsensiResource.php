@@ -136,32 +136,26 @@ class AbsensiResource extends Resource
                             ])
                             ->required()
                             ->default('hadir')
-                            ->native(false),
+                            ->native(false)
+                            ->live(),
 
                         Forms\Components\TimePicker::make('jam_masuk')
                             ->label('Jam Masuk')
                             ->default(now())
-                            ->required(fn($get) => $get('status') === 'hadir'),
+                            ->required(fn($get) => $get('status') === 'hadir')
+                            ->visible(fn($get) => $get('status') === 'hadir'),
 
                         Forms\Components\TimePicker::make('jam_keluar')
-                            ->label('Jam Keluar'),
+                            ->label('Jam Keluar')
+                            ->visible(fn($get) => $get('status') === 'hadir'),
 
                         Forms\Components\Textarea::make('keterangan')
+                            ->label('Alasan Izin/Sakit')
+                            ->helperText('Berikan alasan singkat mengapa Anda izin atau sakit.')
+                            ->required(fn($get) => in_array($get('status'), ['izin', 'sakit']))
+                            ->visible(fn($get) => in_array($get('status'), ['izin', 'sakit']))
                             ->columnSpanFull(),
 
-                        Forms\Components\RichEditor::make('uraian_harian')
-                            ->label('Uraian Harian')
-                            ->placeholder('Tuliskan aktivitas harian Anda...')
-                            ->toolbarButtons([
-                                'bold',
-                                'bulletList',
-                                'orderedList',
-                                'italic',
-                                'redo',
-                                'undo',
-                            ])
-                            ->visible(fn($get) => $get('status') === 'hadir')
-                            ->columnSpanFull(),
                     ])->columns(3),
             ]);
     }
@@ -195,14 +189,11 @@ class AbsensiResource extends Resource
                     ->time(),
 
                 Tables\Columns\TextColumn::make('keterangan')
-                    ->limit(30),
-
-                Tables\Columns\TextColumn::make('uraian_harian')
-                    ->label('Uraian Harian')
-                    ->html()
+                    ->label('Keterangan')
                     ->limit(50)
-                    ->tooltip(fn($record) => strip_tags($record->uraian_harian ?? ''))
-                    ->placeholder('Tidak ada uraian'),
+                    ->placeholder('-')
+                    ->toggleable(),
+
 
                 Tables\Columns\TextColumn::make('late_minutes')
                     ->label('Keterangan Terlambat')

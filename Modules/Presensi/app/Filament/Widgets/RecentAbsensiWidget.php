@@ -57,13 +57,6 @@ class RecentAbsensiWidget extends BaseWidget
                     ->time('H:i')
                     ->placeholder('-'),
 
-                Tables\Columns\TextColumn::make('uraian_harian')
-                    ->label('Aktivitas')
-                    ->html()
-                    ->limit(50)
-                    ->wrap()
-                    ->tooltip(fn($record) => $record->uraian_harian ? strip_tags($record->uraian_harian) : null)
-                    ->placeholder('Tidak ada uraian'),
             ])
             ->heading('Absensi Terbaru')
             ->paginated(false);

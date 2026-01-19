@@ -18,7 +18,6 @@ class Absensi extends Model
         'jam_masuk',
         'jam_keluar',
         'keterangan',
-        'uraian_harian',
         'latitude',
         'longitude',
     ];
@@ -38,10 +37,15 @@ class Absensi extends Model
             return 0;
         }
 
+        $settings = \Modules\MasterData\Models\Setting::get();
         $jamMasuk = \Carbon\Carbon::parse($this->jam_masuk);
-        $startTime = \Carbon\Carbon::parse('07:00:00');
+        $startTime = \Carbon\Carbon::parse($settings->office_start_time);
+        $tolerance = $settings->late_tolerance ?? 0;
 
-        if ($jamMasuk->lte($startTime)) {
+        // If check-in is within tolerance, it's not late
+        $startTimeWithTolerance = $startTime->copy()->addMinutes($tolerance);
+
+        if ($jamMasuk->lte($startTimeWithTolerance)) {
             return 0;
         }
 

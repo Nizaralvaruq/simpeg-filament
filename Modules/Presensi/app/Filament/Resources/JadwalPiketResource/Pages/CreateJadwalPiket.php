@@ -4,6 +4,7 @@ namespace Modules\Presensi\Filament\Resources\JadwalPiketResource\Pages;
 
 use Modules\Presensi\Filament\Resources\JadwalPiketResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Auth;
 
 class CreateJadwalPiket extends CreateRecord
 {
@@ -11,7 +12,7 @@ class CreateJadwalPiket extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['created_by'] = auth()->id();
+        $data['created_by'] = Auth::id();
         return $data;
     }
 

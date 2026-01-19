@@ -50,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
 
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->discoverPages(in: base_path('Modules/Presensi/app/Filament/Pages'), for: 'Modules\\Presensi\\Filament\\Pages')
+            ->discoverPages(in: base_path('Modules/MasterData/app/Filament/Pages'), for: 'Modules\\MasterData\\Filament\\Pages')
             ->pages([
                 Dashboard::class,
             ])
@@ -57,10 +58,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: base_path('Modules/Presensi/app/Filament/Widgets'), for: 'Modules\\Presensi\\Filament\\Widgets')
 
 
-            ->widgets([
-                \App\Filament\Widgets\HRStatsOverview::class,
-                \App\Filament\Widgets\EmployeeDistributionChart::class,
-            ])
+            ->widgets([])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

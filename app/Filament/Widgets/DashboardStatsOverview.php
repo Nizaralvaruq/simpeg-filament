@@ -38,7 +38,12 @@ class DashboardStatsOverview extends BaseWidget
         // CARD 1: PEGAWAI TERLAMBAT (Late Employees)
         // ---------------------------------------------------------
         $today = Carbon::today();
-        $standardWorkTime = '07:00:00';
+        $settings = \Modules\MasterData\Models\Setting::get();
+        $standardWorkTime = $settings->office_start_time;
+        $tolerance = $settings->late_tolerance ?? 0;
+
+        // Effective late time considering tolerance
+        $effectiveLateTime = Carbon::parse($standardWorkTime)->addMinutes($tolerance)->format('H:i:s');
 
         // Base query absensi hari ini + hadir
         $queryAbsensi = Absensi::whereDate('tanggal', $today)
@@ -60,7 +65,7 @@ class DashboardStatsOverview extends BaseWidget
             }
         }
 
-        $lateCount = (clone $queryAbsensi)->where('jam_masuk', '>', $standardWorkTime)->count();
+        $lateCount = (clone $queryAbsensi)->where('jam_masuk', '>', $effectiveLateTime)->count();
         $totalPresentToday = $queryAbsensi->count();
         $latePercentage = $totalPresentToday > 0 ? ($lateCount / $totalPresentToday) * 100 : 0;
 
@@ -182,7 +187,7 @@ class DashboardStatsOverview extends BaseWidget
         ];
     }
 
-    protected function getLateChartData($user, $standardWorkTime): array
+    protected function getLateChartData($user, $effectiveLateTime): array
     {
         $data = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -190,7 +195,7 @@ class DashboardStatsOverview extends BaseWidget
             $query = Absensi::whereDate('tanggal', $date)
                 ->where('status', 'hadir')
                 ->whereNotNull('jam_masuk')
-                ->where('jam_masuk', '>', $standardWorkTime);
+                ->where('jam_masuk', '>', $effectiveLateTime);
 
             if (
                 !$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])

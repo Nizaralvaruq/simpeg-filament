@@ -3,7 +3,6 @@
 namespace Modules\PenilaianKinerja\Filament\Resources;
 
 use Modules\PenilaianKinerja\Models\AppraisalAssignment;
-use Modules\PenilaianKinerja\Models\MyAppraisalAssignment;
 use Modules\PenilaianKinerja\Models\AppraisalCategory;
 use Modules\PenilaianKinerja\Models\AppraisalIndicator;
 use Modules\PenilaianKinerja\Models\AppraisalResult;
@@ -25,7 +24,7 @@ use Filament\Forms\Components\Repeater; // Added for the new form method
 
 class MyAppraisalAssignmentResource extends Resource
 {
-    protected static ?string $model = MyAppraisalAssignment::class;
+    protected static ?string $model = AppraisalAssignment::class;
 
     protected static ?int $navigationSort = 70;
 
@@ -136,8 +135,8 @@ class MyAppraisalAssignmentResource extends Resource
                     ->label('Beri Nilai')
                     ->icon('heroicon-m-star')
                     ->color('primary')
-                    ->visible(fn(MyAppraisalAssignment $record) => $record->status === 'pending')
-                    ->schema(function (MyAppraisalAssignment $record) {
+                    ->visible(fn(AppraisalAssignment $record) => $record->status === 'pending')
+                    ->schema(function (AppraisalAssignment $record) {
                         // Dynamically build the form based on categories and indicators
                         $categories = AppraisalCategory::with('indicators')->orderBy('weight', 'desc')->get();
                         $fields = [];
