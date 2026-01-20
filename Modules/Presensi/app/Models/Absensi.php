@@ -37,6 +37,10 @@ class Absensi extends Model
             return 0;
         }
 
+        if (!$this->isWorkingDay($this->tanggal)) {
+            return 0;
+        }
+
         $settings = \Modules\MasterData\Models\Setting::get();
         $jamMasuk = \Carbon\Carbon::parse($this->jam_masuk);
         $startTime = \Carbon\Carbon::parse($settings->office_start_time);
@@ -50,5 +54,14 @@ class Absensi extends Model
         }
 
         return $jamMasuk->diffInMinutes($startTime);
+    }
+
+    public static function isWorkingDay($date = null): bool
+    {
+        $date = $date ? \Carbon\Carbon::parse($date) : \Carbon\Carbon::today();
+        $settings = \Modules\MasterData\Models\Setting::get();
+        $workingDays = $settings->working_days ?? [1, 2, 3, 4, 5]; // Default Mon-Fri
+
+        return in_array($date->dayOfWeekIso, $workingDays);
     }
 }

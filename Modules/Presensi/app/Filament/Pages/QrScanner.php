@@ -6,6 +6,7 @@ use App\Models\User;
 use Filament\Pages\Page;
 use Modules\Presensi\Models\Absensi;
 use Modules\Presensi\Models\JadwalPiket;
+use Modules\Presensi\Models\Kegiatan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
@@ -35,6 +36,10 @@ class QrScanner extends Page
     public bool $emergencyOverride = false;
     public int $volume = 70;
 
+    // Event Mode
+    public string $scanMode = 'daily'; // 'daily' or 'event'
+    public ?int $selectedEventId = null;
+
     // Connection status
     public bool $isOnline = true;
     public int $pendingScans = 0;
@@ -57,6 +62,11 @@ class QrScanner extends Page
         // Initialize stats
         $this->loadTodayStats();
         $this->loadRecentScans();
+
+        // Load Global States
+        $this->scannerEnabled = cache()->get('scanner_enabled', true);
+        $this->emergencyOverride = cache()->get('emergency_override', false);
+        $this->volume = (int)cache()->get('scanner_volume', 70);
     }
 
     /**
@@ -96,13 +106,27 @@ class QrScanner extends Page
         return 'success';
     }
 
+    public function getEventsProperty()
+    {
+        return Kegiatan::whereDate('tanggal', Carbon::today())
+            ->where('is_closed', false)
+            ->get()
+            ->pluck('nama_kegiatan', 'id');
+    }
+
+    public function updatedScanMode()
+    {
+        $this->selectedEventId = null;
+        $this->loadTodayStats(); // Refresh stats for mode
+    }
+
     public function processScan(string $token, ?float $lat = null, ?float $lng = null, bool $isSilent = false)
     {
         /** @var \App\Models\User|null $currentUser */
         $currentUser = Auth::user();
 
-        // Check if scanner is enabled
-        if (!$this->scannerEnabled && (!$currentUser || !$currentUser->hasAnyRole(['super_admin', 'admin_unit']))) {
+        // Check if scanner is enabled (Block all if disabled)
+        if (!$this->scannerEnabled) {
             if (!$isSilent) {
                 $this->dispatch('scan-error', message: 'Scanner sedang dinonaktifkan.');
             }
@@ -111,10 +135,11 @@ class QrScanner extends Page
 
         $this->lastScannedToken = $token;
 
-        // Cari user berdasarkan NIP di data_induk (employee relationship)
-        $user = User::whereHas('employee', function ($query) use ($token) {
-            $query->where('nip', $token);
-        })->first();
+        // Cari user berdasarkan qr_token ATAU NIP
+        $user = User::where('qr_token', $token)
+            ->orWhereHas('employee', function ($query) use ($token) {
+                $query->where('nip', $token);
+            })->first();
 
         if (!$user) {
             if (!$isSilent) {
@@ -125,6 +150,12 @@ class QrScanner extends Page
                     ->danger()
                     ->send();
             }
+            return;
+        }
+
+        // --- BRANCH: EVENT MODE ---
+        if ($this->scanMode === 'event') {
+            $this->recordEventAttendance($user, $lat, $lng, $isSilent);
             return;
         }
 
@@ -270,6 +301,10 @@ class QrScanner extends Page
             'checkedIn' => $checkedIn,
             'checkedOut' => $checkedOut
         ];
+
+        // Sync Global States during poll
+        $this->scannerEnabled = cache()->get('scanner_enabled', true);
+        $this->emergencyOverride = cache()->get('emergency_override', false);
     }
 
     /**
@@ -319,10 +354,11 @@ class QrScanner extends Page
         }
 
         $this->scannerEnabled = !$this->scannerEnabled;
+        cache()->forever('scanner_enabled', $this->scannerEnabled);
 
         Notification::make()
             ->title('Scanner ' . ($this->scannerEnabled ? 'Diaktifkan' : 'Dinonaktifkan'))
-            ->body('Status scanner telah diubah.')
+            ->body('Status scanner telah diubah secara global.')
             ->success()
             ->send();
     }
@@ -345,10 +381,11 @@ class QrScanner extends Page
         }
 
         $this->emergencyOverride = !$this->emergencyOverride;
+        cache()->forever('emergency_override', $this->emergencyOverride);
 
         Notification::make()
             ->title('Emergency Override ' . ($this->emergencyOverride ? 'ON' : 'OFF'))
-            ->body($this->emergencyOverride ? 'Validasi lokasi dinonaktifkan sementara.' : 'Validasi lokasi diaktifkan kembali.')
+            ->body($this->emergencyOverride ? 'Validasi lokasi dinonaktifkan secara global.' : 'Validasi lokasi diaktifkan kembali secara global.')
             ->warning()
             ->send();
     }
@@ -356,9 +393,10 @@ class QrScanner extends Page
     /**
      * Update volume setting
      */
-    public function updateVolume($volume)
+    public function updatedVolume($value)
     {
-        $this->volume = max(0, min(100, (int)$volume));
+        $this->volume = max(0, min(100, (int)$value));
+        cache()->forever('scanner_volume', $this->volume);
     }
 
     /**
@@ -383,6 +421,59 @@ class QrScanner extends Page
             ->send();
 
         $this->loadTodayStats();
+        $this->loadRecentScans();
+    }
+
+    protected function recordEventAttendance(User $user, ?float $lat, ?float $lng, bool $isSilent)
+    {
+        if (!$this->selectedEventId) {
+            if (!$isSilent) $this->dispatch('scan-error', message: 'Pilih Event terlebih dahulu!');
+            return;
+        }
+
+        $kegiatan = Kegiatan::find($this->selectedEventId);
+        if (!$kegiatan || $kegiatan->is_closed) {
+            if (!$isSilent) $this->dispatch('scan-error', message: 'Event tidak valid atau sudah ditutup.');
+            return;
+        }
+
+        // Check duplicated
+        $exists = $kegiatan->absensiKegiatans()->where('user_id', $user->id)->exists();
+        if ($exists) {
+            if (!$isSilent) {
+                $this->dispatch('scan-error', message: 'Sudah absen di event ini.');
+                Notification::make()
+                    ->title('Sudah Hadir')
+                    ->body("{$user->name} sudah tercatat hadir di {$kegiatan->nama_kegiatan}.")
+                    ->warning()
+                    ->send();
+            }
+            return;
+        }
+
+        $kegiatan->absensiKegiatans()->create([
+            'user_id' => $user->id,
+            'jam_absen' => now(),
+            'status' => 'hadir',
+        ]);
+
+        if (!$isSilent) {
+            $this->dispatch(
+                'scan-success',
+                type: 'check-in',
+                name: $user->name,
+                email: $user->email,
+                avatar: $user->getFilamentAvatarUrl()
+            );
+
+            Notification::make()
+                ->title('Hadir di Event')
+                ->body("{$user->name} berhasil check-in di {$kegiatan->nama_kegiatan}.")
+                ->success()
+                ->send();
+        }
+
+        // Refresh local stats if needed (though main stats are daily)
         $this->loadRecentScans();
     }
 }

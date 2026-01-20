@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Modules\MasterData\Models\Setting;
 use Illuminate\Support\Facades\Auth;
 use Filament\Schemas\Schema;
+use Filament\Actions\Action;
 
 class ManageSettings extends Page implements HasForms
 {
@@ -23,9 +24,9 @@ class ManageSettings extends Page implements HasForms
 
     protected string $view = 'masterdata::filament.pages.manage-settings';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Sistem';
+    protected static string | \UnitEnum | null $navigationGroup = 'Presensi';
 
-    protected static ?string $navigationLabel = 'Pengaturan Global';
+    protected static ?string $navigationLabel = 'Pengaturan Absensi';
 
     protected static ?string $title = 'Pengaturan Global';
 
@@ -38,6 +39,16 @@ class ManageSettings extends Page implements HasForms
         /** @var \App\Models\User $user */
         $user = Auth::user();
         return $user?->hasRole('super_admin') ?? false;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('save')
+                ->label('Simpan Perubahan')
+                ->action('save')
+                ->color('primary'),
+        ];
     }
 
     public function mount(): void
@@ -56,6 +67,19 @@ class ManageSettings extends Page implements HasForms
                         \Filament\Forms\Components\TextInput::make('app_name')
                             ->label('Nama Aplikasi')
                             ->required(),
+                        \Filament\Forms\Components\CheckboxList::make('working_days')
+                            ->label('Hari Kerja')
+                            ->options([
+                                1 => 'Senin',
+                                2 => 'Selasa',
+                                3 => 'Rabu',
+                                4 => 'Kamis',
+                                5 => 'Jumat',
+                                6 => 'Sabtu',
+                                7 => 'Minggu',
+                            ])
+                            ->columns(4)
+                            ->required(),
                     ]),
 
                 \Filament\Schemas\Components\Section::make('Waktu Kerja')
@@ -63,6 +87,10 @@ class ManageSettings extends Page implements HasForms
                     ->schema([
                         \Filament\Forms\Components\TimePicker::make('office_start_time')
                             ->label('Jam Masuk')
+                            ->required(),
+                        \Filament\Forms\Components\TimePicker::make('auto_alpha_time')
+                            ->label('Batas Waktu Absen (Auto-Alpha)')
+                            ->helperText('Setelah jam ini, pegawai yang belum absen akan dianggap Alpha.')
                             ->required(),
                         \Filament\Forms\Components\TimePicker::make('office_end_time')
                             ->label('Jam Pulang')
@@ -73,7 +101,7 @@ class ManageSettings extends Page implements HasForms
                             ->suffix('Menit')
                             ->default(0)
                             ->required(),
-                    ])->columns(3),
+                    ])->columns(2),
 
                 \Filament\Schemas\Components\Section::make('Lokasi Kantor (Geofencing)')
                     ->description('Tentukan titik koordinat kantor untuk validasi lokasi scan.')
@@ -83,9 +111,17 @@ class ManageSettings extends Page implements HasForms
                                 \Filament\Forms\Components\TextInput::make('office_latitude')
                                     ->label('Latitude')
                                     ->numeric()
-                                    ->placeholder('-6.2088'),
+                                    ->id('office-latitude')
+                                    ->placeholder('-6.2088')
+                                    ->suffixAction(
+                                        Action::make('getLocation')
+                                            ->icon('heroicon-m-map-pin')
+                                            ->label('Ambil Lokasi')
+                                            ->action(fn() => $this->dispatch('get-current-location'))
+                                    ),
                                 \Filament\Forms\Components\TextInput::make('office_longitude')
                                     ->label('Longitude')
+                                    ->id('office-longitude')
                                     ->numeric()
                                     ->placeholder('106.8456'),
                             ]),

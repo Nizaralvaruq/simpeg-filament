@@ -42,6 +42,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'email',
         'avatar_url',
         'password',
+        'qr_token',
+        'qr_token_generated_at',
     ];
 
     /**
@@ -66,16 +68,26 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'qr_token_generated_at' => 'datetime',
         ];
     }
 
     /**
-     * Dynamic QR Token accessor using NIP/NPA
+     * Dynamic QR Token accessor using NIP/NPA as fallback
      */
     public function getQrTokenAttribute(): ?string
     {
-        return $this->employee?->nip;
+        return $this->attributes['qr_token'] ?? $this->employee?->nip;
     }
+
+    public function generateQrToken(): void
+    {
+        $this->update([
+            'qr_token' => \Illuminate\Support\Str::random(32),
+            'qr_token_generated_at' => now(),
+        ]);
+    }
+
 
     /**
      * Get the user's initials

@@ -65,13 +65,24 @@ class DashboardStatsOverview extends BaseWidget
             }
         }
 
-        $lateCount = (clone $queryAbsensi)->where('jam_masuk', '>', $effectiveLateTime)->count();
-        $totalPresentToday = $queryAbsensi->count();
-        $latePercentage = $totalPresentToday > 0 ? ($lateCount / $totalPresentToday) * 100 : 0;
+        $isWorkingDay = Absensi::isWorkingDay($today);
+        $lateCount = 0;
+        $totalPresentToday = 0;
+        $latePercentage = 0;
+
+        if ($isWorkingDay) {
+            $lateCount = (clone $queryAbsensi)->where('jam_masuk', '>', $effectiveLateTime)->count();
+            $totalPresentToday = $queryAbsensi->count();
+            $latePercentage = $totalPresentToday > 0 ? ($lateCount / $totalPresentToday) * 100 : 0;
+        }
 
         $lateColor = 'success';
-        if ($latePercentage > 20) $lateColor = 'danger';
-        elseif ($latePercentage > 10) $lateColor = 'warning';
+        if ($isWorkingDay) {
+            if ($latePercentage > 20) $lateColor = 'danger';
+            elseif ($latePercentage > 10) $lateColor = 'warning';
+        } else {
+            $lateColor = 'gray';
+        }
 
         // ---------------------------------------------------------
         // SETUP PENILAIAN (Common for Card 2 & 3)
@@ -176,11 +187,13 @@ class DashboardStatsOverview extends BaseWidget
         }
 
         return [
-            Stat::make("Pegawai Terlambat ({$labelContext})", $lateCount)
-                ->description(number_format($latePercentage, 1) . '% dari ' . $totalPresentToday . ' kehadiran')
+            Stat::make("Pegawai Terlambat ({$labelContext})", $isWorkingDay ? $lateCount : 'Libur')
+                ->description($isWorkingDay
+                    ? number_format($latePercentage, 1) . '% dari ' . $totalPresentToday . ' kehadiran'
+                    : 'Hari ini bukan hari kerja')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color($lateColor)
-                ->chart($this->getLateChartData($user, $standardWorkTime)), // Re-use logic
+                ->chart($this->getLateChartData($user, $effectiveLateTime)), // Re-use logic
 
             $progressStat,
             $scoreStat
@@ -196,6 +209,11 @@ class DashboardStatsOverview extends BaseWidget
                 ->where('status', 'hadir')
                 ->whereNotNull('jam_masuk')
                 ->where('jam_masuk', '>', $effectiveLateTime);
+
+            if (!Absensi::isWorkingDay($date)) {
+                $data[] = 0;
+                continue;
+            }
 
             if (
                 !$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])

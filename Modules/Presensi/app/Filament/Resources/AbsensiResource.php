@@ -33,6 +33,11 @@ class AbsensiResource extends Resource
         return 'Presensi';
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return 'Riwayat Absensi';
+    }
+
     public static function getModelLabel(): string
     {
         return 'Absensi';

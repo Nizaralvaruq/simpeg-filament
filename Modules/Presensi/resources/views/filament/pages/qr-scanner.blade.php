@@ -90,14 +90,16 @@
         .qr-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.2);
+            /* Much lower opacity */
+            backdrop-filter: blur(1px);
+            /* minimal blur */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.2s;
             z-index: 10;
         }
 
@@ -392,7 +394,9 @@
         .qr-modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.4);
+            /* Transparent background to keep camera visible */
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -455,7 +459,7 @@
         errorMessage: '',
         currentTime: new Date(),
         isFullscreen: false,
-        countdown: 5,
+        countdown: 10,
         showSuccessModal: false,
         offlineQueue: [],
         init() {
@@ -505,7 +509,9 @@
                 console.log('Sync complete');
             });
         }
-    }" wire:poll.5s="loadTodayStats" :class="{ 'qr-fullscreen': isFullscreen }">
+    }" :class="{ 'qr-fullscreen': isFullscreen }">
+        <!-- Hidden poll to keep stats updated without re-rendering whole UI -->
+        <span wire:poll.5s="loadTodayStats"></span>
         <!-- Fullscreen Toggle Button -->
         <button @click="toggleFullscreen()" class="qr-fullscreen-btn qr-btn" title="Toggle Fullscreen (F11)">
             <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -531,12 +537,14 @@
                                 </span>
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                                <button wire:click="toggleScanner" class="qr-btn"
+                                <button wire:click="toggleScanner" wire:key="btn-toggle-scanner"
+                                    wire:loading.attr="disabled" class="qr-btn"
                                     :class="$wire.scannerEnabled ? 'qr-btn-danger' : 'qr-btn-success'">
                                     <span x-text="$wire.scannerEnabled ? 'Disable Scanner' : 'Enable Scanner'"></span>
                                 </button>
                                 @if (auth()->user()->hasRole('super_admin'))
-                                    <button wire:click="toggleEmergencyOverride" class="qr-btn"
+                                    <button wire:click="toggleEmergencyOverride" wire:key="btn-toggle-emergency"
+                                        wire:loading.attr="disabled" class="qr-btn"
                                         :class="$wire.emergencyOverride ? 'qr-btn-danger' : 'qr-btn'">
                                         <span
                                             x-text="$wire.emergencyOverride ? '🚨 Override ON' : 'Emergency Override'"></span>
@@ -562,8 +570,94 @@
                             x-text="$wire.volume + '%'"></span>
                     </div>
 
+                    <!-- Scan Mode Selector -->
+                    <!-- Scan Mode Selector (Redesigned) -->
+                    <div
+                        class="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+
+                        <div
+                            class="grid grid-cols-2 p-1 gap-1 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                            <!-- Daily Mode Button -->
+                            <button type="button" wire:click="$set('scanMode', 'daily')"
+                                class="flex flex-col items-center justify-center p-3 rounded-lg transition-all duration-200 group relative overflow-hidden"
+                                :class="$wire.scanMode === 'daily' ?
+                                    'bg-white dark:bg-gray-800 shadow-md ring-1 ring-black/5' :
+                                    'hover:bg-gray-200 dark:hover:bg-gray-800'">
+                                <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 transition-opacity"
+                                    :class="$wire.scanMode === 'daily' ? 'opacity-100' : ''"></div>
+                                <span class="text-2xl mb-1 relative z-10">🗓️</span>
+                                <span class="text-xs font-bold uppercase tracking-wider relative z-10"
+                                    :class="$wire.scanMode === 'daily' ? 'text-blue-600 dark:text-blue-400' :
+                                        'text-gray-500 dark:text-gray-400'">Absen
+                                    Harian</span>
+                            </button>
+
+                            <!-- Event Mode Button -->
+                            <button type="button" wire:click="$set('scanMode', 'event')"
+                                class="flex flex-col items-center justify-center p-3 rounded-lg transition-all duration-200 group relative overflow-hidden"
+                                :class="$wire.scanMode === 'event' ?
+                                    'bg-white dark:bg-gray-800 shadow-md ring-1 ring-black/5' :
+                                    'hover:bg-gray-200 dark:hover:bg-gray-800'">
+                                <div class="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent opacity-0 transition-opacity"
+                                    :class="$wire.scanMode === 'event' ? 'opacity-100' : ''"></div>
+                                <span class="text-2xl mb-1 relative z-10">🎉</span>
+                                <span class="text-xs font-bold uppercase tracking-wider relative z-10"
+                                    :class="$wire.scanMode === 'event' ? 'text-purple-600 dark:text-purple-400' :
+                                        'text-gray-500 dark:text-gray-400'">Kegiatan
+                                    / Event</span>
+                            </button>
+                        </div>
+
+                        <!-- Description & Controls -->
+                        <div class="p-4 bg-white dark:bg-gray-800">
+                            <div x-show="$wire.scanMode === 'daily'"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0">
+                                <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+                                    Mode standar untuk mencatat jam <b>Masuk</b> dan <b>Pulang</b> harian pegawai.
+                                </p>
+                            </div>
+
+                            <div x-show="$wire.scanMode === 'event'"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0">
+                                <label class="block mb-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                    Pilih Kegiatan Hari Ini
+                                </label>
+                                <div class="relative">
+                                    <select wire:model.live="selectedEventId"
+                                        class="appearance-none bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-3 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500 transition-shadow shadow-sm hover:shadow-md">
+                                        <option value="">-- Pilih Event --</option>
+                                        @foreach ($this->events as $id => $name)
+                                            <option value="{{ $id }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div
+                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                @if (empty($this->events))
+                                    <div
+                                        class="mt-2 flex items-center gap-2 text-amber-600 bg-amber-50 p-2 rounded-md border border-amber-200">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p class="text-xs font-medium">Tidak ada kegiatan aktif hari ini.</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="qr-card">
-                        <div class="qr-camera">
+                        <div class="qr-camera" wire:ignore>
                             <div id="reader" style="width: 100%; height: 100%;"></div>
 
                             <div class="qr-badge">
@@ -595,7 +689,8 @@
                                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
-                                <h3 style="font-size: 1.125rem; font-weight: 600; color: white;">Memverifikasi Lokasi...
+                                <h3 style="font-size: 1.125rem; font-weight: 600; color: white;">Memverifikasi
+                                    Lokasi...
                                 </h3>
                                 <p style="font-size: 0.875rem; color: #d1d5db; margin-top: 0.25rem;">Mohon tunggu
                                     sebentar</p>
@@ -699,8 +794,9 @@
         </div>
 
         <!-- Success Modal with Countdown -->
-        <div x-show="showSuccessModal" x-cloak class="qr-modal-overlay" @click.self="showSuccessModal = false">
-            <div class="qr-modal-content">
+        <div x-show="showSuccessModal" x-cloak class="qr-modal-overlay"
+            @click="showSuccessModal = false; scannedUser = null">
+            <div class="qr-modal-content" @click.stop>
                 <template x-if="scannedUser">
                     <div>
                         <div style="position: relative; display: inline-block; margin-bottom: 1.5rem;">
@@ -778,10 +874,10 @@
                         html5QrCode.start({
                                 facingMode: "environment"
                             }, {
-                                fps: 15,
+                                fps: 24,
                                 qrbox: {
-                                    width: 280,
-                                    height: 280
+                                    width: 450,
+                                    height: 450
                                 }
                             },
                             (decodedText) => {
@@ -810,16 +906,21 @@
                                                     '0';
                                                 processScan(decodedText, null, null);
                                             }, {
-                                                timeout: 5000
+                                                timeout: 3000,
+                                                enableHighAccuracy: true
                                             }
                                         );
                                     } else {
                                         document.getElementById('scan-overlay').style.opacity = '0';
                                         processScan(decodedText, null, null);
                                     }
-                                }, 500);
+                                }, 300);
                             }
-                        ).catch(err => console.error("Camera Error:", err));
+                        ).catch(err => {
+                            console.error("Camera Error:", err);
+                            // Auto restart if camera fails
+                            setTimeout(startScanner, 2000);
+                        });
                     };
 
                     const handleOfflineScan = (token) => {
@@ -846,7 +947,8 @@
 
                     const processScan = (token, lat, lng) => {
                         @this.processScan(token, lat, lng).then(() => {
-                            setTimeout(() => isScanning = false, 5000);
+                            // Quick lockout for fast scanning (1.5s)
+                            setTimeout(() => isScanning = false, 1500);
                         }).catch(() => {
                             isScanning = false;
                         });
@@ -887,7 +989,15 @@
                         }
                     });
 
-                    startScanner();
+                    // Prevent multiple starts on re-renders
+                    if (window.html5QrCode) {
+                        window.html5QrCode.stop().then(() => {
+                            startScanner();
+                        }).catch(() => startScanner());
+                    } else {
+                        window.html5QrCode = html5QrCode;
+                        startScanner();
+                    }
                 });
 
                 window.addEventListener('scan-success', (event) => {
@@ -911,30 +1021,7 @@
                         audio.play();
                     }
 
-                    // Confetti!
-                    confetti({
-                        particleCount: 150,
-                        spread: 70,
-                        origin: {
-                            y: 0.6
-                        },
-                        colors: event.detail.type === 'check-in' ? ['#10b981', '#34d399'] : ['#3b82f6', '#60a5fa']
-                    });
-
-                    // Show success modal with countdown
-                    const modal = document.querySelector('[x-data]').__x.$data;
-                    modal.scannedUser = scannedUser;
-                    modal.showSuccessModal = true;
-                    modal.countdown = 5;
-
-                    const countdownInterval = setInterval(() => {
-                        modal.countdown--;
-                        if (modal.countdown <= 0) {
-                            clearInterval(countdownInterval);
-                            modal.showSuccessModal = false;
-                            modal.scannedUser = null;
-                        }
-                    }, 1000);
+                    // No visual effects (modal/confetti) as requested.
                 });
 
                 window.addEventListener('scan-error', (event) => {

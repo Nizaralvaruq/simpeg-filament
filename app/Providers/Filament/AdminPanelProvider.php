@@ -77,6 +77,7 @@ class AdminPanelProvider extends PanelProvider
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ])
             ->navigationGroups([
+                'Menu Saya',
                 'Kepegawaian',
                 'Presensi',
                 'Penilaian Kinerja',
