@@ -352,43 +352,29 @@ class DataIndukResource extends Resource
                 Step::make('Buat Akun Login')
                     ->description('Opsional')
                     ->schema([
-                        Forms\Components\Select::make('user_id')
-                            ->label('Tautkan Akun User (Pilih User yang sudah ada)')
-                            ->relationship('user', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->live()
+                        Section::make('Buat Akun Baru')
+                            ->description('Isi Email & Password di bawah jika ingin membuat akun baru untuk pegawai ini.')
                             ->visible(function (): bool {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
                                 return $user?->hasAnyRole(['super_admin', 'admin_unit']);
                             })
-                            ->columnSpanFull(),
+                            ->schema([
+                                Forms\Components\TextInput::make('email')
+                                    ->label('Email Login')
+                                    ->email()
+                                    ->dehydrated(false)
+                                    ->rules([
+                                        fn($record) => \Illuminate\Validation\Rule::unique('users', 'email')->ignore($record?->user_id),
+                                    ]),
 
-                        Section::make('ATAU Buat Akun Baru')
-                            ->description('Isi Email & Password di bawah jika ingin membuat akun baru.')
-                            ->visible(function (Get $get): bool {
-                                /** @var \App\Models\User $user */
-                                $user = Auth::user();
-                                return $user?->hasAnyRole(['super_admin', 'admin_unit']) && empty($get('user_id'));
-                            })
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('email')
-                            ->label('Email Login')
-                            ->email()
-                            ->dehydrated(false)
-                            ->rules([
-                                fn($record) => \Illuminate\Validation\Rule::unique('users', 'email')->ignore($record?->user_id),
+                                Forms\Components\TextInput::make('password')
+                                    ->label('Password')
+                                    ->password()
+                                    ->dehydrated(false)
+                                    ->requiredWith('email'),
                             ])
-                            ->visible(fn(Get $get) => empty($get('user_id'))),
-
-                        Forms\Components\TextInput::make('password')
-                            ->label('Password')
-                            ->password()
-                            ->dehydrated(false)
-                            ->requiredWith('email')
-                            ->visible(fn(Get $get) => empty($get('user_id'))),
+                            ->columns(2),
                     ])
                     ->columns(2),
             ])

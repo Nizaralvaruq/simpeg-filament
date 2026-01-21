@@ -160,13 +160,27 @@ class QrScanner extends Page
         }
 
         // --- GEO-TAGGING VALIDATION ---
-        if (!$this->emergencyOverride && $lat && $lng) {
+        if (!$this->emergencyOverride) {
             $settings = \Modules\MasterData\Models\Setting::get();
             $officeLat = $settings->office_latitude;
             $officeLng = $settings->office_longitude;
             $maxRadiusMeters = $settings->office_radius ?? 100;
 
+            // Enforce Location if Office is Configured
             if ($officeLat && $officeLng) {
+                if (!$lat || !$lng) {
+                    if (!$isSilent) {
+                        $this->dispatch('scan-error', message: 'Lokasi Wajib Diaktifkan!');
+                        Notification::make()
+                            ->title('Akses Ditolak')
+                            ->body('Browser Anda tidak mengirimkan data lokasi. Mohon izinkan akses lokasi (GPS) untuk melakukan absensi.')
+                            ->danger()
+                            ->send();
+                    }
+                    return;
+                }
+
+                // Check Distance
                 $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
 
                 if ($distance > $maxRadiusMeters) {

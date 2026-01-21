@@ -42,8 +42,14 @@ class AbsensiReportResource extends Resource
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        // Visible to All Authenticated Users (Scoped by Query)
-        return $user !== null;
+        if (!$user) return false;
+
+        // Hide from Staff
+        if ($user->hasRole('staff')) {
+            return false;
+        }
+
+        return true;
     }
 
     public static function table(Table $table): Table

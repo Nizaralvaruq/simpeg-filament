@@ -31,11 +31,18 @@ class AbsensiExport implements FromCollection, WithHeadings, WithMapping
             'Jam Masuk',
             'Jam Keluar',
             'Keterangan',
+            'Latitude',
+            'Longitude',
+            'Lokasi Maps',
         ];
     }
 
     public function map($record): array
     {
+        $mapsLink = ($record->latitude && $record->longitude)
+            ? "https://www.google.com/maps?q={$record->latitude},{$record->longitude}"
+            : '-';
+
         return [
             $record->tanggal->format('d/m/Y'),
             $record->user->name ?? '-',
@@ -44,6 +51,9 @@ class AbsensiExport implements FromCollection, WithHeadings, WithMapping
             $record->jam_masuk,
             $record->jam_keluar,
             $record->keterangan,
+            $record->latitude,
+            $record->longitude,
+            $mapsLink,
         ];
     }
 }

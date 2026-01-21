@@ -5,13 +5,13 @@ namespace Modules\Presensi\Filament\Pages;
 use Filament\Pages\Page;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
+
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Modules\Presensi\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Filament\Tables\Columns\IconColumn;
+
 
 class MyAttendance extends Page implements HasTable
 {

@@ -25,19 +25,7 @@ class ListAbsensiReports extends ListRecords
                     // Hidden from staff and kepala_sekolah, visible for super_admin and ketua_psdm
                     return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
                 })
-                ->action(function () {
-                    // Logic to export based on current filters?
-                    // Accessing filters from Action is tricky without form state.
-                    // For now, simple export of ALL or Current Month.
-                    // Ideally we pass filter state.
-
-                    // We'll export the *Summary* or *Detailed Logs*?
-                    // User likely wants Detailed Reprot for the period.
-
-                    // Let's get the filter values from the Table? 
-                    // Difficult in Header Action.
-                    // Alternative: Use a Modal Form in Export Action.
-                })
+                ->action(function () {})
                 ->schema([
                     \Filament\Forms\Components\DatePicker::make('start_date')->default(now()->startOfMonth()),
                     \Filament\Forms\Components\DatePicker::make('end_date')->default(now()->endOfMonth()),

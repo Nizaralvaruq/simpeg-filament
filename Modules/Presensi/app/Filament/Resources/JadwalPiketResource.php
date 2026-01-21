@@ -16,7 +16,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
+
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -205,11 +205,7 @@ class JadwalPiketResource extends Resource
                 DeleteAction::make(),
             ])
             ->toolbarActions([
-                CreateAction::make()
-                    ->using(function (array $data, string $model): \Illuminate\Database\Eloquent\Model {
-                        $data['created_by'] = Auth::id();
-                        return $model::create($data);
-                    }),
+
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
