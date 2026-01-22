@@ -219,6 +219,7 @@ class JadwalPiketResource extends Resource
             'index' => Pages\ListJadwalPikets::route('/'),
             'create' => Pages\CreateJadwalPiket::route('/create'),
             'edit' => Pages\EditJadwalPiket::route('/{record}/edit'),
+            'assign' => Pages\AssignPiket::route('/assign'),
         ];
     }
 

@@ -16,6 +16,21 @@ class CreateJadwalPiket extends CreateRecord
         return $data;
     }
 
+    protected function afterCreate(): void
+    {
+        $record = $this->record;
+
+        if ($record->user) {
+            $record->user->notify(
+                \Filament\Notifications\Notification::make()
+                    ->title('Jadwal Piket Baru')
+                    ->body("Admin telah menjadwalkan Anda piket pada tanggal: " . $record->tanggal->format('d M Y'))
+                    ->info()
+                    ->toDatabase()
+            );
+        }
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

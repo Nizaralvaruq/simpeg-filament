@@ -12,9 +12,13 @@ class ListJadwalPikets extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('assign_list')
+                ->label('Tambah via List Pegawai')
+                ->icon('heroicon-o-users')
+                ->url(JadwalPiketResource::getUrl('assign')),
             \Filament\Actions\CreateAction::make()
                 ->mutateFormDataUsing(function (array $data): array {
-                    $data['created_by'] = auth()->id();
+                    $data['created_by'] = \Illuminate\Support\Facades\Auth::id();
                     return $data;
                 }),
         ];

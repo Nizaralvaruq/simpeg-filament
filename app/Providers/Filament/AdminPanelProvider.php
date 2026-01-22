@@ -28,11 +28,12 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->login(\App\Filament\Pages\Auth\Login::class)
             ->brandName('Sistem Kepegawaian')
             ->brandLogo(asset('images/logo1.png'))
             ->brandLogoHeight('3rem')
-            ->databaseNotifications(false)
+            ->databaseNotifications(true)
             ->globalSearch(false)
             ->profile(\App\Filament\Pages\EditProfile::class)
             ->colors([
@@ -46,8 +47,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: base_path('Modules/Leave/app/Filament/Resources'), for: 'Modules\\Leave\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/PenilaianKinerja/app/Filament/Resources'), for: 'Modules\\PenilaianKinerja\\Filament\\Resources')
 
-
-
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->discoverPages(in: base_path('Modules/Presensi/app/Filament/Pages'), for: 'Modules\\Presensi\\Filament\\Pages')
             ->discoverPages(in: base_path('Modules/MasterData/app/Filament/Pages'), for: 'Modules\\MasterData\\Filament\\Pages')
@@ -56,7 +55,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->discoverWidgets(in: base_path('Modules/Presensi/app/Filament/Widgets'), for: 'Modules\\Presensi\\Filament\\Widgets')
-
 
             ->widgets([])
             ->middleware([
