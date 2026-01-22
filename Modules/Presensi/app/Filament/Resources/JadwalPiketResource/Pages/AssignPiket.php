@@ -77,11 +77,11 @@ class AssignPiket extends Page implements HasTable
             ->filters([
                 // Add Unit Filter if needed
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('assign')
                     ->label('Jadikan Petugas')
                     ->icon('heroicon-o-plus-circle')
-                    ->form([
+                    ->schema([
                         DatePicker::make('tanggal')
                             ->label('Tanggal Piket')
                             ->required()
@@ -139,6 +139,6 @@ class AssignPiket extends Page implements HasTable
                             ->send();
                     })
             ])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 }
