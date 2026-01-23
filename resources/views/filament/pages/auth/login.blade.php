@@ -1,7 +1,7 @@
 <div class="flex min-h-screen w-full flex-col lg:flex-row shadow-none border-0">
     {{-- Left Side: Branding (Hidden on mobile) --}}
     <div
-        class="relative hidden h-screen items-center justify-center bg-[#1e2a4a] lg:flex lg:w-1/2 overflow-hidden border-0 outline-none">
+        class="relative hidden h-screen items-center justify-center bg-[#1e2a4a] lg:flex lg:w-3/5 overflow-hidden border-0 outline-none">
         {{-- Decorative element --}}
         <div class="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
         <div class="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-blue-400/10 blur-3xl"></div>
@@ -25,7 +25,8 @@
     </div>
 
     {{-- Right Side: Login Form --}}
-    <div class="flex flex-1 flex-col items-center justify-center bg-white px-6 py-12 lg:w-1/2 border-0 outline-none">
+    <div
+        class="flex flex-1 flex-col items-center justify-center bg-white dark:bg-gray-900 px-6 py-12 lg:w-2/5 border-0 outline-none transition-colors duration-300">
         {{-- Mobile Logo --}}
         <div class="mb-8 flex justify-center lg:hidden">
             <img src="{{ asset('images/logo1.png') }}" alt="Logo" class="h-20 w-auto" />
@@ -34,10 +35,11 @@
         <div class="w-full max-w-sm space-y-8">
             {{-- Form Header --}}
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 lg:text-left">
+                <h2
+                    class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white lg:text-left transition-colors">
                     Sign In
                 </h2>
-                <p class="mt-2 text-sm text-gray-600 lg:text-left">
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 lg:text-left">
                     Selamat datang kembali! Silakan masuk ke akun Anda.
                 </p>
             </div>
@@ -47,10 +49,10 @@
 
             {{-- Footer (Registration if enabled) --}}
             @if (filament()->hasRegistration())
-                <p class="mt-8 text-center text-sm text-gray-600">
+                <p class="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
                     Belum punya akun?
                     <a href="{{ filament()->getRegistrationUrl() }}"
-                        class="font-semibold text-blue-600 hover:text-blue-500">
+                        class="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
                         Daftar sekarang
                     </a>
                 </p>

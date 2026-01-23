@@ -33,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Sistem Kepegawaian')
             ->brandLogo(asset('images/logo1.png'))
             ->brandLogoHeight('3rem')
+            ->favicon(asset('images/logo1.png'))
             ->databaseNotifications(true)
             ->globalSearch(false)
             ->profile(\App\Filament\Pages\EditProfile::class)
