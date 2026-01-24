@@ -11,7 +11,6 @@
                 {{-- Left Column: Camera, Mode, Admin --}}
                 <div>
                     @include('presensi::filament.pages.qr-scanner-partials.scan-mode')
-                    @include('presensi::filament.pages.qr-scanner-partials.admin-panel')
                     @include('presensi::filament.pages.qr-scanner-partials.camera-section')
                 </div>
 

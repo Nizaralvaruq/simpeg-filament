@@ -32,8 +32,6 @@ class QrScanner extends Page
     public array $recentScans = [];
 
     // Scanner controls
-    public bool $scannerEnabled = true;
-    public bool $emergencyOverride = false;
     public int $volume = 70;
 
     // Event Mode
@@ -64,8 +62,6 @@ class QrScanner extends Page
         $this->loadRecentScans();
 
         // Load Global States
-        $this->scannerEnabled = cache()->get('scanner_enabled', true);
-        $this->emergencyOverride = cache()->get('emergency_override', false);
         $this->volume = (int)cache()->get('scanner_volume', 70);
     }
 
@@ -125,14 +121,6 @@ class QrScanner extends Page
         /** @var \App\Models\User|null $currentUser */
         $currentUser = Auth::user();
 
-        // Check if scanner is enabled (Block all if disabled)
-        if (!$this->scannerEnabled) {
-            if (!$isSilent) {
-                $this->dispatch('scan-error', message: 'Scanner sedang dinonaktifkan.');
-            }
-            return;
-        }
-
         $this->lastScannedToken = $token;
 
         // Cari user berdasarkan qr_token ATAU NIP
@@ -160,40 +148,38 @@ class QrScanner extends Page
         }
 
         // --- GEO-TAGGING VALIDATION ---
-        if (!$this->emergencyOverride) {
-            $settings = \Modules\MasterData\Models\Setting::get();
-            $officeLat = $settings->office_latitude;
-            $officeLng = $settings->office_longitude;
-            $maxRadiusMeters = $settings->office_radius ?? 100;
+        $settings = \Modules\MasterData\Models\Setting::get();
+        $officeLat = $settings->office_latitude;
+        $officeLng = $settings->office_longitude;
+        $maxRadiusMeters = $settings->office_radius ?? 100;
 
-            // Enforce Location if Office is Configured
-            if ($officeLat && $officeLng) {
-                if (!$lat || !$lng) {
-                    if (!$isSilent) {
-                        $this->dispatch('scan-error', message: 'Lokasi Wajib Diaktifkan!');
-                        Notification::make()
-                            ->title('Akses Ditolak')
-                            ->body('Browser Anda tidak mengirimkan data lokasi. Mohon izinkan akses lokasi (GPS) untuk melakukan absensi.')
-                            ->danger()
-                            ->send();
-                    }
-                    return;
+        // Enforce Location if Office is Configured
+        if ($officeLat && $officeLng) {
+            if (!$lat || !$lng) {
+                if (!$isSilent) {
+                    $this->dispatch('scan-error', message: 'Lokasi Wajib Diaktifkan!');
+                    Notification::make()
+                        ->title('Akses Ditolak')
+                        ->body('Browser Anda tidak mengirimkan data lokasi. Mohon izinkan akses lokasi (GPS) untuk melakukan absensi.')
+                        ->danger()
+                        ->send();
                 }
+                return;
+            }
 
-                // Check Distance
-                $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
+            // Check Distance
+            $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
 
-                if ($distance > $maxRadiusMeters) {
-                    if (!$isSilent) {
-                        $this->dispatch('scan-error', message: "Lokasi terlalu jauh! ({$distance}m)");
-                        Notification::make()
-                            ->title('Gagal: Diluar Lokasi')
-                            ->body("Anda berada {$distance}m dari kantor. Batas maksimal adalah {$maxRadiusMeters}m.")
-                            ->danger()
-                            ->send();
-                    }
-                    return;
+            if ($distance > $maxRadiusMeters) {
+                if (!$isSilent) {
+                    $this->dispatch('scan-error', message: "Lokasi terlalu jauh! ({$distance}m)");
+                    Notification::make()
+                        ->title('Gagal: Diluar Lokasi')
+                        ->body("Anda berada {$distance}m dari kantor. Batas maksimal adalah {$maxRadiusMeters}m.")
+                        ->danger()
+                        ->send();
                 }
+                return;
             }
         }
 
@@ -315,10 +301,6 @@ class QrScanner extends Page
             'checkedIn' => $checkedIn,
             'checkedOut' => $checkedOut
         ];
-
-        // Sync Global States during poll
-        $this->scannerEnabled = cache()->get('scanner_enabled', true);
-        $this->emergencyOverride = cache()->get('emergency_override', false);
     }
 
     /**
@@ -350,59 +332,6 @@ class QrScanner extends Page
         $this->recentScans = $scans;
     }
 
-    /**
-     * Toggle scanner on/off (admin only)
-     */
-    public function toggleScanner()
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (!$user || !$user->hasAnyRole(['super_admin', 'admin_unit'])) {
-            Notification::make()
-                ->title('Akses Ditolak')
-                ->body('Hanya admin yang dapat mengubah status scanner.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $this->scannerEnabled = !$this->scannerEnabled;
-        cache()->forever('scanner_enabled', $this->scannerEnabled);
-
-        Notification::make()
-            ->title('Scanner ' . ($this->scannerEnabled ? 'Diaktifkan' : 'Dinonaktifkan'))
-            ->body('Status scanner telah diubah secara global.')
-            ->success()
-            ->send();
-    }
-
-    /**
-     * Toggle emergency override (bypass location check)
-     */
-    public function toggleEmergencyOverride()
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (!$user || !$user->hasAnyRole(['super_admin'])) {
-            Notification::make()
-                ->title('Akses Ditolak')
-                ->body('Hanya super admin yang dapat mengaktifkan emergency override.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $this->emergencyOverride = !$this->emergencyOverride;
-        cache()->forever('emergency_override', $this->emergencyOverride);
-
-        Notification::make()
-            ->title('Emergency Override ' . ($this->emergencyOverride ? 'ON' : 'OFF'))
-            ->body($this->emergencyOverride ? 'Validasi lokasi dinonaktifkan secara global.' : 'Validasi lokasi diaktifkan kembali secara global.')
-            ->warning()
-            ->send();
-    }
 
     /**
      * Update volume setting
