@@ -5,11 +5,14 @@ namespace Modules\Presensi\Filament\Pages;
 use Filament\Pages\Page;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Forms\Components\DatePicker;
 use Modules\Presensi\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 
 
@@ -67,13 +70,40 @@ class MyAttendance extends Page implements HasTable
                     ->placeholder('--:--'),
                 TextColumn::make('late_minutes')
                     ->label('Terlambat')
-                    ->suffix(' mnt')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => $state > 0 ? "{$state} mnt" : '0 mnt')
                     ->color(fn($state) => $state > 0 ? 'danger' : 'success')
                     ->alignCenter(),
                 TextColumn::make('keterangan')
                     ->label('Keterangan')
                     ->wrap()
-                    ->limit(50),
+                    ->limit(30)
+                    ->placeholder('Tidak ada catatan'),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->options([
+                        'hadir' => 'Hadir',
+                        'izin' => 'Izin',
+                        'sakit' => 'Sakit',
+                        'alpha' => 'Alpha',
+                    ]),
+                Filter::make('tanggal')
+                    ->form([
+                        DatePicker::make('dari_tanggal')->label('Dari Tanggal'),
+                        DatePicker::make('sampai_tanggal')->label('Sampai Tanggal'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['dari_tanggal'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('tanggal', '>=', $date),
+                            )
+                            ->when(
+                                $data['sampai_tanggal'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('tanggal', '<=', $date),
+                            );
+                    })
             ]);
     }
 

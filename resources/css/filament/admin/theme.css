@@ -3,3 +3,5 @@
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 @source '../../../../resources/views/filament/pages/auth/login.blade.php';
+@source '../../../../Modules/Presensi/resources/views/**/*.blade.php';
+@source '../../../../Modules/Presensi/app/Filament/**/*.php';

@@ -42,18 +42,26 @@ class Absensi extends Model
         }
 
         $settings = \Modules\MasterData\Models\Setting::get();
+        if (!$settings || !$settings->office_start_time) {
+            return 0;
+        }
+
         $jamMasuk = \Carbon\Carbon::parse($this->jam_masuk);
         $startTime = \Carbon\Carbon::parse($settings->office_start_time);
-        $tolerance = $settings->late_tolerance ?? 0;
 
-        // If check-in is within tolerance, it's not late
+        // Ensure both are on the same date for accurate time-only comparison
+        $startTime->setDate($jamMasuk->year, $jamMasuk->month, $jamMasuk->day);
+
+        $tolerance = $settings->late_tolerance ?? 0;
         $startTimeWithTolerance = $startTime->copy()->addMinutes($tolerance);
 
         if ($jamMasuk->lte($startTimeWithTolerance)) {
             return 0;
         }
 
-        return $jamMasuk->diffInMinutes($startTime);
+        // Return positive difference in minutes
+        $diff = $jamMasuk->diffInMinutes($startTime, false);
+        return (int) max(0, $diff);
     }
 
     public static function isWorkingDay($date = null): bool

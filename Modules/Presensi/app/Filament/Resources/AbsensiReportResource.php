@@ -16,9 +16,11 @@ use Filament\Forms\Components\Select;
 use Carbon\Carbon;
 use Filament\Tables\Columns\TextColumn;
 use Maatwebsite\Excel\Facades\Excel;
-use Modules\Presensi\Exports\AbsensiExport; // Re-use or create new Summary Export if needed
-use Filament\Actions\BulkActionGroup;
+use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Modules\Presensi\Exports\AbsensiExport;
 
 
 class AbsensiReportResource extends Resource
@@ -66,26 +68,27 @@ class AbsensiReportResource extends Resource
 
                 // Calculated Columns (using state)
                 TextColumn::make('attendance_summary')
-                    ->label('Kehadiran Periode')
-                    ->formatStateUsing(function ($state, DataInduk $record, $livewire) {
+                    ->label('Ringkasan Kehadiran')
+                    ->view('presensi::filament.tables.columns.attendance-summary'),
+
+                TextColumn::make('total_late')
+                    ->label('Total Terlambat')
+                    ->state(function (DataInduk $record, $livewire) {
                         /** @var \Filament\Resources\Pages\ListRecords $livewire */
                         $filters = $livewire->getTableFilterState('period');
                         $month = $filters['month'] ?? now()->month;
                         $year = $filters['year'] ?? now()->year;
 
-                        $stats = Absensi::where('user_id', $record->user_id)
+                        return Absensi::where('user_id', $record->user_id)
                             ->whereMonth('tanggal', $month)
                             ->whereYear('tanggal', $year)
-                            ->get();
-
-                        $hadir = $stats->where('status', 'hadir')->count();
-                        $sakit = $stats->where('status', 'sakit')->count();
-                        $izin = $stats->where('status', 'izin')->count();
-                        $alpha = $stats->where('status', 'alpha')->count();
-
-                        return "H: $hadir | S: $sakit | I: $izin | A: $alpha";
+                            ->get()
+                            ->sum('late_minutes');
                     })
-                    ->description('H:Hadir, S:Sakit, I:Izin, A:Alpha'),
+                    ->suffix(' mnt')
+                    ->badge()
+                    ->color(fn($state) => $state > 0 ? 'danger' : 'success')
+                    ->description('Total menit keterlambatan bulan ini'),
 
                 TextColumn::make('attendance_percent')
                     ->label('% Hadir')
@@ -147,10 +150,42 @@ class AbsensiReportResource extends Resource
                     ->preload()
                     ->visible(fn() => !($user = Auth::user()) || !($user instanceof User) || !$user->hasRole('staff')),
             ])
-            ->recordActions([])
+            ->recordActions([
+                Action::make('view_details')
+                    ->label('Lihat Detail')
+                    ->icon('heroicon-o-eye')
+                    ->modalHeading(fn(DataInduk $record) => "Detail Presensi: " . $record->nama)
+                    ->modalWidth('4xl')
+                    ->slideOver()
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->modalContent(function (DataInduk $record, $livewire) {
+                        $filters = $livewire->getTableFilterState('period');
+                        $month = $filters['month'] ?? now()->month;
+                        $year = $filters['year'] ?? now()->year;
+
+                        $absensis = Absensi::where('user_id', $record->user_id)
+                            ->whereMonth('tanggal', $month)
+                            ->whereYear('tanggal', $year)
+                            ->orderBy('tanggal', 'asc')
+                            ->get();
+
+                        return view('presensi::filament.resources.absensi-report.detail-modal', [
+                            'absensis' => $absensis,
+                            'month' => $month,
+                            'year' => $year,
+                        ]);
+                    })
+            ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    // We'll add Export here later
+                    BulkAction::make('export')
+                        ->label('Export Terpilih')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function (mixed $records) {
+                            return Excel::download(new AbsensiExport($records), 'Laporan_Absensi_Terpilih.xlsx');
+                        }),
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

@@ -62,13 +62,15 @@ class ManageSettings extends Page implements HasForms
         return $schema
             ->components([
                 \Filament\Schemas\Components\Section::make('Informasi Umum')
-                    ->description('Pengaturan dasar aplikasi.')
+                    ->description('Pengaturan dasar identitas aplikasi dan hari kerja.')
+                    ->icon('heroicon-o-information-circle')
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('app_name')
                             ->label('Nama Aplikasi')
+                            ->placeholder('Contoh: SIMPEG IHYA')
                             ->required(),
                         \Filament\Forms\Components\CheckboxList::make('working_days')
-                            ->label('Hari Kerja')
+                            ->label('Hari Kerja Aktif')
                             ->options([
                                 1 => 'Senin',
                                 2 => 'Selasa',
@@ -78,57 +80,73 @@ class ManageSettings extends Page implements HasForms
                                 6 => 'Sabtu',
                                 7 => 'Minggu',
                             ])
-                            ->columns(4)
+                            ->columns([
+                                'default' => 2,
+                                'sm' => 3,
+                                'md' => 4,
+                                'lg' => 7,
+                            ])
                             ->required(),
                     ]),
 
-                \Filament\Schemas\Components\Section::make('Waktu Kerja')
-                    ->description('Tentukan jam operasional untuk validasi absensi.')
+                \Filament\Schemas\Components\Section::make('Waktu & Toleransi')
+                    ->description('Tentukan jam operasional dan batas keterlambatan.')
+                    ->icon('heroicon-o-clock')
                     ->schema([
                         \Filament\Forms\Components\TimePicker::make('office_start_time')
-                            ->label('Jam Masuk')
+                            ->label('Jam Masuk Kantor')
+                            ->seconds(false)
                             ->required(),
                         \Filament\Forms\Components\TimePicker::make('auto_alpha_time')
-                            ->label('Batas Waktu Absen (Auto-Alpha)')
-                            ->helperText('Setelah jam ini, pegawai yang belum absen akan dianggap Alpha.')
+                            ->label('Batas Akhir Absen (Auto-Alpha)')
+                            ->helperText('Pegawai yang belum melakukan scan masuk setelah jam ini akan otomatis dianggap Alpha oleh sistem.')
+                            ->seconds(false)
                             ->required(),
                         \Filament\Forms\Components\TimePicker::make('office_end_time')
-                            ->label('Jam Pulang')
+                            ->label('Jam Pulang Kantor')
+                            ->seconds(false)
                             ->required(),
                         \Filament\Forms\Components\TextInput::make('late_tolerance')
-                            ->label('Toleransi Keterlambatan (Menit)')
+                            ->label('Toleransi Keterlambatan')
                             ->numeric()
+                            ->minValue(0)
                             ->suffix('Menit')
+                            ->helperText('Waktu tambahan yang diberikan sebelum pegawai dicatat terlambat.')
                             ->default(0)
                             ->required(),
                     ])->columns(2),
 
-                \Filament\Schemas\Components\Section::make('Lokasi Kantor (Geofencing)')
-                    ->description('Tentukan titik koordinat kantor untuk validasi lokasi scan.')
+                \Filament\Schemas\Components\Section::make('Keamanan Lokasi (Geofencing)')
+                    ->description('Tentukan koordinat pusat kantor dan radius jangkauan absen.')
+                    ->icon('heroicon-o-map-pin')
                     ->schema([
                         \Filament\Schemas\Components\Grid::make(2)
                             ->schema([
                                 \Filament\Forms\Components\TextInput::make('office_latitude')
-                                    ->label('Latitude')
+                                    ->label('Latitude Kantor')
                                     ->numeric()
+                                    ->extraInputAttributes(['step' => 'any'])
                                     ->id('office-latitude')
                                     ->placeholder('-6.2088')
                                     ->suffixAction(
                                         Action::make('getLocation')
                                             ->icon('heroicon-m-map-pin')
-                                            ->label('Ambil Lokasi')
+                                            ->label('Ambil Lokasi Saat Ini')
                                             ->action(fn() => $this->dispatch('get-current-location'))
                                     ),
                                 \Filament\Forms\Components\TextInput::make('office_longitude')
-                                    ->label('Longitude')
+                                    ->label('Longitude Kantor')
                                     ->id('office-longitude')
+                                    ->extraInputAttributes(['step' => 'any'])
                                     ->numeric()
                                     ->placeholder('106.8456'),
                             ]),
                         \Filament\Forms\Components\TextInput::make('office_radius')
-                            ->label('Radius Maksimal (Meter)')
+                            ->label('Radius Jangkau Maksimal')
                             ->numeric()
+                            ->minValue(0)
                             ->suffix('Meter')
+                            ->helperText('Jarak maksimal (dalam meter) pegawai diperbolehkan melakukan scan dari titik koordinat kantor.')
                             ->default(100)
                             ->required(),
                     ]),
