@@ -74,20 +74,7 @@ class AbsensiResource extends Resource
 
     public static function canCreate(): bool
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (!$user) {
-            return false;
-        }
-
-        // Allow creating in staff panel
-        if (\Filament\Facades\Filament::getCurrentPanel()?->getId() === 'staff') {
-            return true;
-        }
-
-        // In admin panel, allow super_admin OR users with Create:Absensi permission (like staff)
-        return $user->hasRole('super_admin') || $user->can('Create:Absensi');
+        return false;
     }
 
     public static function form(Schema $schema): Schema
@@ -168,6 +155,7 @@ class AbsensiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->with(['user']))
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Pegawai')
@@ -185,7 +173,9 @@ class AbsensiResource extends Resource
                         'izin' => 'warning',
                         'sakit' => 'danger',
                         'alpha' => 'gray',
-                    }),
+                        'dinas_luar' => 'info',
+                    })
+                    ->formatStateUsing(fn(string $state): string => str($state)->replace('_', ' ')->title()),
 
                 Tables\Columns\TextColumn::make('jam_masuk')
                     ->time(),
@@ -213,9 +203,7 @@ class AbsensiResource extends Resource
                 Tables\Columns\TextColumn::make('location')
                     ->label('Lokasi')
                     ->state(function ($record) {
-                        return $record?->latitude && $record?->longitude
-                            ? "Maps"
-                            : '-';
+                        return $record?->alamat_lokasi ?? ($record?->latitude ? "Maps" : "-");
                     })
                     ->url(
                         fn($record) => $record?->latitude && $record?->longitude
@@ -224,7 +212,15 @@ class AbsensiResource extends Resource
                     )
                     ->openUrlInNewTab()
                     ->color('info')
-                    ->icon(fn($record) => $record?->latitude && $record?->longitude ? 'heroicon-o-map-pin' : null),
+                    ->icon(fn($record) => $record?->latitude && $record?->longitude ? 'heroicon-o-map-pin' : null)
+                    ->wrap()
+                    ->limit(50),
+
+                Tables\Columns\ImageColumn::make('foto_verifikasi')
+                    ->label('Foto')
+                    ->square()
+                    ->size(40)
+                    ->visibility('public'),
             ])
             ->defaultSort('tanggal', 'desc')
             ->filters([
@@ -312,7 +308,6 @@ class AbsensiResource extends Resource
     {
         return [
             'index' => Pages\ListAbsensis::route('/'),
-            'create' => Pages\CreateAbsensi::route('/create'),
             'edit' => Pages\EditAbsensi::route('/{record}/edit'),
         ];
     }

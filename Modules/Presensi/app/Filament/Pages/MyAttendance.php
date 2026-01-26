@@ -3,14 +3,17 @@
 namespace Modules\Presensi\Filament\Pages;
 
 use Filament\Pages\Page;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\DatePicker;
 use Modules\Presensi\Models\Absensi;
+use Modules\Presensi\Filament\Pages\LocationAttendance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
@@ -39,6 +42,7 @@ class MyAttendance extends Page implements HasTable
         return $user && $user->hasRole('staff');
     }
 
+
     public function table(Table $table): Table
     {
         return $table
@@ -59,7 +63,9 @@ class MyAttendance extends Page implements HasTable
                         'izin' => 'warning',
                         'sakit' => 'danger',
                         'alpha' => 'gray',
-                    }),
+                        'dinas_luar' => 'info',
+                    })
+                    ->formatStateUsing(fn(string $state): string => str($state)->replace('_', ' ')->title()),
                 TextColumn::make('jam_masuk')
                     ->label('Masuk')
                     ->time('H:i')
@@ -79,17 +85,31 @@ class MyAttendance extends Page implements HasTable
                     ->wrap()
                     ->limit(30)
                     ->placeholder('Tidak ada catatan'),
+                ImageColumn::make('foto_verifikasi')
+                    ->label('Bukti')
+                    ->circular()
+                    ->width(30)
+                    ->visibility(fn($record) => $record->status === 'dinas_luar'),
+                TextColumn::make('alamat_lokasi')
+                    ->label('Lokasi')
+                    ->limit(20)
+                    ->tooltip(fn($state) => $state)
+                    ->placeholder('-')
+                    ->url(fn($record) => $record->latitude ? "https://www.google.com/maps?q={$record->latitude},{$record->longitude}" : null)
+                    ->openUrlInNewTab()
+                    ->color('primary'),
             ])
             ->filters([
                 SelectFilter::make('status')
                     ->options([
                         'hadir' => 'Hadir',
+                        'dinas_luar' => 'Dinas Luar',
                         'izin' => 'Izin',
                         'sakit' => 'Sakit',
                         'alpha' => 'Alpha',
                     ]),
                 Filter::make('tanggal')
-                    ->form([
+                    ->schema([
                         DatePicker::make('dari_tanggal')->label('Dari Tanggal'),
                         DatePicker::make('sampai_tanggal')->label('Sampai Tanggal'),
                     ])
@@ -115,7 +135,7 @@ class MyAttendance extends Page implements HasTable
 
         $hadir = Absensi::where('user_id', $userId)
             ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->where('status', 'hadir')
+            ->whereIn('status', ['hadir', 'dinas_luar'])
             ->count();
 
         $lateMinutes = Absensi::where('user_id', $userId)

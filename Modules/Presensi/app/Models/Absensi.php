@@ -20,20 +20,41 @@ class Absensi extends Model
         'keterangan',
         'latitude',
         'longitude',
+        'foto_verifikasi',
+        'alamat_lokasi',
+        'late_minutes',
     ];
 
     protected $casts = [
         'tanggal' => 'date',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            if ($model->jam_masuk && $model->isWorkingDay($model->tanggal)) {
+                $model->late_minutes = $model->calculateLateMinutes();
+            } else {
+                $model->late_minutes = 0;
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function getLateMinutesAttribute(): int
+    public function calculateLateMinutes(): int
     {
-        if ($this->status !== 'hadir' || !$this->jam_masuk) {
+        if (!in_array($this->status, ['hadir', 'dinas_luar']) || !$this->jam_masuk) {
+            return 0;
+        }
+
+        // For Dinas Luar, we don't count lateness as they might go directly to client
+        if ($this->status === 'dinas_luar') {
             return 0;
         }
 

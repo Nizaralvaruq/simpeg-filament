@@ -17,7 +17,7 @@ class ListJadwalPikets extends ListRecords
                 ->icon('heroicon-o-users')
                 ->url(JadwalPiketResource::getUrl('assign')),
             \Filament\Actions\CreateAction::make()
-                ->mutateFormDataUsing(function (array $data): array {
+                ->mutateDataUsing(function (array $data): array {
                     $data['created_by'] = \Illuminate\Support\Facades\Auth::id();
                     return $data;
                 }),

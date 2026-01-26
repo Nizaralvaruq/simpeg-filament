@@ -44,4 +44,9 @@ class DataInduk extends Model
     {
         return $this->hasMany(RiwayatGolongan::class, 'data_induk_id');
     }
+
+    public function absensis()
+    {
+        return $this->hasMany(\Modules\Presensi\Models\Absensi::class, 'user_id', 'user_id');
+    }
 }

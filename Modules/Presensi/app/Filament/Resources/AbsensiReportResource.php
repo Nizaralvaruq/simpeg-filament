@@ -57,6 +57,48 @@ class AbsensiReportResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                // Get current filter values
+                $month = request('tableFilters.period.month', now()->month);
+                $year = request('tableFilters.period.year', now()->year);
+
+                // Eager load with aggregates to prevent N+1 queries
+                return $query
+                    ->with(['user', 'units'])
+                    ->withCount([
+                        'absensis as hadir_count' => function ($q) use ($month, $year) {
+                            $q->where('status', 'hadir')
+                                ->whereMonth('tanggal', $month)
+                                ->whereYear('tanggal', $year);
+                        },
+                        'absensis as dinas_luar_count' => function ($q) use ($month, $year) {
+                            $q->where('status', 'dinas_luar')
+                                ->whereMonth('tanggal', $month)
+                                ->whereYear('tanggal', $year);
+                        },
+                        'absensis as sakit_count' => function ($q) use ($month, $year) {
+                            $q->where('status', 'sakit')
+                                ->whereMonth('tanggal', $month)
+                                ->whereYear('tanggal', $year);
+                        },
+                        'absensis as izin_count' => function ($q) use ($month, $year) {
+                            $q->where('status', 'izin')
+                                ->whereMonth('tanggal', $month)
+                                ->whereYear('tanggal', $year);
+                        },
+                        'absensis as alpha_count' => function ($q) use ($month, $year) {
+                            $q->where('status', 'alpha')
+                                ->whereMonth('tanggal', $month)
+                                ->whereYear('tanggal', $year);
+                        },
+                    ])
+                    ->withSum([
+                        'absensis as total_late_minutes' => function ($q) use ($month, $year) {
+                            $q->whereMonth('tanggal', $month)
+                                ->whereYear('tanggal', $year);
+                        }
+                    ], 'late_minutes');
+            })
             ->columns([
                 TextColumn::make('user.name')
                     ->label('Pegawai')
@@ -71,42 +113,27 @@ class AbsensiReportResource extends Resource
                     ->label('Ringkasan Kehadiran')
                     ->view('presensi::filament.tables.columns.attendance-summary'),
 
-                TextColumn::make('total_late')
+                TextColumn::make('total_late_minutes')
                     ->label('Total Terlambat')
-                    ->state(function (DataInduk $record, $livewire) {
-                        /** @var \Filament\Resources\Pages\ListRecords $livewire */
-                        $filters = $livewire->getTableFilterState('period');
-                        $month = $filters['month'] ?? now()->month;
-                        $year = $filters['year'] ?? now()->year;
-
-                        return Absensi::where('user_id', $record->user_id)
-                            ->whereMonth('tanggal', $month)
-                            ->whereYear('tanggal', $year)
-                            ->get()
-                            ->sum('late_minutes');
-                    })
                     ->suffix(' mnt')
                     ->badge()
                     ->color(fn($state) => $state > 0 ? 'danger' : 'success')
-                    ->description('Total menit keterlambatan bulan ini'),
+                    ->description('Total menit keterlambatan bulan ini')
+                    ->default(0),
 
                 TextColumn::make('attendance_percent')
                     ->label('% Hadir')
-                    ->state(function (DataInduk $record, $livewire) {
-                        /** @var \Filament\Resources\Pages\ListRecords $livewire */
-                        $filters = $livewire->getTableFilterState('period');
-                        $month = $filters['month'] ?? now()->month;
-                        $year = $filters['year'] ?? now()->year;
+                    ->state(function (DataInduk $record) {
+                        $total = ($record->hadir_count ?? 0) +
+                            ($record->dinas_luar_count ?? 0) +
+                            ($record->sakit_count ?? 0) +
+                            ($record->izin_count ?? 0) +
+                            ($record->alpha_count ?? 0);
 
-                        $query = Absensi::where('user_id', $record->user_id)
-                            ->whereMonth('tanggal', $month)
-                            ->whereYear('tanggal', $year);
+                        $present = ($record->hadir_count ?? 0) + ($record->dinas_luar_count ?? 0);
 
-                        $totalInput = (clone $query)->count();
-                        $hadir = $query->where('status', 'hadir')->count();
-
-                        if ($totalInput == 0) return 0;
-                        return round(($hadir / $totalInput) * 100);
+                        if ($total == 0) return 0;
+                        return round(($present / $total) * 100);
                     })
                     ->badge()
                     ->color(fn($state) => $state >= 90 ? 'success' : ($state >= 75 ? 'warning' : 'danger'))
