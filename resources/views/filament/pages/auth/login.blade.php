@@ -13,13 +13,13 @@
             </div>
 
             {{-- Brand Name --}}
-            <h1 class="mb-4 text-4xl font-bold tracking-tight text-white">
-                Sistem Kepegawaian
+            <h1 class="mb-4 text-3xl font-bold tracking-tight text-white">
+                Integrated Holistic <br> Yayasan Application
             </h1>
 
             {{-- Tagline --}}
             <p class="mx-auto max-w-sm text-lg text-blue-100/80 leading-relaxed">
-                Platform manajemen terpadu untuk efisiensi dan transparansi data pegawai.
+                Menghidupkan Ekosistem Pendidikan Melalui Teknologi
             </p>
         </div>
     </div>
