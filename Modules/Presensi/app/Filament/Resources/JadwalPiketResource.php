@@ -229,4 +229,15 @@ class JadwalPiketResource extends Resource
         $user = Auth::user();
         return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm']) ?? false;
     }
+
+    public static function canCreate(): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        // Ketua PSDM cannot create
+        if ($user?->hasRole('ketua_psdm')) {
+            return false;
+        }
+        return $user?->hasAnyRole(['super_admin', 'admin_unit']) ?? false;
+    }
 }

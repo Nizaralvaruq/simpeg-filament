@@ -30,6 +30,17 @@ class AssignPiket extends Page implements HasTable
 
     protected static ?string $breadcrumb = 'Assign Petugas';
 
+    public static function canAccess(array $parameters = []): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        // Ketua PSDM cannot access this page
+        if ($user?->hasRole('ketua_psdm')) {
+            return false;
+        }
+        return parent::canAccess();
+    }
+
     public function table(Table $table): Table
     {
         return $table

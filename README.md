@@ -18,8 +18,8 @@ Sistem Kepegawaian (SIMPEG) ini menggunakan _Role-Based Access Control_ (RBAC) u
 - **Dashboard**:
     - Melihat statistik global (seluruh unit).
     - Widget: _HRStatsOverview_ (Total Pegawai, Status), _EmployeeDistribution_ (Grafik per Unit), _GenderStats_.
-- **Modul Kepegawaian (Data Induk)**: Bisa melihat, menambah, mengubah, dan menghapus data pegawai di seluruh unit.
-- **Modul Presensi**: Bisa mengelola data absensi, jadwal piket, dan kegiatan untuk seluruh pegawai.
+- **Modul Kepegawaian (Data Induk)**: Bisa melihat data pegawai di seluruh unit (Read-Only). Tidak bisa menambah/mengubah data.
+- **Modul Presensi**: Bisa melihat data absensi, jadwal piket, dan kegiatan (Read-Only). Tidak bisa menambah jadwal piket.
 - **Modul Penilaian Kinerja**: Akses penuh untuk memantau sesi penilaian dan hasil penilaian seluruh pegawai.
 - **Batasan**: Tidak bisa mengubah konfigurasi sistem inti (Settings) atau Role/Permission level sistem.
 

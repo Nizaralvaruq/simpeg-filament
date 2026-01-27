@@ -99,15 +99,16 @@ class RolePermissionSeeder extends Seeder
         // Ketua PSDM: full CRUD (Global)
         $ketuaPsdm->syncPermissions([
             'ViewAny:Absensi',
+            'ViewAny:Absensi',
             'View:Absensi',
-            'Create:Absensi',
-            'Update:Absensi',
-            'Delete:Absensi',
+            // 'Create:Absensi', // Revoked
+            // 'Update:Absensi', // Revoked
+            // 'Delete:Absensi', // Revoked
             'ViewAny:DataInduk',
             'View:DataInduk',
-            'Create:DataInduk',
-            'Update:DataInduk',
-            'Delete:DataInduk',
+            // 'Create:DataInduk', // Revoked
+            // 'Update:DataInduk', // Revoked
+            // 'Delete:DataInduk', // Revoked
             'ViewAny:AppraisalAssignment',
             'View:AppraisalAssignment',
             'Create:AppraisalAssignment',
