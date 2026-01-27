@@ -1,96 +1,88 @@
-# Sistem Kepegawaian (SIMPEG) - Filament
+# Dokumentasi Hak Akses & Peran (Roles & Permissions)
 
-Web-based Human Resource Management System built with **Laravel** and **FilamentPHP**. This application manages employee data, attendance (with geolocation & photo), performance appraisals, leave requests, and resignations, featuring a robust role-based access control system.
+Sistem Kepegawaian (SIMPEG) ini menggunakan _Role-Based Access Control_ (RBAC) untuk mengatur hak akses pengguna. Berikut adalah detail lengkap mengenai akses dan visibilitas untuk setiap peran:
 
-## 🚀 Key Features
+## 1. Super Admin
 
-- **Role-Based Access Control (RBAC)**: Granular permissions for Super Admin, Ketua PSDM, Kepala Sekolah, Admin Unit, Koordinator Jenjang, and Staff.
-- **Attendance System**:
-    - GPS Geolocation verifcation.
-    - Photo/Selfie verification.
-    - QR Code attendance support.
-    - Automated late detection.
-- **Employee Management (Kepegawaian)**: Complete employee lifecycle management from recruitment to resignation.
-- **Performance Appraisal (Penilaian Kinerja)**: Structured appraisal sessions with Superior, Peer, and Self-reviews.
-- **Leave Management**: Request and approval workflow for employee leave.
-- **Dynamic Dashboard**: Personalized dashboards ensuring users only see data relevant to their role and unit.
+**Akses Penuh (Full Access)**
 
-## 📦 Modules
+- **Dashboard**: Melihat semua statistik secara global.
+- **Manajemen User**: Bisa membuat, mengedit, dan menghapus user serta mengatur role dan permission.
+- **Modul**: Akses penuh ke seluruh modul system (Kepegawaian, Presensi, Penilaian, dll).
+- **Settings**: Mengatur konfigurasi sistem global.
 
-The application is architected using **nwidart/laravel-modules** for better scalability:
+## 2. Ketua PSDM (Supervisor)
 
-- **Kepegawaian**: Core employee data (`DataInduk`).
-- **Presensi**: Attendance, Schedules, Activities (`Absensi`, `JadwalPiket`).
-- **PenilaianKinerja**: Performance appraisal cycles and scoring.
-- **Leave**: Leave requests and quotas.
-- **Resign**: Resignation workflow and user account cleanup.
-- **MasterData**: System settings and configurations.
-- **Akademik**: Academic related data (if applicable).
+**Akses Manajerial Global**
 
-## 🛠️ Tech Stack
+- **Dashboard**:
+    - Melihat statistik global (seluruh unit).
+    - Widget: _HRStatsOverview_ (Total Pegawai, Status), _EmployeeDistribution_ (Grafik per Unit), _GenderStats_.
+- **Modul Kepegawaian (Data Induk)**: Bisa melihat, menambah, mengubah, dan menghapus data pegawai di seluruh unit.
+- **Modul Presensi**: Bisa mengelola data absensi, jadwal piket, dan kegiatan untuk seluruh pegawai.
+- **Modul Penilaian Kinerja**: Akses penuh untuk memantau sesi penilaian dan hasil penilaian seluruh pegawai.
+- **Batasan**: Tidak bisa mengubah konfigurasi sistem inti (Settings) atau Role/Permission level sistem.
 
-- **Framework**: Laravel 11/12
-- **Admin Panel**: FilamentPHP v3/v4
-- **Modules**: nwidart/laravel-modules
-- **Permissions**: spatie/laravel-permission & bezhansalleh/filament-shield
-- **Frontend**: Livewire, TailwindCSS, Alpine.js
-- **Database**: MySQL/MariaDB
+## 3. Kepala Sekolah (Viewer / Approver)
 
-## ⚙️ Installation
+**Akses Monitoring (Read-Only)**
 
-1. **Clone the repository**
+- **Dashboard**:
+    - Hanya melihat ringkasan statistik global (_DashboardStatsOverview_).
+    - Tampilan telah disederhanakan (widget detail disembunyikan).
+- **Modul**:
+    - Bisa **Meliat (View)** data pegawai, absensi, cuti, dan penilaian.
+    - **TIDAK BISA** mengubah, menambah, atau menghapus data utama (Read Only).
+- **Tujuan**: Memantau operasional tanpa risiko mengubah data secara tidak sengaja.
 
-    ```bash
-    git clone https://github.com/Nizaralvaruq/simpeg-filament.git
-    cd simpeg-filament
-    ```
+## 4. Admin Unit (Unit Manager)
 
-2. **Install Dependencies**
+**Akses Terbatas (Scoped to Unit)**
 
-    ```bash
-    composer install
-    npm install && npm run build
-    ```
+- **Cakupan Data**: Hanya bisa mengakses data pegawai yang berada di **Unit yang sama** dengan dirinya.
+- **Dashboard**:
+    - Statistik (_DashboardStatsOverview_) otomatis memfilter data hanya untuk unitnya.
+- **Modul Kepegawaian**:
+    - Bisa mengelola (CRUD) data pegawai di unitnya.
+- **Modul Presensi**:
+    - Bisa menginput dan mengelola absensi untuk pegawai unitnya.
+- **Keterbatasan**: Tidak bisa melihat data pegawai dari unit lain.
 
-3. **Environment Setup**
+## 5. Koordinator Jenjang
 
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    ```
+**Akses Monitoring Unit (Scoped Viewer)**
 
-    _Configure your database settings in `.env`_
+- **Cakupan Data**: Terbatas pada unit yang ditugaskan.
+- **Dashboard**:
+    - Melihat daftar pegawai yang siap dinilai di unitnya (_UnitEmployeeListWidget_).
+- **Modul Penilaian**:
+    - Fokus pada pemantauan dan penilaian pegawai dalam jenjang/unitnya.
+    - Tidak memiliki akses penuh ke manajemen HR global.
 
-4. **Database Migration & Seeding**
-   The project includes a comprehensive seeder for roles, permissions, and demo data.
+## 6. Staff (Pegawai)
 
-    ```bash
-    php artisan migrate:fresh --seed
-    ```
+**Akses Personal (Self-Service)**
 
-5. **Run the Application**
-    ```bash
-    php artisan serve
-    ```
+- **Dashboard**:
+    - Widget Absensi Pribadi (Tombol Check-in/Check-out).
+    - Riwayat kehadiran sendiri.
+- **Modul Absensi**:
+    - Melakukan absensi (Web/GPS/Selfie).
+    - Melihat riwayat absensi sendiri.
+- **Modul Cuti & Izin**:
+    - Mengajukan permohonan cuti.
+- **Modul Data Induk**:
+    - Melihat profil data diri sendiri.
+- **Keterbatasan**: Sama sekali tidak bisa melihat data pegawai lain.
 
-## 🔐 Demo Credentials
+---
 
-The database seeder creates the following users for testing purposes.
-**Default Password:** `password`
+## Tabel Ringkasan Login Demo
 
-| Role               | Email                       | Description                                                                 |
-| :----------------- | :-------------------------- | :-------------------------------------------------------------------------- |
-| **Super Admin**    | `super.admin@domain.com`    | Full access to all modules and settings.                                    |
-| **Ketua PSDM**     | `ketua.psdm@domain.com`     | Supervisor access. Can manage employees/attendance but not system settings. |
-| **Kepala Sekolah** | `kepala.sekolah@domain.com` | View-only access for monitoring. Cannot edit data.                          |
-| **Admin Unit**     | `admin.unit@domain.com`     | Manages data ONLY for their specific Unit.                                  |
-| **Staff**          | `staff@domain.com`          | Employee access. Can view own attendance and request leave.                 |
-
-## 🛡️ Security
-
-- **Cascade Delete**: Deleting an employee in 'Data Induk' automatically removes their User account.
-- **Scoped Access**: 'Admin Unit' and 'Koordinator Jenjang' are strictly limited to their assigned units.
-
-## 📝 License
-
-[MIT](https://opensource.org/licenses/MIT)
+| Role               | Email                       | Password Default |
+| :----------------- | :-------------------------- | :--------------- |
+| **Super Admin**    | `super.admin@domain.com`    | `password`       |
+| **Ketua PSDM**     | `ketua.psdm@domain.com`     | `password`       |
+| **Kepala Sekolah** | `kepala.sekolah@domain.com` | `password`       |
+| **Admin Unit**     | `admin.unit@domain.com`     | `password`       |
+| **Staff**          | `staff@domain.com`          | `password`       |
