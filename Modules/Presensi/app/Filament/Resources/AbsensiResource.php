@@ -43,6 +43,26 @@ class AbsensiResource extends Resource
         return 'Absensi';
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getEloquentQuery()
+            ->where('status', 'alpha')
+            ->where('tanggal', now()->toDateString())
+            ->count();
+
+        return $count > 0 ? (string)$count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Jumlah Alpha / Tanpa Keterangan Hari Ini';
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['user.employee.units']);
@@ -219,7 +239,8 @@ class AbsensiResource extends Resource
                 Tables\Columns\ImageColumn::make('foto_verifikasi')
                     ->label('Foto')
                     ->square()
-                    ->size(40)
+                    ->height(40)
+                    ->width(40)
                     ->visibility('public'),
             ])
             ->defaultSort('tanggal', 'desc')

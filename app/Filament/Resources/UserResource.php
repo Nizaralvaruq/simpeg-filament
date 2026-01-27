@@ -38,6 +38,16 @@ class UserResource extends Resource
         return 'User';
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'info';
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         /** @var User|null $user */

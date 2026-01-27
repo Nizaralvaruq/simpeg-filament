@@ -49,7 +49,7 @@ class AbsensiStatsWidget extends BaseWidget
 
         // Check if already absent today
         $todayAbsent = Absensi::where('user_id', $userId)
-            ->whereDate('tanggal', Carbon::today())
+            ->where('tanggal', Carbon::today()->toDateString())
             ->exists();
 
         return [

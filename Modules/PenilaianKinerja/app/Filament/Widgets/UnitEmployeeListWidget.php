@@ -22,6 +22,13 @@ class UnitEmployeeListWidget extends BaseWidget
         return $table
             ->query(
                 DataInduk::query()
+                    ->select('data_induks.*')
+                    ->addSelect([
+                        'has_score' => PerformanceScore::selectRaw('1')
+                            ->whereColumn('performance_scores.data_induk_id', 'data_induks.id')
+                            ->where('periode', now()->format('Y-m'))
+                            ->limit(1)
+                    ])
                     ->where('status', 'Aktif')
                     ->whereHas('units', function ($q) {
                         /** @var \App\Models\User $user */
@@ -51,13 +58,7 @@ class UnitEmployeeListWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('status_penilaian')
                     ->label('Status')
                     ->badge()
-                    ->getStateUsing(function (DataInduk $record) {
-                        $isAssessed = PerformanceScore::where('data_induk_id', $record->id)
-                            ->where('periode', now()->format('Y-m'))
-                            ->exists();
-
-                        return $isAssessed ? 'Sudah Dinilai' : 'Belum Dinilai';
-                    })
+                    ->getStateUsing(fn(DataInduk $record) => $record->has_score ? 'Sudah Dinilai' : 'Belum Dinilai')
                     ->color(fn(string $state): string => match ($state) {
                         'Sudah Dinilai' => 'success',
                         'Belum Dinilai' => 'danger',
@@ -71,7 +72,7 @@ class UnitEmployeeListWidget extends BaseWidget
                     // Redirect ke halaman create dengan pre-filled data_induk_id
                     ->url(fn(DataInduk $record) => \Modules\PenilaianKinerja\Filament\Resources\PerformanceScoreResource::getUrl('create') . '?data_induk_id=' . $record->id)
                     // Sembunyikan jika sudah dinilai
-                    ->visible(fn($record) => !PerformanceScore::where('data_induk_id', $record->id)->where('periode', now()->format('Y-m'))->exists()),
+                    ->visible(fn($record) => !$record->has_score),
             ]);
     }
 

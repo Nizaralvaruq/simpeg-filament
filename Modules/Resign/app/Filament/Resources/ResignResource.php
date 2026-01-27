@@ -274,6 +274,11 @@ class ResignResource extends Resource
                                 'status' => 'Resign',
                                 'keterangan' => $record->alasan,
                             ]);
+
+                            // DELETE USER (Jika ada)
+                            if ($record->employee->user) {
+                                $record->employee->user->delete();
+                            }
                         }),
 
                     Action::make('reject')

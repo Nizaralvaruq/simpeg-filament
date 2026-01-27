@@ -12,6 +12,15 @@ class DataInduk extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::deleting(function ($dataInduk) {
+            if ($dataInduk->user) {
+                $dataInduk->user->delete();
+            }
+        });
+    }
+
     protected $guarded = [];
 
     protected $casts = [
