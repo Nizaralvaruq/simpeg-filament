@@ -37,8 +37,9 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications(true)
             ->globalSearch(false)
             ->profile(\App\Filament\Pages\EditProfile::class)
+            ->font('Inter')
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::Indigo,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverResources(in: base_path('Modules/Kepegawaian/app/Filament/Resources'), for: 'Modules\\Kepegawaian\\Filament\\Resources')
@@ -52,7 +53,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: base_path('Modules/Presensi/app/Filament/Pages'), for: 'Modules\\Presensi\\Filament\\Pages')
             ->discoverPages(in: base_path('Modules/MasterData/app/Filament/Pages'), for: 'Modules\\MasterData\\Filament\\Pages')
             ->pages([
-                Dashboard::class,
+                \App\Filament\Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->discoverWidgets(in: base_path('Modules/Presensi/app/Filament/Widgets'), for: 'Modules\\Presensi\\Filament\\Widgets')

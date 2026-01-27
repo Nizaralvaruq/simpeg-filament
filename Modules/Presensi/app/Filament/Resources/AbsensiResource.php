@@ -239,8 +239,7 @@ class AbsensiResource extends Resource
                 Tables\Columns\ImageColumn::make('foto_verifikasi')
                     ->label('Foto')
                     ->square()
-                    ->height(40)
-                    ->width(40)
+                    ->imageSize(40)
                     ->visibility('public'),
             ])
             ->defaultSort('tanggal', 'desc')
