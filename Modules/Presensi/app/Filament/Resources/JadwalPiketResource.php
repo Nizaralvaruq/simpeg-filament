@@ -52,12 +52,7 @@ class JadwalPiketResource extends Resource
         return 'success';
     }
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm']) ?? false;
-    }
+
 
     public static function form(Schema $schema): Schema
     {
@@ -223,11 +218,18 @@ class JadwalPiketResource extends Resource
         ];
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah']) ?? false;
+    }
+
     public static function canViewAny(): bool
     {
         /** @var User|null $user */
         $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm']) ?? false;
+        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah']) ?? false;
     }
 
     public static function canCreate(): bool
@@ -238,6 +240,20 @@ class JadwalPiketResource extends Resource
         if ($user?->hasRole('ketua_psdm')) {
             return false;
         }
+        return $user?->hasAnyRole(['super_admin', 'admin_unit']) ?? false;
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        return $user?->hasAnyRole(['super_admin', 'admin_unit']) ?? false;
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
         return $user?->hasAnyRole(['super_admin', 'admin_unit']) ?? false;
     }
 }
