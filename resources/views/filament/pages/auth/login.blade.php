@@ -13,13 +13,16 @@
             </div>
 
             {{-- Brand Name --}}
-            <h1 class="mb-4 text-3xl font-bold tracking-tight text-white">
-                Integrated Holistic <br> Yayasan Application
+            <h1 class="mb-2 text-7xl font-extrabold tracking-tight text-white">
+                IHYA
             </h1>
+            <p class="mb-5 text-xl font-medium text-white">
+                Integrated Holistic Yayasan Application
+            </p>
 
             {{-- Tagline --}}
-            <p class="mx-auto max-w-sm text-lg text-blue-100/80 leading-relaxed">
-                Menghidupkan Ekosistem Pendidikan Melalui Teknologi
+            <p class="mx-auto max-w-sm text-lg text-blue-100/80 leading-relaxed font-light italic">
+                "Menghidupkan Ekosistem Pendidikan Melalui Teknologi"
             </p>
         </div>
     </div>

@@ -45,7 +45,7 @@ class DataIndukResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return 'Pegawai';
+        return 'Data Pegawai';
     }
 
     public static function getNavigationLabel(): string
@@ -57,12 +57,12 @@ class DataIndukResource extends Resource
             return 'Biodata Saya';
         }
 
-        return 'Pegawai';
+        return 'Data Pegawai';
     }
 
     public static function getModelLabel(): string
     {
-        return 'Pegawai';
+        return 'Data Pegawai';
     }
 
     /**
