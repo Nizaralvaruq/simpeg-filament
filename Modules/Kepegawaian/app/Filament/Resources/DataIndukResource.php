@@ -22,10 +22,14 @@ use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Grid;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel as FacadesExcel;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Modules\Kepegawaian\Exports\DataIndukExport;
 
 class DataIndukResource extends Resource
@@ -140,243 +144,441 @@ class DataIndukResource extends Resource
                 // Data Diri
                 Step::make('Data Diri')
                     ->schema([
-                        Forms\Components\TextInput::make('nama')
-                            ->label('Nama Lengkap')
-                            ->required()
-                            ->maxLength(255)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                if (empty($get('email')) && !empty($state)) {
-                                    $set('email', str($state)->lower()->replace(' ', '.')->append('@domain.com')->toString());
-                                }
-                                if (empty($get('password'))) {
-                                    $set('password', 'password123');
-                                }
-                            }),
+                        Section::make('Identitas Diri')
+                            ->schema([
+                                Forms\Components\FileUpload::make('foto_profil')
+                                    ->label('Foto Profil (Pas Foto)')
+                                    ->image()
+                                    ->avatar()
+                                    ->imageEditor()
+                                    ->circleCropper()
+                                    ->disk('public')
+                                    ->directory('foto-profil')
+                                    ->maxSize(100)
+                                    ->getUploadedFileNameForStorageUsing(
+                                        fn(TemporaryUploadedFile $file): string =>
+                                        'Foto_Profil_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
+                                    )
+                                    ->columnSpanFull()
+                                    ->extraAttributes(['class' => 'justify-center']),
 
-                        Forms\Components\Select::make('jenis_kelamin')
-                            ->label('Jenis Kelamin')
-                            ->options([
-                                'Laki-laki' => 'Laki-laki',
-                                'Perempuan' => 'Perempuan',
-                            ])
-                            ->native(false),
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\TextInput::make('nama')
+                                            ->label('Nama Lengkap')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                if (empty($get('email')) && !empty($state)) {
+                                                    $set('email', str($state)->lower()->replace(' ', '.')->append('@domain.com')->toString());
+                                                }
+                                                if (empty($get('password'))) {
+                                                    $set('password', 'password123');
+                                                }
+                                            }),
+                                        Forms\Components\TextInput::make('nik')
+                                            ->label('NIK')
+                                            ->numeric()
+                                            ->length(16)
+                                            ->maxLength(255),
+                                    ])->columns(2),
 
-                        Forms\Components\TextInput::make('nik')
-                            ->label('NIK')
-                            ->numeric()
-                            ->length(16)
-                            ->maxLength(255),
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\TextInput::make('tempat_lahir')->label('Tempat Lahir'),
+                                        Forms\Components\DatePicker::make('tanggal_lahir')
+                                            ->label('Tanggal Lahir')
+                                            ->displayFormat('d/m/Y'),
+                                        Forms\Components\Select::make('jenis_kelamin')
+                                            ->label('Jenis Kelamin')
+                                            ->options([
+                                                'Laki-laki' => 'Laki-laki',
+                                                'Perempuan' => 'Perempuan',
+                                            ])
+                                            ->native(false),
+                                    ])->columns(3),
 
-                        Forms\Components\TextInput::make('no_hp')
-                            ->label('No HP')
-                            ->tel()
-                            ->numeric(),
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\Select::make('agama')
+                                            ->label('Agama')
+                                            ->options([
+                                                'Islam' => 'Islam',
+                                                'Kristen' => 'Kristen',
+                                                'Katolik' => 'Katolik',
+                                                'Hindu' => 'Hindu',
+                                                'Buddha' => 'Buddha',
+                                                'Konghucu' => 'Konghucu',
+                                            ])
+                                            ->native(false),
+                                        Forms\Components\Select::make('golongan_darah')
+                                            ->label('Golongan Darah')
+                                            ->options([
+                                                'A' => 'A',
+                                                'B' => 'B',
+                                                'AB' => 'AB',
+                                                'O' => 'O',
+                                            ])
+                                            ->native(false),
+                                        Forms\Components\TextInput::make('no_hp')
+                                            ->label('No HP / WhatsApp')
+                                            ->tel()
+                                            ->numeric(),
+                                    ])->columns(3),
+                            ]),
 
-                        Forms\Components\TextInput::make('tempat_lahir')
-                            ->label('Tempat Lahir'),
+                        Section::make('Pendidikan & Keluarga')
+                            ->schema([
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\Select::make('pendidikan')
+                                            ->label('Pendidikan Terakhir')
+                                            ->options([
+                                                'SMA' => 'SMA',
+                                                'D1'  => 'D1',
+                                                'D3'  => 'D3',
+                                                'D4'  => 'D4',
+                                                'S1'  => 'S1',
+                                                'S2'  => 'S2',
+                                                'S3'  => 'S3',
+                                            ])
+                                            ->searchable()
+                                            ->native(false),
+                                        Forms\Components\TextInput::make('instansi')
+                                            ->label('Nama Sekolah / Universitas'),
+                                    ])->columns(2),
 
-                        Forms\Components\DatePicker::make('tanggal_lahir')
-                            ->label('Tanggal Lahir')
-                            ->displayFormat('d/m/Y'),
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\Select::make('status_perkawinan')
+                                            ->label('Status Perkawinan')
+                                            ->options([
+                                                'Belum Menikah' => 'Belum Menikah',
+                                                'Menikah'       => 'Menikah',
+                                                'Cerai Hidup'   => 'Cerai Hidup',
+                                                'Cerai Mati'    => 'Cerai Mati',
+                                            ])
+                                            ->native(false),
+                                        Forms\Components\TextInput::make('suami_istri')
+                                            ->label('Nama Suami / Istri (Pasangan)'),
+                                    ])->columns(2),
+                            ]),
 
-                        Forms\Components\Select::make('pendidikan')
-                            ->label('Pendidikan')
-                            ->options([
-                                'SMA' => 'SMA',
-                                'D1'  => 'D1',
-                                'D3'  => 'D3',
-                                'D4'  => 'D4',
-                                'S1'  => 'S1',
-                                'S2'  => 'S2',
-                                'S3'  => 'S3',
-                            ])
-                            ->searchable()
-                            ->native(false),
-
-                        Forms\Components\TextInput::make('instansi')
-                            ->label('Instansi'),
-
-                        Forms\Components\Select::make('status_perkawinan')
-                            ->label('Status Perkawinan')
-                            ->options([
-                                'Belum Menikah' => 'Belum Menikah',
-                                'Menikah'       => 'Menikah',
-                                'Cerai Hidup'   => 'Cerai Hidup',
-                                'Cerai Mati'    => 'Cerai Mati',
-                            ])
-                            ->native(false),
-
-                        Forms\Components\TextInput::make('suami_istri')
-                            ->label('Suami / Istri'),
-
-                        Forms\Components\Textarea::make('alamat')
-                            ->label('Alamat')
-                            ->columnSpanFull(),
+                        Section::make('Alamat & Domisili')
+                            ->schema([
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\Textarea::make('alamat')
+                                            ->label('Alamat Sesuai KTP')
+                                            ->rows(3),
+                                        Forms\Components\Textarea::make('alamat_domisili')
+                                            ->label('Alamat Domisili (jika beda)')
+                                            ->rows(3),
+                                    ])->columns(2),
+                                Forms\Components\TextInput::make('jarak_ke_kantor')
+                                    ->label('Jarak Rumah dari Kantor')
+                                    ->numeric()
+                                    ->suffix('KM')
+                                    ->minValue(0),
+                            ]),
                     ])
-                    ->columns(3),
+                    ->columns(1),
 
                 // Data Induk
                 Step::make('Data Induk')
                     ->schema([
-                        Forms\Components\TextInput::make('nip')
-                            ->label('NPA')
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255),
+                        Section::make('Informasi Kepegawaian')
+                            ->schema([
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\TextInput::make('nip')
+                                            ->label('NPA (Nomor Pokok Anggota)')
+                                            ->unique(ignoreRecord: true)
+                                            ->maxLength(255),
+                                        Forms\Components\DatePicker::make('tmt_awal')
+                                            ->label('Tanggal Mulai Bertugas')
+                                            ->displayFormat('d/m/Y'),
+                                    ])->columns(2),
 
-                        Forms\Components\DatePicker::make('tmt_awal')
-                            ->label('Mulai Bertugas')
-                            ->displayFormat('d/m/Y'),
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\TextInput::make('jabatan')
+                                            ->label('Jabatan Saat Ini')
+                                            ->required()
+                                            ->maxLength(255),
+                                        Forms\Components\Select::make('golongan_id')
+                                            ->label('Golongan Saat Ini')
+                                            ->relationship('golongan', 'name')
+                                            ->searchable()
+                                            ->preload()
+                                            ->native(false)
+                                            ->required(),
+                                    ])->columns(2),
 
-                        Forms\Components\TextInput::make('jabatan')
-                            ->label('Jabatan Saat Ini')
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\Select::make('golongan_id')
-                            ->label('Golongan Saat Ini')
-                            ->relationship('golongan', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->native(false)
-                            ->required(),
-
-                        Forms\Components\Select::make('units')
-                            ->label('Unit Kerja')
-                            ->relationship('units', 'name')
-                            ->multiple()
-                            ->preload(),
-
-                        Forms\Components\Select::make('status_kepegawaian')
-
-
-                            ->label('Status Kepegawaian')
-                            ->options([
-                                'Tetap'   => 'Tetap',
-                                'Kontrak' => 'Kontrak',
-                                'Magang'  => 'Magang',
+                                Group::make()
+                                    ->schema([
+                                        Forms\Components\Select::make('units')
+                                            ->label('Unit Kerja')
+                                            ->relationship('units', 'name')
+                                            ->multiple()
+                                            ->preload(),
+                                        Forms\Components\Select::make('status_kepegawaian')
+                                            ->label('Status Kepegawaian')
+                                            ->options([
+                                                'Tetap'   => 'Tetap',
+                                                'Kontrak' => 'Kontrak',
+                                                'Magang'  => 'Magang',
+                                            ])
+                                            ->native(false),
+                                    ])->columns(2),
                             ]),
                     ])
-                    ->columns(3),
+                    ->columns(1),
 
                 // Riwayat
                 Step::make('Riwayat Kepegawaian')
                     ->schema([
 
-                        // PILIHAN STATUS PINDAH TUGAS
-                        Forms\Components\Select::make('pindah_tugas')
-                            ->label('Riwayat Tugas')
-                            ->options([
-                                'pernah' => 'Pernah pindah tugas',
-                                'tetap'  => 'Tetap',
-                            ])
-                            ->native(false)
-                            ->required()
-                            ->live()
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                if ($state === 'tetap') {
-                                    $set('riwayatJabatans', []);
-                                }
-                            }),
-
-                        // Riwayat Jabatan (muncul hanya kalau "pernah pindah tugas")
-                        Forms\Components\Repeater::make('riwayatJabatans')
-                            ->relationship()
-                            ->label('Riwayat Jabatan')
+                        Section::make('Status Mutasi / Jabatan')
                             ->schema([
-                                Forms\Components\DatePicker::make('tanggal')
+                                // PILIHAN STATUS PINDAH TUGAS
+                                Forms\Components\Select::make('pindah_tugas')
+                                    ->label('Riwayat Tugas')
+                                    ->options([
+                                        'pernah' => 'Pernah pindah tugas',
+                                        'tetap'  => 'Tetap',
+                                    ])
+                                    ->native(false)
                                     ->required()
-                                    ->displayFormat('d/m/Y'),
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        if ($state === 'tetap') {
+                                            $set('riwayatJabatans', []);
+                                        }
+                                    }),
 
-                                Forms\Components\TextInput::make('nama_jabatan')
-                                    ->required(),
-                            ])
-                            ->columns(2)
-                            ->visible(fn(Get $get) => $get('pindah_tugas') === 'pernah')
-                            ->live()
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                if (! is_array($state)) return;
+                                // Riwayat Jabatan (muncul hanya kalau "pernah pindah tugas")
+                                Forms\Components\Repeater::make('riwayatJabatans')
+                                    ->relationship()
+                                    ->label('List Riwayat Jabatan')
+                                    ->schema([
+                                        Forms\Components\DatePicker::make('tanggal')
+                                            ->required()
+                                            ->displayFormat('d/m/Y'),
+                                        Forms\Components\TextInput::make('nama_jabatan')
+                                            ->required(),
+                                        Forms\Components\FileUpload::make('file_sk')
+                                            ->label('File SK (PDF/Image)')
+                                            ->disk('public')
+                                            ->directory('sk-jabatan')
+                                            ->maxSize(1024)
+                                            ->getUploadedFileNameForStorageUsing(
+                                                fn(TemporaryUploadedFile $file): string =>
+                                                'SK_Jabatan_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
+                                            )
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2)
+                                    ->visible(fn(Get $get) => $get('pindah_tugas') === 'pernah')
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        if (! is_array($state)) return;
+                                        $latest = collect($state)
+                                            ->filter(fn($r) => ! empty($r['tanggal']) && ! empty($r['nama_jabatan']))
+                                            ->sortByDesc('tanggal')
+                                            ->first();
+                                        if ($latest) {
+                                            $set('jabatan', $latest['nama_jabatan']);
+                                        }
+                                    }),
+                            ]),
 
-                                $latest = collect($state)
-                                    ->filter(fn($r) => ! empty($r['tanggal']) && ! empty($r['nama_jabatan']))
-                                    ->sortByDesc('tanggal')
-                                    ->first();
-
-                                if ($latest) {
-                                    $set('jabatan', $latest['nama_jabatan']);
-                                }
-                            }),
-
-                        // Riwayat Golongan (kalau mau tetap selalu tampil, biarkan seperti ini)
-                        Forms\Components\Repeater::make('riwayatGolongans')
-                            ->relationship()
-                            ->label('Riwayat Golongan')
-                            ->live()
+                        Section::make('Riwayat Golongan & Pendidikan')
                             ->schema([
-                                Forms\Components\DatePicker::make('tanggal')
-                                    ->required()
-                                    ->displayFormat('d/m/Y'),
+                                // Riwayat Golongan
+                                Forms\Components\Repeater::make('riwayatGolongans')
+                                    ->relationship()
+                                    ->label('Riwayat Golongan')
+                                    ->live()
+                                    ->schema([
+                                        Forms\Components\DatePicker::make('tanggal')
+                                            ->required()
+                                            ->displayFormat('d/m/Y'),
+                                        Forms\Components\Select::make('golongan_id')
+                                            ->required()
+                                            ->relationship('golongan', 'name')
+                                            ->searchable()
+                                            ->preload(),
+                                        Forms\Components\FileUpload::make('file_sk')
+                                            ->label('File SK (PDF/Image)')
+                                            ->disk('public')
+                                            ->maxSize(1024)
+                                            ->getUploadedFileNameForStorageUsing(
+                                                fn(TemporaryUploadedFile $file): string =>
+                                                'SK_Golongan_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
+                                            )
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2)
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        if (! is_array($state)) return;
+                                        $latest = collect($state)
+                                            ->filter(fn($row) => ! empty($row['tanggal']) && ! empty($row['golongan_id']))
+                                            ->sortByDesc('tanggal')
+                                            ->first();
+                                        if ($latest) {
+                                            $set('golongan_id', $latest['golongan_id']);
+                                            $set('tmt_akhir', $latest['tanggal']);
+                                        }
+                                    }),
 
-                                Forms\Components\Select::make('golongan_id')
-                                    ->required()
-                                    ->relationship('golongan', 'name')
-                                    ->searchable()
-                                    ->preload(),
-                            ])
-                            ->columns(2)
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                if (! is_array($state)) return;
+                                // Riwayat Pendidikan
+                                Forms\Components\Repeater::make('riwayatPendidikans')
+                                    ->relationship()
+                                    ->label('Riwayat Pendidikan')
+                                    ->schema([
+                                        Forms\Components\Select::make('jenjang')
+                                            ->options([
+                                                'SD' => 'SD',
+                                                'SMP' => 'SMP',
+                                                'SMA' => 'SMA/SMK',
+                                                'D1' => 'D1',
+                                                'D2' => 'D2',
+                                                'D3' => 'D3',
+                                                'S1' => 'S1',
+                                                'S2' => 'S2',
+                                                'S3' => 'S3',
+                                            ])
+                                            ->required(),
+                                        Forms\Components\TextInput::make('institusi')
+                                            ->label('Nama Institusi')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('jurusan')
+                                            ->label('Jurusan'),
+                                        Forms\Components\TextInput::make('tahun_lulus')
+                                            ->label('Tahun Lulus')
+                                            ->numeric()
+                                            ->required(),
+                                        Forms\Components\FileUpload::make('file_ijazah')
+                                            ->label('File Ijazah (PDF/Image)')
+                                            ->disk('public')
+                                            ->directory('ijazah')
+                                            ->acceptedFileTypes(['application/pdf', 'image/*'])
+                                            ->maxSize(1024)
+                                            ->getUploadedFileNameForStorageUsing(
+                                                fn(TemporaryUploadedFile $file): string =>
+                                                'Ijazah_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
+                                            )
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
+                            ]),
 
-                                $latest = collect($state)
-                                    ->filter(fn($row) => ! empty($row['tanggal']) && ! empty($row['golongan_id']))
-                                    ->sortByDesc('tanggal')
-                                    ->first();
+                        Section::make('Riwayat Pengembangan Diri & Penghargaan')
+                            ->schema([
+                                // Riwayat Diklat
+                                Forms\Components\Repeater::make('riwayatDiklats')
+                                    ->relationship()
+                                    ->label('Riwayat Diklat/Pelatihan')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('nama_diklat')
+                                            ->label('Nama Diklat')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('penyelenggara')
+                                            ->required(),
+                                        Forms\Components\DatePicker::make('tanggal_mulai')
+                                            ->label('Tanggal Mulai')
+                                            ->required(),
+                                        Forms\Components\DatePicker::make('tanggal_selesai')
+                                            ->label('Tanggal Selesai'),
+                                        Forms\Components\TextInput::make('durasi_jam')
+                                            ->label('Durasi (Jam)')
+                                            ->numeric(),
+                                        Forms\Components\FileUpload::make('file_sertifikat')
+                                            ->label('Sertifikat (PDF/Image)')
+                                            ->disk('public')
+                                            ->directory('sertifikat-diklat')
+                                            ->acceptedFileTypes(['application/pdf', 'image/*'])
+                                            ->maxSize(1024)
+                                            ->getUploadedFileNameForStorageUsing(
+                                                fn(TemporaryUploadedFile $file): string =>
+                                                'Sertifikat_Diklat_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
+                                            )
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
 
-                                if ($latest) {
-                                    $set('golongan_id', $latest['golongan_id']);
-                                    $set('tmt_akhir', $latest['tanggal']);
-                                }
-                            }),
+                                // Riwayat Penghargaan
+                                Forms\Components\Repeater::make('riwayatPenghargaans')
+                                    ->relationship()
+                                    ->label('Riwayat Penghargaan')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('nama_penghargaan')
+                                            ->label('Nama Penghargaan')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('pemberi')
+                                            ->label('Instansi Pemberi')
+                                            ->required(),
+                                        Forms\Components\DatePicker::make('tanggal')
+                                            ->required(),
+                                        Forms\Components\FileUpload::make('file_sertifikat')
+                                            ->label('Sertifikat (PDF/Image)')
+                                            ->disk('public')
+                                            ->directory('sertifikat-penghargaan')
+                                            ->acceptedFileTypes(['application/pdf', 'image/*'])
+                                            ->maxSize(1024)
+                                            ->getUploadedFileNameForStorageUsing(
+                                                fn(TemporaryUploadedFile $file): string =>
+                                                'Sertifikat_Penghargaan_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
+                                            )
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
+                            ]),
                     ])
                     ->columns(1),
 
                 // BPJS
-                Step::make('BPJS')
+                Step::make('BPJS & Kesejahteraan')
                     ->schema([
-                        Forms\Components\TextInput::make('no_bpjs')->label('Nomor BPJS'),
-                        Forms\Components\TextInput::make('no_kjp_2p')->label('Nomor KJP 2P'),
-                        Forms\Components\TextInput::make('no_kjp_3p')->label('Nomor KJP 3P'),
-                    ])
-                    ->columns(2),
+                        Section::make('Informasi BPJS')
+                            ->schema([
+                                Forms\Components\TextInput::make('no_bpjs')->label('Nomor BPJS Kesehatan/Ketenagakerjaan'),
+                                Forms\Components\TextInput::make('no_kjp_2p')->label('Nomor KJP 2P'),
+                                Forms\Components\TextInput::make('no_kjp_3p')->label('Nomor KJP 3P'),
+                            ])->columns(2),
+                    ]),
 
-                Step::make('Buat Akun Login')
-                    ->description('Opsional')
+                Step::make('Akses Aplikasi')
+                    ->description('Email & Password')
                     ->schema([
-                        Section::make('Buat Akun Baru')
+                        Section::make('Akun Login')
                             ->description('Isi Email & Password di bawah jika ingin membuat akun baru untuk pegawai ini.')
                             ->visible(function (): bool {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
-                                return $user?->hasAnyRole(['super_admin', 'admin_unit']);
+                                return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm']);
                             })
                             ->schema([
                                 Forms\Components\TextInput::make('email')
                                     ->label('Email Login')
                                     ->email()
                                     ->dehydrated(false)
+                                    ->placeholder('contoh: budi.santoso@domain.com')
                                     ->rules([
                                         fn($record) => \Illuminate\Validation\Rule::unique('users', 'email')->ignore($record?->user_id),
                                     ]),
 
                                 Forms\Components\TextInput::make('password')
-                                    ->label('Password')
+                                    ->label('Password Baru')
                                     ->password()
                                     ->dehydrated(false)
+                                    ->placeholder('Minimal 8 karakter')
                                     ->requiredWith('email'),
                             ])
                             ->columns(2),
-                    ])
-                    ->columns(2),
+                    ]),
             ])
                 ->columnSpanFull()
                 ->persistStepInQueryString(),
@@ -391,6 +593,10 @@ class DataIndukResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('no')->label('No')->rowIndex(),
+                Tables\Columns\ImageColumn::make('foto_profil')
+                    ->label('Foto')
+                    ->circular()
+                    ->disk('public'),
                 Tables\Columns\TextColumn::make('nama')->label('Nama')->searchable(),
                 Tables\Columns\TextColumn::make('jenis_kelamin')->label('JK')->toggleable(),
                 Tables\Columns\TextColumn::make('units.name')->label('Unit Kerja')->badge()->separator(', '),

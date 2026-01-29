@@ -4,17 +4,19 @@ namespace Modules\Kepegawaian\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Kepegawaian\Database\Factories\RiwayatJabatanFactory;
 
-class RiwayatJabatan extends Model
+class RiwayatPenghargaan extends Model
 {
-    protected $table = 'riwayat_jabatans';
+    use HasFactory;
+
+    protected $table = 'riwayat_penghargaans';
 
     protected $fillable = [
         'data_induk_id',
+        'nama_penghargaan',
+        'pemberi',
         'tanggal',
-        'nama_jabatan',
-        'file_sk',
+        'file_sertifikat',
     ];
 
     protected $casts = [

@@ -14,6 +14,8 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\ImageEntry;
 
 class ViewDataInduk extends ViewRecord
 {
@@ -39,9 +41,17 @@ class ViewDataInduk extends ViewRecord
                                 Section::make()
                                     ->columns(1)
                                     ->schema([
+                                        ImageEntry::make('foto_profil')
+                                            ->label('Foto Profil')
+                                            ->circular()
+                                            ->disk('public')
+                                            ->inlineLabel(),
+
                                         TextEntry::make('nama')->label('Nama Lengkap')->weight('bold')->inlineLabel(),
                                         TextEntry::make('nik')->label('NIK')->inlineLabel(),
                                         TextEntry::make('jenis_kelamin')->label('Jenis Kelamin')->inlineLabel(),
+                                        TextEntry::make('agama')->label('Agama')->inlineLabel(),
+                                        TextEntry::make('golongan_darah')->label('Golongan Darah')->inlineLabel(),
                                         TextEntry::make('ttl')
                                             ->label('Tempat, Tanggal Lahir')
                                             ->inlineLabel()
@@ -62,7 +72,9 @@ class ViewDataInduk extends ViewRecord
                                         TextEntry::make('no_hp')->label('Nomor HP')->inlineLabel(),
                                         TextEntry::make('status_perkawinan')->label('Status Perkawinan')->inlineLabel(),
                                         TextEntry::make('suami_istri')->label('Nama Suami / Istri')->inlineLabel(),
-                                        TextEntry::make('alamat')->label('Alamat')->inlineLabel()->columnSpanFull(),
+                                        TextEntry::make('alamat')->label('Alamat KTP')->inlineLabel()->columnSpanFull(),
+                                        TextEntry::make('alamat_domisili')->label('Alamat Domisili')->inlineLabel()->columnSpanFull(),
+                                        TextEntry::make('jarak_ke_kantor')->label('Jarak Rumah dari Kantor')->suffix(' KM')->inlineLabel(),
                                         TextEntry::make('user.email')->label('Email')->inlineLabel()->placeholder('-'),
                                     ]),
                             ]),
@@ -118,32 +130,106 @@ class ViewDataInduk extends ViewRecord
                             ->schema([
                                 Section::make('Riwayat Jabatan')
                                     ->schema([
-                                        TextEntry::make('riwayat_jabatan')
-                                            ->state(
-                                                fn($record) =>
-                                                $record->riwayatJabatans?->sortByDesc('tanggal')
-                                                    ->map(
-                                                        fn($r) => ($r->tanggal?->format('d M Y') ?? '-') .
-                                                            ' — ' . ($r->nama_jabatan ?? '-')
-                                                    )->implode("\n")
-                                                    ?: 'Belum ada riwayat jabatan'
-                                            )
-                                            ->markdown(),
+                                        RepeatableEntry::make('riwayatJabatans')
+                                            ->label('')
+                                            ->schema([
+                                                TextEntry::make('tanggal')->label('TMT')->date('d M Y'),
+                                                TextEntry::make('nama_jabatan')->label('Jabatan'),
+                                                TextEntry::make('file_sk')
+                                                    ->label('Download SK')
+                                                    ->formatStateUsing(fn() => 'Download')
+                                                    ->url(fn($state) => \Illuminate\Support\Facades\Storage::url($state))
+                                                    ->icon('heroicon-o-arrow-down-tray')
+                                                    ->openUrlInNewTab()
+                                                    ->badge()
+                                                    ->color('success')
+                                                    ->visible(fn($state) => !empty($state)),
+                                            ])
+                                            ->columns(3),
                                     ]),
 
                                 Section::make('Riwayat Golongan')
                                     ->schema([
-                                        TextEntry::make('riwayat_golongan')
-                                            ->state(
-                                                fn($record) =>
-                                                $record->riwayatGolongans?->sortByDesc('tanggal')
-                                                    ->map(
-                                                        fn($r) => ($r->tanggal?->format('d M Y') ?? '-') .
-                                                            ' — ' . (optional($r->golongan)->name ?? '-')
-                                                    )->implode("\n")
-                                                    ?: 'Belum ada riwayat golongan'
-                                            )
-                                            ->markdown(),
+                                        RepeatableEntry::make('riwayatGolongans')
+                                            ->label('')
+                                            ->schema([
+                                                TextEntry::make('tanggal')->label('TMT')->date('d M Y'),
+                                                TextEntry::make('golongan.name')->label('Golongan'),
+                                                TextEntry::make('file_sk')
+                                                    ->label('Download SK')
+                                                    ->formatStateUsing(fn() => 'Download')
+                                                    ->url(fn($state) => \Illuminate\Support\Facades\Storage::url($state))
+                                                    ->icon('heroicon-o-arrow-down-tray')
+                                                    ->openUrlInNewTab()
+                                                    ->badge()
+                                                    ->color('success')
+                                                    ->visible(fn($state) => !empty($state)),
+                                            ])
+                                            ->columns(3),
+                                    ]),
+
+                                Section::make('Riwayat Pendidikan')
+                                    ->schema([
+                                        RepeatableEntry::make('riwayatPendidikans')
+                                            ->label('')
+                                            ->schema([
+                                                TextEntry::make('jenjang'),
+                                                TextEntry::make('institusi'),
+                                                TextEntry::make('jurusan')->placeholder('-'),
+                                                TextEntry::make('tahun_lulus'),
+                                                TextEntry::make('file_ijazah')
+                                                    ->label('Ijazah')
+                                                    ->formatStateUsing(fn() => 'Download')
+                                                    ->url(fn($state) => \Illuminate\Support\Facades\Storage::url($state))
+                                                    ->icon('heroicon-o-arrow-down-tray')
+                                                    ->openUrlInNewTab()
+                                                    ->badge()
+                                                    ->color('success')
+                                                    ->visible(fn($state) => !empty($state)),
+                                            ])
+                                            ->columns(5),
+                                    ]),
+
+                                Section::make('Riwayat Diklat/Pelatihan')
+                                    ->schema([
+                                        RepeatableEntry::make('riwayatDiklats')
+                                            ->label('')
+                                            ->schema([
+                                                TextEntry::make('tanggal_mulai')->label('Tanggal')->date('d M Y'),
+                                                TextEntry::make('nama_diklat'),
+                                                TextEntry::make('penyelenggara'),
+                                                TextEntry::make('file_sertifikat')
+                                                    ->label('Sertifikat')
+                                                    ->formatStateUsing(fn() => 'Download')
+                                                    ->url(fn($state) => \Illuminate\Support\Facades\Storage::url($state))
+                                                    ->icon('heroicon-o-arrow-down-tray')
+                                                    ->openUrlInNewTab()
+                                                    ->badge()
+                                                    ->color('success')
+                                                    ->visible(fn($state) => !empty($state)),
+                                            ])
+                                            ->columns(4),
+                                    ]),
+
+                                Section::make('Riwayat Penghargaan')
+                                    ->schema([
+                                        RepeatableEntry::make('riwayatPenghargaans')
+                                            ->label('')
+                                            ->schema([
+                                                TextEntry::make('tanggal')->label('Tanggal')->date('d M Y'),
+                                                TextEntry::make('nama_penghargaan'),
+                                                TextEntry::make('pemberi'),
+                                                TextEntry::make('file_sertifikat')
+                                                    ->label('Sertifikat')
+                                                    ->formatStateUsing(fn() => 'Download')
+                                                    ->url(fn($state) => \Illuminate\Support\Facades\Storage::url($state))
+                                                    ->icon('heroicon-o-arrow-down-tray')
+                                                    ->openUrlInNewTab()
+                                                    ->badge()
+                                                    ->color('success')
+                                                    ->visible(fn($state) => !empty($state)),
+                                            ])
+                                            ->columns(4),
                                     ]),
                             ]),
 

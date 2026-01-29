@@ -58,4 +58,19 @@ class DataInduk extends Model
     {
         return $this->hasMany(\Modules\Presensi\Models\Absensi::class, 'user_id', 'user_id');
     }
+
+    public function riwayatPendidikans()
+    {
+        return $this->hasMany(RiwayatPendidikan::class, 'data_induk_id');
+    }
+
+    public function riwayatDiklats()
+    {
+        return $this->hasMany(RiwayatDiklat::class, 'data_induk_id');
+    }
+
+    public function riwayatPenghargaans()
+    {
+        return $this->hasMany(RiwayatPenghargaan::class, 'data_induk_id');
+    }
 }

@@ -4,21 +4,20 @@ namespace Modules\Kepegawaian\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Kepegawaian\Database\Factories\RiwayatJabatanFactory;
 
-class RiwayatJabatan extends Model
+class RiwayatPendidikan extends Model
 {
-    protected $table = 'riwayat_jabatans';
+    use HasFactory;
+
+    protected $table = 'riwayat_pendidikans';
 
     protected $fillable = [
         'data_induk_id',
-        'tanggal',
-        'nama_jabatan',
-        'file_sk',
-    ];
-
-    protected $casts = [
-        'tanggal' => 'date',
+        'jenjang',
+        'institusi',
+        'jurusan',
+        'tahun_lulus',
+        'file_ijazah',
     ];
 
     public function dataInduk()
