@@ -33,12 +33,12 @@ class LeaveRequestResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return 'Pengajuan Cuti';
+        return 'Permohonan Izin';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Pengajuan Cuti';
+        return 'Permohonan Izin';
     }
 
     /**
@@ -73,7 +73,7 @@ class LeaveRequestResource extends Resource
      */
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'Pengajuan cuti menunggu persetujuan';
+        return 'Permohonan izin menunggu persetujuan';
     }
 
     /**
@@ -117,7 +117,7 @@ class LeaveRequestResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            \Filament\Schemas\Components\Section::make('Detail Cuti')
+            \Filament\Schemas\Components\Section::make('Detail Pengajuan')
                 ->schema([
 
                     Forms\Components\Select::make('data_induk_id')
@@ -141,6 +141,16 @@ class LeaveRequestResource extends Resource
                             return ! $user?->hasRole('super_admin');
                         }),
 
+                    Forms\Components\Select::make('leave_type')
+                        ->label('Jenis Pengajuan')
+                        ->options([
+                            'cuti' => 'Cuti',
+                            'sakit' => 'Sakit',
+                            'izin' => 'Izin',
+                        ])
+                        ->required()
+                        ->default('cuti'),
+
                     \Filament\Schemas\Components\Grid::make(2)
                         ->schema([
                             Forms\Components\DatePicker::make('start_date')
@@ -154,7 +164,7 @@ class LeaveRequestResource extends Resource
                         ]),
 
                     Forms\Components\Textarea::make('reason')
-                        ->label('Alasan Cuti')
+                        ->label('Alasan')
                         ->required()
                         ->columnSpanFull(),
 
@@ -215,6 +225,15 @@ class LeaveRequestResource extends Resource
                 Tables\Columns\TextColumn::make('employee.nama')
                     ->label('Nama Pegawai')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('leave_type')
+                    ->label('Jenis')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'cuti' => 'info',
+                        'sakit' => 'danger',
+                        'izin' => 'warning',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('start_date')
                     ->date()
                     ->label('Mulai'),
@@ -222,14 +241,14 @@ class LeaveRequestResource extends Resource
                     ->date()
                     ->label('Selesai'),
                 Tables\Columns\TextColumn::make('lama_cuti')
-                    ->label('Lama Cuti')
+                    ->label('Durasi')
                     ->state(
                         fn($record) =>
                         \Carbon\Carbon::parse($record->start_date)
                             ->diffInDays(\Carbon\Carbon::parse($record->end_date)) + 1 . ' hari'
                     ),
                 Tables\Columns\TextColumn::make('reason')
-                    ->label('Alasan Cuti')
+                    ->label('Alasan')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('upload_file')
                     ->label('Bukti')
@@ -297,12 +316,40 @@ class LeaveRequestResource extends Resource
                                 'approved_by' => $user->id,
                                 'keterangan_kembali' => 'belum kembali',
                             ]);
-                            // 2. UPDATE DATA INDUK → CUTI
+
+                            // 2. UPDATE DATA INDUK
                             if ($record->employee) {
+                                // Update status "live" pegawai
                                 $record->employee->update([
-                                    'status' => 'cuti',
+                                    'status' => $record->leave_type, // cuti/sakit/izin
                                     'keterangan' => $record->reason,
                                 ]);
+
+                                // 3. CREATE ABSENSI RECORDS (SYNC)
+                                $startDate = \Carbon\Carbon::parse($record->start_date);
+                                $endDate = \Carbon\Carbon::parse($record->end_date);
+                                $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
+
+                                foreach ($period as $date) {
+                                    // Skip weekends (optional, but standard usually)
+                                    // if ($date->isWeekend()) continue; 
+
+                                    // Create/Update Absensi for this date
+                                    if ($record->employee->user_id) {
+                                        \Modules\Presensi\Models\Absensi::updateOrCreate(
+                                            [
+                                                'user_id' => $record->employee->user_id,
+                                                'tanggal' => $date->format('Y-m-d'),
+                                            ],
+                                            [
+                                                'status' => $record->leave_type, // cuti/sakit/izin
+                                                'keterangan' => $record->reason,
+                                                'jam_masuk' => null,
+                                                'jam_keluar' => null,
+                                            ]
+                                        );
+                                    }
+                                }
                             }
                         }),
 

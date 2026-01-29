@@ -33,4 +33,20 @@ class CreateLeaveRequest extends CreateRecord
     {
         return static::$resource::getUrl('index');
     }
+
+    public function getTitle(): string
+    {
+        return 'Buat Permohonan Izin';
+    }
+
+    protected function getCreateFormAction(): \Filament\Actions\Action
+    {
+        return parent::getCreateFormAction()
+            ->label('Kirim Permohonan');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Permohonan berhasil dikirim';
+    }
 }

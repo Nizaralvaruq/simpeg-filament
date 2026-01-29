@@ -14,7 +14,7 @@ class ListLeaveRequests extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Pengajuan Cuti'),
+                ->label('Buat Permohonan Izin'),
         ];
     }
 }

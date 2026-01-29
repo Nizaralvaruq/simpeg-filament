@@ -16,6 +16,7 @@ class LeaveRequest extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'leave_type' => 'string',
     ];
 
     public function employee()

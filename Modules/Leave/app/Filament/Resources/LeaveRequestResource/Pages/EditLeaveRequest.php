@@ -31,4 +31,20 @@ class EditLeaveRequest extends EditRecord
     {
         return static::$resource::getUrl('index');
     }
+
+    public function getTitle(): string
+    {
+        return 'Ubah Data Permohonan';
+    }
+
+    protected function getSaveFormAction(): \Filament\Actions\Action
+    {
+        return parent::getSaveFormAction()
+            ->label('Simpan Perubahan');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Permohonan berhasil diperbarui';
+    }
 }

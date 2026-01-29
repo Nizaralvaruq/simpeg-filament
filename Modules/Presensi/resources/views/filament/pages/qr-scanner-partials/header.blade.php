@@ -1,5 +1,5 @@
         <!-- Hidden poll to keep stats updated without re-rendering whole UI -->
-        <span wire:poll.5s="loadTodayStats"></span>
+        <span wire:poll.5s="refreshScannerData"></span>
         <!-- Fullscreen Toggle Button -->
         <button @click="toggleFullscreen()" class="qr-fullscreen-btn qr-btn" title="Toggle Fullscreen (F11)">
             <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -283,6 +283,15 @@ class QrScanner extends Page
     }
 
     /**
+     * Consolidated refresh for real-time polling
+     */
+    public function refreshScannerData()
+    {
+        $this->loadTodayStats();
+        $this->loadRecentScans();
+    }
+
+    /**
      * Load today's statistics
      */
     public function loadTodayStats()
