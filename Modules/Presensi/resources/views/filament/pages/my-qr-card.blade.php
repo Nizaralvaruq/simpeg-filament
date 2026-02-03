@@ -210,7 +210,7 @@
 
                     <div>
                         <div class="info-label">
-                            Jabatan</div>
+                            Amanah</div>
                         <div class="info-value-jabatan">
                             {{ $this->getUserJabatan() }}
                         </div>

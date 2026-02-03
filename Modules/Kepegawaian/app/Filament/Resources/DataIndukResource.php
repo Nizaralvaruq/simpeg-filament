@@ -181,7 +181,13 @@ class DataIndukResource extends Resource
                                             ->label('NIK')
                                             ->numeric()
                                             ->length(16)
-                                            ->maxLength(255),
+                                            ->unique(ignoreRecord: true)
+                                            ->live(onBlur: true)
+                                            ->helperText('Harus 16 digit angka')
+                                            ->validationMessages([
+                                                'unique' => 'NIK sudah terdaftar di sistem.',
+                                                'length' => 'NIK harus tepat 16 digit.',
+                                            ]),
                                     ])->columns(2),
 
                                 Group::make()
@@ -259,10 +265,104 @@ class DataIndukResource extends Resource
                                                 'Cerai Hidup'   => 'Cerai Hidup',
                                                 'Cerai Mati'    => 'Cerai Mati',
                                             ])
+                                            ->native(false)
+                                            ->live(),
+                                    ])->columns(1),
+
+                                Forms\Components\Repeater::make('riwayatPasangan')
+                                    ->relationship()
+                                    ->label('Data Pasangan (Suami/Istri)')
+                                    ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('nama')
+                                            ->required()
+                                            ->columnSpan(2),
+                                        Forms\Components\Select::make('hubungan')
+                                            ->options([
+                                                'Suami' => 'Suami',
+                                                'Istri' => 'Istri',
+                                            ])
+                                            ->required(),
+                                        Forms\Components\TextInput::make('nik')
+                                            ->label('NIK')
+                                            ->numeric()
+                                            ->length(16)
+                                            ->unique('riwayat_keluargas', 'nik', ignoreRecord: true)
+                                            ->helperText('16 digit')
+                                            ->validationMessages([
+                                                'unique' => 'NIK sudah terdaftar.',
+                                                'length' => 'Harus 16 digit.',
+                                            ]),
+                                        Forms\Components\TextInput::make('tempat_lahir')
+                                            ->label('Tempat Lahir'),
+                                        Forms\Components\DatePicker::make('tanggal_lahir')
+                                            ->label('Tanggal Lahir')
+                                            ->displayFormat('d/m/Y'),
+                                        Forms\Components\TextInput::make('pekerjaan')
+                                            ->label('Pekerjaan'),
+                                        Forms\Components\TextInput::make('no_hp')
+                                            ->label('No HP / WA')
+                                            ->tel()
+                                            ->placeholder('Kontak Darurat'),
+                                        Forms\Components\FileUpload::make('file_kk')
+                                            ->label('Upload KK/Akte')
+                                            ->disk('public')
+                                            ->directory('dokumen-keluarga')
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(3)
+                                    ->collapsible()
+                                    ->itemLabel(fn(array $state): ?string => ($state['nama'] ?? '') . ' (' . ($state['hubungan'] ?? '') . ')')
+                                    ->defaultItems(0),
+
+                                Forms\Components\Repeater::make('riwayatAnaks')
+                                    ->relationship()
+                                    ->label('Data Anak')
+                                    ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('nama')
+                                            ->required()
+                                            ->columnSpan(2),
+                                        Forms\Components\Hidden::make('hubungan')
+                                            ->default('Anak'),
+                                        Forms\Components\TextInput::make('nik')
+                                            ->label('NIK')
+                                            ->numeric()
+                                            ->length(16)
+                                            ->unique('riwayat_keluargas', 'nik', ignoreRecord: true)
+                                            ->helperText('16 digit')
+                                            ->validationMessages([
+                                                'unique' => 'NIK sudah terdaftar.',
+                                                'length' => 'Harus 16 digit.',
+                                            ]),
+                                        Forms\Components\TextInput::make('tempat_lahir')
+                                            ->label('Tempat Lahir'),
+                                        Forms\Components\DatePicker::make('tanggal_lahir')
+                                            ->label('Tanggal Lahir')
+                                            ->displayFormat('d/m/Y'),
+                                        Forms\Components\TextInput::make('pekerjaan')
+                                            ->label('Pekerjaan'),
+                                        Forms\Components\Select::make('pendidikan')
+                                            ->label('Pendidikan')
+                                            ->options([
+                                                'Belum Sekolah' => 'Belum Sekolah',
+                                                'TK'            => 'TK',
+                                                'SD'            => 'SD',
+                                                'SMP'           => 'SMP',
+                                                'SMA'           => 'SMA',
+                                                'Kuliah'        => 'Kuliah',
+                                            ])
                                             ->native(false),
-                                        Forms\Components\TextInput::make('suami_istri')
-                                            ->label('Nama Suami / Istri (Pasangan)'),
-                                    ])->columns(2),
+                                        Forms\Components\FileUpload::make('file_kk')
+                                            ->label('Upload KK/Akte')
+                                            ->disk('public')
+                                            ->directory('dokumen-keluarga')
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(3)
+                                    ->collapsible()
+                                    ->itemLabel(fn(array $state): ?string => $state['nama'] ?? null)
+                                    ->defaultItems(0),
                             ]),
 
                         Section::make('Alamat & Domisili')
@@ -304,7 +404,7 @@ class DataIndukResource extends Resource
                                 Group::make()
                                     ->schema([
                                         Forms\Components\TextInput::make('jabatan')
-                                            ->label('Jabatan Saat Ini')
+                                            ->label('Amanah Saat Ini')
                                             ->required()
                                             ->maxLength(255),
                                         Forms\Components\Select::make('golongan_id')
@@ -340,7 +440,7 @@ class DataIndukResource extends Resource
                 Step::make('Riwayat Kepegawaian')
                     ->schema([
 
-                        Section::make('Status Mutasi / Jabatan')
+                        Section::make('Status Mutasi / Amanah')
                             ->schema([
                                 // PILIHAN STATUS PINDAH TUGAS
                                 Forms\Components\Select::make('pindah_tugas')
@@ -361,13 +461,21 @@ class DataIndukResource extends Resource
                                 // Riwayat Jabatan (muncul hanya kalau "pernah pindah tugas")
                                 Forms\Components\Repeater::make('riwayatJabatans')
                                     ->relationship()
-                                    ->label('List Riwayat Jabatan')
+                                    ->label('List Riwayat Amanah')
                                     ->schema([
                                         Forms\Components\DatePicker::make('tanggal')
                                             ->required()
                                             ->displayFormat('d/m/Y'),
                                         Forms\Components\TextInput::make('nama_jabatan')
+                                            ->label('Amanah')
                                             ->required(),
+                                        Forms\Components\Select::make('unit_id')
+                                            ->relationship('unit', 'name')
+                                            ->label('Unit Kerja')
+                                            ->searchable()
+                                            ->preload(),
+                                        Forms\Components\TextInput::make('nomor_sk')
+                                            ->label('Nomor SK'),
                                         Forms\Components\FileUpload::make('file_sk')
                                             ->label('File SK (PDF/Image)')
                                             ->disk('public')
@@ -379,7 +487,7 @@ class DataIndukResource extends Resource
                                             )
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(2)
+                                    ->columns(4)
                                     ->visible(fn(Get $get) => $get('pindah_tugas') === 'pernah')
                                     ->live()
                                     ->afterStateUpdated(function ($state, Set $set) {
@@ -410,6 +518,8 @@ class DataIndukResource extends Resource
                                             ->relationship('golongan', 'name')
                                             ->searchable()
                                             ->preload(),
+                                        Forms\Components\TextInput::make('nomor_sk')
+                                            ->label('Nomor SK'),
                                         Forms\Components\FileUpload::make('file_sk')
                                             ->label('File SK (PDF/Image)')
                                             ->disk('public')
@@ -420,7 +530,7 @@ class DataIndukResource extends Resource
                                             )
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(2)
+                                    ->columns(3)
                                     ->afterStateUpdated(function ($state, Set $set) {
                                         if (! is_array($state)) return;
                                         $latest = collect($state)
@@ -451,6 +561,8 @@ class DataIndukResource extends Resource
                                                 'S3' => 'S3',
                                             ])
                                             ->required(),
+                                        Forms\Components\TextInput::make('gelar')
+                                            ->label('Gelar (contoh: S.Kom)'),
                                         Forms\Components\TextInput::make('institusi')
                                             ->label('Nama Institusi')
                                             ->required(),
@@ -472,7 +584,7 @@ class DataIndukResource extends Resource
                                             )
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(2),
+                                    ->columns(3),
                             ]),
 
                         Section::make('Riwayat Pengembangan Diri & Penghargaan')
@@ -485,6 +597,8 @@ class DataIndukResource extends Resource
                                         Forms\Components\TextInput::make('nama_diklat')
                                             ->label('Nama Diklat')
                                             ->required(),
+                                        Forms\Components\TextInput::make('nomor_sertifikat')
+                                            ->label('Nomor Sertifikat'),
                                         Forms\Components\TextInput::make('penyelenggara')
                                             ->required(),
                                         Forms\Components\DatePicker::make('tanggal_mulai')
@@ -507,7 +621,7 @@ class DataIndukResource extends Resource
                                             )
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(2),
+                                    ->columns(3),
 
                                 // Riwayat Penghargaan
                                 Forms\Components\Repeater::make('riwayatPenghargaans')
@@ -517,6 +631,8 @@ class DataIndukResource extends Resource
                                         Forms\Components\TextInput::make('nama_penghargaan')
                                             ->label('Nama Penghargaan')
                                             ->required(),
+                                        Forms\Components\TextInput::make('nomor_sertifikat')
+                                            ->label('Nomor Piagam/Sertifikat'),
                                         Forms\Components\TextInput::make('pemberi')
                                             ->label('Instansi Pemberi')
                                             ->required(),
@@ -534,7 +650,7 @@ class DataIndukResource extends Resource
                                             )
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(2),
+                                    ->columns(3),
                             ]),
                     ])
                     ->columns(1),
@@ -600,7 +716,7 @@ class DataIndukResource extends Resource
                 Tables\Columns\TextColumn::make('nama')->label('Nama')->searchable(),
                 Tables\Columns\TextColumn::make('jenis_kelamin')->label('JK')->toggleable(),
                 Tables\Columns\TextColumn::make('units.name')->label('Unit Kerja')->badge()->separator(', '),
-                Tables\Columns\TextColumn::make('jabatan')->label('Jabatan')->searchable(),
+                Tables\Columns\TextColumn::make('jabatan')->label('Amanah')->searchable(),
                 Tables\Columns\TextColumn::make('golongan.name')->label('Golongan')->badge(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()

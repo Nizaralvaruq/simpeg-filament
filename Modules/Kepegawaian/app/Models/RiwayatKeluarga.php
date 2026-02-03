@@ -1,30 +1,31 @@
 <?php
-// Forced re-index 2026-02-03
 
 namespace Modules\Kepegawaian\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class RiwayatDiklat extends Model
+class RiwayatKeluarga extends Model
 {
     use HasFactory;
 
-    protected $table = 'riwayat_diklats';
+    protected $table = 'riwayat_keluargas';
 
     protected $fillable = [
         'data_induk_id',
-        'nama_diklat',
-        'penyelenggara',
-        'tanggal_mulai',
-        'tanggal_selesai',
-        'durasi_jam',
-        'file_sertifikat',
+        'nama',
+        'hubungan',
+        'pekerjaan',
+        'nik',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'no_hp',
+        'pendidikan',
+        'file_kk',
     ];
 
     protected $casts = [
-        'tanggal_mulai' => 'date',
-        'tanggal_selesai' => 'date',
+        'tanggal_lahir' => 'date',
     ];
 
     public function dataInduk()

@@ -14,6 +14,8 @@ class RiwayatJabatan extends Model
         'data_induk_id',
         'tanggal',
         'nama_jabatan',
+        'unit_id',
+        'nomor_sk',
         'file_sk',
     ];
 
@@ -24,5 +26,10 @@ class RiwayatJabatan extends Model
     public function dataInduk()
     {
         return $this->belongsTo(DataInduk::class, 'data_induk_id');
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\Unit::class, 'unit_id');
     }
 }

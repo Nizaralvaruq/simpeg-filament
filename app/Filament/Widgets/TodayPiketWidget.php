@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Modules\Presensi\Models\JadwalPiket;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +18,7 @@ class TodayPiketWidget extends BaseWidget
         return Auth::check();
     }
 
-    public function table(Table $table): Table
+    public function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->query(

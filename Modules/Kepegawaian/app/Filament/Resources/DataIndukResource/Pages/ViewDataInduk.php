@@ -71,7 +71,6 @@ class ViewDataInduk extends ViewRecord
 
                                         TextEntry::make('no_hp')->label('Nomor HP')->inlineLabel(),
                                         TextEntry::make('status_perkawinan')->label('Status Perkawinan')->inlineLabel(),
-                                        TextEntry::make('suami_istri')->label('Nama Suami / Istri')->inlineLabel(),
                                         TextEntry::make('alamat')->label('Alamat KTP')->inlineLabel()->columnSpanFull(),
                                         TextEntry::make('alamat_domisili')->label('Alamat Domisili')->inlineLabel()->columnSpanFull(),
                                         TextEntry::make('jarak_ke_kantor')->label('Jarak Rumah dari Kantor')->suffix(' KM')->inlineLabel(),
@@ -85,7 +84,7 @@ class ViewDataInduk extends ViewRecord
                                     ->columns(1)
                                     ->schema([
                                         TextEntry::make('nip')->label('NPA')->inlineLabel(),
-                                        TextEntry::make('jabatan')->label('Jabatan')->inlineLabel(),
+                                        TextEntry::make('jabatan')->label('Amanah')->inlineLabel(),
                                         TextEntry::make('tmt_awal')->label('Mulai Bertugas')->date('d F Y')->inlineLabel(),
                                         TextEntry::make('units.name')->label('Unit Kerja')->badge()->separator(', ')->inlineLabel(),
                                         TextEntry::make('status_kepegawaian')->label('Status Kepegawaian')->badge()->inlineLabel(),
@@ -126,15 +125,73 @@ class ViewDataInduk extends ViewRecord
                                     ]),
                             ]),
 
+                        Tab::make('Data Keluarga')
+                            ->visible(fn($record) => filled($record->status_perkawinan) && $record->status_perkawinan !== 'Belum Menikah')
+                            ->schema([
+                                Section::make('Data Pasangan (Suami/Istri)')
+                                    ->schema([
+                                        RepeatableEntry::make('riwayatPasangan')
+                                            ->label('')
+                                            ->schema([
+                                                TextEntry::make('nama')
+                                                    ->weight('bold')
+                                                    ->suffix(fn($record) => $record->tanggal_lahir ? ' (' . $record->tanggal_lahir->age . ' Thn)' : ''),
+                                                TextEntry::make('nik')->label('NIK')->placeholder('-'),
+                                                TextEntry::make('tempat_lahir')->label('Tempat Lahir')->placeholder('-'),
+                                                TextEntry::make('tanggal_lahir')->label('Tgl Lahir')->date('d M Y')->placeholder('-'),
+                                                TextEntry::make('pekerjaan')->placeholder('-'),
+                                                TextEntry::make('no_hp')->label('No HP/WA')->placeholder('-'),
+                                                TextEntry::make('file_kk')
+                                                    ->label('KK/Akte')
+                                                    ->formatStateUsing(fn() => 'Lihat')
+                                                    ->url(fn($state) => \Illuminate\Support\Facades\Storage::url($state))
+                                                    ->icon('heroicon-o-eye')
+                                                    ->openUrlInNewTab()
+                                                    ->badge()
+                                                    ->color('info')
+                                                    ->visible(fn($state) => !empty($state)),
+                                            ])
+                                            ->columns(5),
+                                    ]),
+
+                                Section::make('Data Anak')
+                                    ->schema([
+                                        RepeatableEntry::make('riwayatAnaks')
+                                            ->label('')
+                                            ->schema([
+                                                TextEntry::make('nama')
+                                                    ->weight('bold')
+                                                    ->suffix(fn($record) => $record->tanggal_lahir ? ' (' . $record->tanggal_lahir->age . ' Thn)' : ''),
+                                                TextEntry::make('nik')->label('NIK')->placeholder('-'),
+                                                TextEntry::make('tempat_lahir')->label('Tempat Lahir')->placeholder('-'),
+                                                TextEntry::make('tanggal_lahir')->label('Tgl Lahir')->date('d M Y')->placeholder('-'),
+                                                TextEntry::make('pendidikan')->placeholder('-'),
+                                                TextEntry::make('pekerjaan')->placeholder('-'),
+                                                TextEntry::make('file_kk')
+                                                    ->label('KK/Akte')
+                                                    ->formatStateUsing(fn() => 'Lihat')
+                                                    ->url(fn($state) => \Illuminate\Support\Facades\Storage::url($state))
+                                                    ->icon('heroicon-o-eye')
+                                                    ->openUrlInNewTab()
+                                                    ->badge()
+                                                    ->color('info')
+                                                    ->visible(fn($state) => !empty($state)),
+                                            ])
+                                            ->columns(5),
+                                    ]),
+                            ]),
+
                         Tab::make('Riwayat Kepegawaian')
                             ->schema([
-                                Section::make('Riwayat Jabatan')
+                                Section::make('Riwayat Amanah')
                                     ->schema([
                                         RepeatableEntry::make('riwayatJabatans')
                                             ->label('')
                                             ->schema([
                                                 TextEntry::make('tanggal')->label('TMT')->date('d M Y'),
-                                                TextEntry::make('nama_jabatan')->label('Jabatan'),
+                                                TextEntry::make('nama_jabatan')->label('Amanah'),
+                                                TextEntry::make('unit.name')->label('Unit'),
+                                                TextEntry::make('nomor_sk')->label('Nomor SK'),
                                                 TextEntry::make('file_sk')
                                                     ->label('Download SK')
                                                     ->formatStateUsing(fn() => 'Download')
@@ -145,7 +202,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(3),
+                                            ->columns(4),
                                     ]),
 
                                 Section::make('Riwayat Golongan')
@@ -155,6 +212,7 @@ class ViewDataInduk extends ViewRecord
                                             ->schema([
                                                 TextEntry::make('tanggal')->label('TMT')->date('d M Y'),
                                                 TextEntry::make('golongan.name')->label('Golongan'),
+                                                TextEntry::make('nomor_sk')->label('Nomor SK'),
                                                 TextEntry::make('file_sk')
                                                     ->label('Download SK')
                                                     ->formatStateUsing(fn() => 'Download')
@@ -165,7 +223,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(3),
+                                            ->columns(4),
                                     ]),
 
                                 Section::make('Riwayat Pendidikan')
@@ -174,6 +232,7 @@ class ViewDataInduk extends ViewRecord
                                             ->label('')
                                             ->schema([
                                                 TextEntry::make('jenjang'),
+                                                TextEntry::make('gelar')->label('Gelar')->placeholder('-'),
                                                 TextEntry::make('institusi'),
                                                 TextEntry::make('jurusan')->placeholder('-'),
                                                 TextEntry::make('tahun_lulus'),
@@ -187,7 +246,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(5),
+                                            ->columns(6),
                                     ]),
 
                                 Section::make('Riwayat Diklat/Pelatihan')
@@ -197,6 +256,7 @@ class ViewDataInduk extends ViewRecord
                                             ->schema([
                                                 TextEntry::make('tanggal_mulai')->label('Tanggal')->date('d M Y'),
                                                 TextEntry::make('nama_diklat'),
+                                                TextEntry::make('nomor_sertifikat')->label('No. Sertifikat'),
                                                 TextEntry::make('penyelenggara'),
                                                 TextEntry::make('file_sertifikat')
                                                     ->label('Sertifikat')
@@ -208,7 +268,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(4),
+                                            ->columns(5),
                                     ]),
 
                                 Section::make('Riwayat Penghargaan')
@@ -218,6 +278,7 @@ class ViewDataInduk extends ViewRecord
                                             ->schema([
                                                 TextEntry::make('tanggal')->label('Tanggal')->date('d M Y'),
                                                 TextEntry::make('nama_penghargaan'),
+                                                TextEntry::make('nomor_sertifikat')->label('No. Piagam'),
                                                 TextEntry::make('pemberi'),
                                                 TextEntry::make('file_sertifikat')
                                                     ->label('Sertifikat')
@@ -229,7 +290,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(4),
+                                            ->columns(5),
                                     ]),
                             ]),
 

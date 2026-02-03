@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
 use Modules\MasterData\Models\Unit;
 use Modules\MasterData\Models\Golongan;
+use Modules\Kepegawaian\Models\RiwayatJabatan;
+use Modules\Kepegawaian\Models\RiwayatGolongan;
+use Modules\Kepegawaian\Models\RiwayatPendidikan;
+use Modules\Kepegawaian\Models\RiwayatDiklat;
+use Modules\Kepegawaian\Models\RiwayatPenghargaan;
+use Modules\Kepegawaian\Models\RiwayatKeluarga;
 
 class DataInduk extends Model
 {
@@ -59,18 +65,42 @@ class DataInduk extends Model
         return $this->hasMany(\Modules\Presensi\Models\Absensi::class, 'user_id', 'user_id');
     }
 
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
     public function riwayatPendidikans()
     {
         return $this->hasMany(RiwayatPendidikan::class, 'data_induk_id');
     }
 
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
     public function riwayatDiklats()
     {
         return $this->hasMany(RiwayatDiklat::class, 'data_induk_id');
     }
 
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
     public function riwayatPenghargaans()
     {
         return $this->hasMany(RiwayatPenghargaan::class, 'data_induk_id');
     }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
+    public function riwayatKeluargas()
+    {
+        return $this->hasMany(RiwayatKeluarga::class, 'data_induk_id');
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
+    public function riwayatPasangan()
+    {
+        return $this->hasMany(RiwayatKeluarga::class, 'data_induk_id')
+            ->whereIn('hubungan', ['Suami', 'Istri']);
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
+    public function riwayatAnaks()
+    {
+        return $this->hasMany(RiwayatKeluarga::class, 'data_induk_id')
+            ->where('hubungan', 'Anak');
+    }
 }
+// Cache-buster: re-indexing trigger 2026-02-03

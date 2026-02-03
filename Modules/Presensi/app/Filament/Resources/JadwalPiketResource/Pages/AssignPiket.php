@@ -78,7 +78,7 @@ class AssignPiket extends Page implements HasTable
                     ->separator(', '),
 
                 TextColumn::make('jabatan')
-                    ->label('Jabatan')
+                    ->label('Amanah')
                     ->searchable(),
 
                 TextColumn::make('nip')

@@ -9,7 +9,8 @@
 
                     {{-- Left --}}
                     <div class="flex items-start gap-4 min-w-0">
-                        <div class="h-14 w-14 shrink-0 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg font-bold text-gray-700 dark:text-gray-200">
+                        <div
+                            class="h-14 w-14 shrink-0 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg font-bold text-gray-700 dark:text-gray-200">
                             {{ strtoupper(mb_substr($record->nama ?? 'P', 0, 1)) }}
                         </div>
 
@@ -19,7 +20,8 @@
                             </div>
 
                             {{-- meta inline (ini yang bikin rapi) --}}
-                            <div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div
+                                class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
                                 <span class="inline-flex items-center gap-2">
                                     <x-filament::icon icon="heroicon-o-identification" class="h-4 w-4" />
                                     <span class="font-medium">{{ $record->nip ?? '-' }}</span>
@@ -32,7 +34,8 @@
 
                                 <span class="inline-flex items-center gap-2">
                                     <x-filament::icon icon="heroicon-o-building-office-2" class="h-4 w-4" />
-                                    <span class="font-medium">{{ $record->units?->pluck('name')->join(', ') ?? '-' }}</span>
+                                    <span
+                                        class="font-medium">{{ $record->units?->pluck('name')->join(', ') ?? '-' }}</span>
                                 </span>
                             </div>
 
@@ -50,12 +53,8 @@
 
                     {{-- Right --}}
                     <div class="sm:pt-1">
-                        <x-filament::button
-                            icon="heroicon-o-pencil-square"
-                            color="warning"
-                            tag="a"
-                            href="{{ \Modules\Kepegawaian\Filament\Resources\DataIndukResource::getUrl('edit', ['record' => $record]) }}"
-                        >
+                        <x-filament::button icon="heroicon-o-pencil-square" color="warning" tag="a"
+                            href="{{ \Modules\Kepegawaian\Filament\Resources\DataIndukResource::getUrl('edit', ['record' => $record]) }}">
                             Edit
                         </x-filament::button>
                     </div>
@@ -77,17 +76,16 @@
                             ];
                         @endphp
 
-                        @foreach($tabs as $key => $label)
-                            <button
-                                type="button"
+                        @foreach ($tabs as $key => $label)
+                            <button type="button"
                                 class="px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition
                                     border-gray-200 dark:border-gray-800
                                     hover:bg-gray-50 dark:hover:bg-gray-900"
                                 :class="tab === '{{ $key }}'
-                                    ? 'bg-primary-600 text-white border-transparent'
-                                    : 'bg-transparent text-gray-700 dark:text-gray-200'"
-                                @click="tab='{{ $key }}'"
-                            >
+                                    ?
+                                    'bg-primary-600 text-white border-transparent' :
+                                    'bg-transparent text-gray-700 dark:text-gray-200'"
+                                @click="tab='{{ $key }}'">
                                 {{ $label }}
                             </button>
                         @endforeach
@@ -98,8 +96,8 @@
             {{-- helper: row style --}}
             @php
                 $row = 'py-3 flex gap-4';
-                $dt  = 'w-44 sm:w-52 shrink-0 text-gray-500 dark:text-gray-400';
-                $dd  = 'flex-1 font-medium text-gray-100';
+                $dt = 'w-44 sm:w-52 shrink-0 text-gray-500 dark:text-gray-400';
+                $dd = 'flex-1 font-medium text-gray-100';
             @endphp
 
             {{-- TAB: PERSONAL --}}
@@ -135,11 +133,13 @@
                         </div>
                         <div class="{{ $row }}">
                             <dt class="{{ $dt }}">Mulai Bertugas</dt>
-                            <dd class="{{ $dd }}">{{ optional($record->tmt_awal)?->translatedFormat('d F Y') ?? '-' }}</dd>
+                            <dd class="{{ $dd }}">
+                                {{ optional($record->tmt_awal)?->translatedFormat('d F Y') ?? '-' }}</dd>
                         </div>
                         <div class="{{ $row }}">
                             <dt class="{{ $dt }}">Unit Kerja</dt>
-                            <dd class="{{ $dd }}">{{ $record->units?->pluck('name')->join(', ') ?? '-' }}</dd>
+                            <dd class="{{ $dd }}">{{ $record->units?->pluck('name')->join(', ') ?? '-' }}
+                            </dd>
                         </div>
                         <div class="{{ $row }}">
                             <dt class="{{ $dt }}">Alamat</dt>
@@ -187,10 +187,10 @@
                 <div class="grid gap-6 md:grid-cols-2">
 
                     <div>
-                        <div class="mb-2 text-sm font-semibold">Riwayat Jabatan</div>
-                        @if($record->riwayatJabatans && $record->riwayatJabatans->count() > 0)
+                        <div class="mb-2 text-sm font-semibold">Riwayat Amanah</div>
+                        @if ($record->riwayatJabatans && $record->riwayatJabatans->count() > 0)
                             <div class="divide-y divide-gray-100/10 dark:divide-gray-800">
-                                @foreach($record->riwayatJabatans->sortByDesc('tanggal') as $r)
+                                @foreach ($record->riwayatJabatans->sortByDesc('tanggal') as $r)
                                     <div class="py-3 flex gap-4 text-sm">
                                         <div class="w-28 shrink-0 text-gray-500 dark:text-gray-400">
                                             {{ optional($r->tanggal)?->translatedFormat('d M Y') ?? '-' }}
@@ -201,16 +201,16 @@
                             </div>
                         @else
                             <div class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ $record->jabatan === 'Tetap pada amanahnya' ? 'Tetap pada amanahnya' : 'Belum ada riwayat jabatan' }}
+                                {{ $record->jabatan === 'Tetap pada amanahnya' ? 'Tetap pada amanahnya' : 'Belum ada riwayat amanah' }}
                             </div>
                         @endif
                     </div>
 
                     <div>
                         <div class="mb-2 text-sm font-semibold">Riwayat Golongan</div>
-                        @if($record->riwayatGolongans && $record->riwayatGolongans->count() > 0)
+                        @if ($record->riwayatGolongans && $record->riwayatGolongans->count() > 0)
                             <div class="divide-y divide-gray-100/10 dark:divide-gray-800">
-                                @foreach($record->riwayatGolongans->sortByDesc('tanggal') as $r)
+                                @foreach ($record->riwayatGolongans->sortByDesc('tanggal') as $r)
                                     <div class="py-3 flex gap-4 text-sm">
                                         <div class="w-28 shrink-0 text-gray-500 dark:text-gray-400">
                                             {{ optional($r->tanggal)?->translatedFormat('d M Y') ?? '-' }}
