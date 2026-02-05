@@ -86,7 +86,7 @@ class DataIndukExport implements WithEvents
 
                     $sheet->setCellValue('B15', 'Unit Kerja');
                     $sheet->setCellValue('C15', $p->units->pluck('name')->join(', ') ?: '-');
-                    $sheet->setCellValue('B16', 'Amanah');
+                    $sheet->setCellValue('B16', 'Amanah/Jabatan');
                     $sheet->setCellValue('C16', $p->jabatan ?: '-');
                     $sheet->setCellValue('B17', 'Golongan');
                     $sheet->setCellValue('C17', optional($p->golongan)->name ?: '-');

@@ -187,7 +187,7 @@
                 <div class="grid gap-6 md:grid-cols-2">
 
                     <div>
-                        <div class="mb-2 text-sm font-semibold">Riwayat Amanah</div>
+                        <div class="mb-2 text-sm font-semibold">Riwayat Amanah/Jabatan</div>
                         @if ($record->riwayatJabatans && $record->riwayatJabatans->count() > 0)
                             <div class="divide-y divide-gray-100/10 dark:divide-gray-800">
                                 @foreach ($record->riwayatJabatans->sortByDesc('tanggal') as $r)

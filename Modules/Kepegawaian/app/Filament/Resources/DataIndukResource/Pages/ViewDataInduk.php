@@ -84,8 +84,27 @@ class ViewDataInduk extends ViewRecord
                                     ->columns(1)
                                     ->schema([
                                         TextEntry::make('nip')->label('NPA')->inlineLabel(),
-                                        TextEntry::make('jabatan')->label('Amanah')->inlineLabel(),
+                                        TextEntry::make('jabatan')->label('Amanah/Jabatan')->inlineLabel(),
                                         TextEntry::make('tmt_awal')->label('Mulai Bertugas')->date('d F Y')->inlineLabel(),
+                                        TextEntry::make('masa_kerja')
+                                            ->label('Masa Kerja')
+                                            ->inlineLabel()
+                                            ->state(function ($record) {
+                                                if (!$record->tmt_awal) return '-';
+
+                                                $start = $record->tmt_awal;
+                                                $end = ($record->status === 'Resign' && $record->resignation?->tanggal_resign)
+                                                    ? $record->resignation->tanggal_resign
+                                                    : now();
+
+                                                $diff = $start->diff($end);
+
+                                                $parts = [];
+                                                if ($diff->y > 0) $parts[] = $diff->y . ' Tahun';
+                                                if ($diff->m > 0) $parts[] = $diff->m . ' Bulan';
+
+                                                return count($parts) > 0 ? implode(' ', $parts) : 'Kurang dari 1 bulan';
+                                            }),
                                         TextEntry::make('units.name')->label('Unit Kerja')->badge()->separator(', ')->inlineLabel(),
                                         TextEntry::make('status_kepegawaian')->label('Status Kepegawaian')->badge()->inlineLabel(),
                                         TextEntry::make('golongan.name')->label('Golongan')->badge()->inlineLabel(),
@@ -110,6 +129,17 @@ class ViewDataInduk extends ViewRecord
                                             })
                                             ->inlineLabel(),
                                         TextEntry::make('keterangan')->label('Keterangan')->inlineLabel(),
+
+                                        TextEntry::make('resignation.tanggal_resign')
+                                            ->label('Tanggal Resign')
+                                            ->date('d F Y')
+                                            ->inlineLabel()
+                                            ->visible(fn($record) => $record->status === 'Resign'),
+
+                                        TextEntry::make('resignation.alasan')
+                                            ->label('Alasan Resign')
+                                            ->inlineLabel()
+                                            ->visible(fn($record) => $record->status === 'Resign'),
                                     ]),
                             ]),
 
@@ -183,13 +213,13 @@ class ViewDataInduk extends ViewRecord
 
                         Tab::make('Riwayat Kepegawaian')
                             ->schema([
-                                Section::make('Riwayat Amanah')
+                                Section::make('Riwayat Amanah/Jabatan')
                                     ->schema([
                                         RepeatableEntry::make('riwayatJabatans')
                                             ->label('')
                                             ->schema([
                                                 TextEntry::make('tanggal')->label('TMT')->date('d M Y'),
-                                                TextEntry::make('nama_jabatan')->label('Amanah'),
+                                                TextEntry::make('nama_jabatan')->label('Amanah/Jabatan'),
                                                 TextEntry::make('unit.name')->label('Unit'),
                                                 TextEntry::make('nomor_sk')->label('Nomor SK'),
                                                 TextEntry::make('file_sk')

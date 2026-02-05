@@ -13,6 +13,7 @@ use Modules\Kepegawaian\Models\RiwayatPendidikan;
 use Modules\Kepegawaian\Models\RiwayatDiklat;
 use Modules\Kepegawaian\Models\RiwayatPenghargaan;
 use Modules\Kepegawaian\Models\RiwayatKeluarga;
+use Modules\Resign\Models\Resign;
 
 class DataInduk extends Model
 {
@@ -101,6 +102,12 @@ class DataInduk extends Model
     {
         return $this->hasMany(RiwayatKeluarga::class, 'data_induk_id')
             ->where('hubungan', 'Anak');
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasOne */
+    public function resignation()
+    {
+        return $this->hasOne(Resign::class, 'data_induk_id')->where('status', 'disetujui');
     }
 }
 // Cache-buster: re-indexing trigger 2026-02-03

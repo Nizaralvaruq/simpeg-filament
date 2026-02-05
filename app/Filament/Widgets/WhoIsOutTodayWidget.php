@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class WhoIsOutTodayWidget extends BaseWidget
 {
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 6;
     protected int | string | array $columnSpan = 'md';
     protected static ?string $heading = 'Siapa yang Tidak Masuk Hari Ini?';
 

@@ -51,7 +51,7 @@ class UnitEmployeeListWidget extends BaseWidget
                     ->description(fn(DataInduk $record): string => $record->nip ?? ''),
 
                 Tables\Columns\TextColumn::make('jabatan')
-                    ->label('Amanah')
+                    ->label('Amanah/Jabatan')
                     ->badge()
                     ->color('gray'),
 

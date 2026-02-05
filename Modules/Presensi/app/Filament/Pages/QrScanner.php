@@ -147,39 +147,73 @@ class QrScanner extends Page
             return;
         }
 
-        // --- GEO-TAGGING VALIDATION ---
-        $settings = \Modules\MasterData\Models\Setting::get();
-        $officeLat = $settings->office_latitude;
-        $officeLng = $settings->office_longitude;
-        $maxRadiusMeters = $settings->office_radius ?? 100;
+        // --- GEO-TAGGING VALIDATION (Unit-Aware) ---
+        $globalSettings = \Modules\MasterData\Models\Setting::get();
 
-        // Enforce Location if Office is Configured
-        if ($officeLat && $officeLng) {
-            if (!$lat || !$lng) {
+        // 1. Get Employee Units with Location Data
+        $userUnits = $user->employee?->units()->whereNotNull('latitude')->whereNotNull('longitude')->get();
+
+        $validGeofence = null;
+
+        if ($userUnits && $userUnits->isNotEmpty()) {
+            // Check if user is within ANY of their units' geofences
+            foreach ($userUnits as $unit) {
+                $dist = $this->calculateDistance($lat, $lng, $unit->latitude, $unit->longitude);
+                $radius = $unit->radius ?? $globalSettings->office_radius ?? 100;
+
+                if ($dist <= $radius) {
+                    $validGeofence = [
+                        'name' => $unit->name,
+                        'distance' => $dist,
+                        'radius' => $radius
+                    ];
+                    break;
+                }
+            }
+
+            // If not in any unit geofence, we fail (or we could fallback to global, but unit-specific usually overrides)
+            if (!$validGeofence) {
                 if (!$isSilent) {
-                    $this->dispatch('scan-error', message: 'Lokasi Wajib Diaktifkan!');
+                    $this->dispatch('scan-error', message: 'Diluar Lokasi Unit!');
                     Notification::make()
-                        ->title('Akses Ditolak')
-                        ->body('Browser Anda tidak mengirimkan data lokasi. Mohon izinkan akses lokasi (GPS) untuk melakukan absensi.')
+                        ->title('Gagal: Diluar Lokasi Unit')
+                        ->body("Anda tidak berada di area unit kerja Anda.")
                         ->danger()
                         ->send();
                 }
                 return;
             }
+        } else {
+            // 2. Fallback to Global Settings
+            $officeLat = $globalSettings->office_latitude;
+            $officeLng = $globalSettings->office_longitude;
+            $maxRadiusMeters = $globalSettings->office_radius ?? 100;
 
-            // Check Distance
-            $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
-
-            if ($distance > $maxRadiusMeters) {
-                if (!$isSilent) {
-                    $this->dispatch('scan-error', message: "Lokasi terlalu jauh! ({$distance}m)");
-                    Notification::make()
-                        ->title('Gagal: Diluar Lokasi')
-                        ->body("Anda berada {$distance}m dari kantor. Batas maksimal adalah {$maxRadiusMeters}m.")
-                        ->danger()
-                        ->send();
+            if ($officeLat && $officeLng) {
+                if (!$lat || !$lng) {
+                    if (!$isSilent) {
+                        $this->dispatch('scan-error', message: 'Lokasi Wajib Diaktifkan!');
+                        Notification::make()
+                            ->title('Akses Ditolak')
+                            ->body('Browser Anda tidak mengirimkan data lokasi. Mohon izinkan akses lokasi (GPS).')
+                            ->danger()
+                            ->send();
+                    }
+                    return;
                 }
-                return;
+
+                $distance = $this->calculateDistance($lat, $lng, $officeLat, $officeLng);
+                if ($distance > $maxRadiusMeters) {
+                    if (!$isSilent) {
+                        $this->dispatch('scan-error', message: "Lokasi terlalu jauh! ({$distance}m)");
+                        Notification::make()
+                            ->title('Gagal: Diluar Lokasi')
+                            ->body("Anda berada {$distance}m dari pusat. Batas maksimal adalah {$maxRadiusMeters}m.")
+                            ->danger()
+                            ->send();
+                    }
+                    return;
+                }
             }
         }
 

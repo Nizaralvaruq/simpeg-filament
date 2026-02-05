@@ -9,6 +9,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Auth;
 
 class UnitResource extends Resource
@@ -45,7 +47,25 @@ class UnitResource extends Resource
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin']);
+        return $user?->hasAnyRole(['super_admin', 'admin_unit']);
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = parent::getEloquentQuery();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->hasRole('super_admin')) {
+            return $query;
+        }
+
+        if ($user->hasRole('admin_unit') && $user->employee) {
+            $unitIds = $user->employee->units->pluck('id');
+            return $query->whereIn('id', $unitIds);
+        }
+
+        return $query->whereRaw('1=0');
     }
 
     public static function form(Schema $schema): Schema
@@ -78,6 +98,27 @@ class UnitResource extends Resource
                         'PENGEMBANGAN' => 'PENGEMBANGAN',
                     ])
                     ->required(),
+
+                Section::make('Pengaturan Lokasi (Geofencing)')
+                    ->description('Tentukan koordinat dan radius untuk pembatasan absensi di unit ini. Kosongkan jika ingin mengikuti pengaturan global.')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                Forms\Components\TextInput::make('latitude')
+                                    ->numeric()
+                                    ->step(0.00000001)
+                                    ->placeholder('-6.xxxx'),
+                                Forms\Components\TextInput::make('longitude')
+                                    ->numeric()
+                                    ->step(0.00000001)
+                                    ->placeholder('106.xxxx'),
+                                Forms\Components\TextInput::make('radius')
+                                    ->label('Radius (Meter)')
+                                    ->numeric()
+                                    ->suffix('m')
+                                    ->placeholder('Contoh: 100'),
+                            ]),
+                    ]),
             ]);
     }
 

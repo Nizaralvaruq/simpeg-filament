@@ -210,7 +210,7 @@
 
                     <div>
                         <div class="info-label">
-                            Amanah</div>
+                            Amanah/Jabatan</div>
                         <div class="info-value-jabatan">
                             {{ $this->getUserJabatan() }}
                         </div>

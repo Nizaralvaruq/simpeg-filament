@@ -197,7 +197,7 @@ class ResignResource extends Resource
                     ->label('Unit Kerja')
                     ->badge(),
                 Tables\Columns\TextColumn::make('employee.jabatan')
-                    ->label('Amanah')
+                    ->label('Amanah/Jabatan')
                     ->badge(),
                 Tables\Columns\TextColumn::make('tanggal_resign')
                     ->date()

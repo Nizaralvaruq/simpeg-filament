@@ -92,32 +92,6 @@ class UserResource extends Resource
             ->components([
                 \Filament\Schemas\Components\Section::make('Informasi Akun')
                     ->schema([
-                        Forms\Components\Select::make('employee_id')
-                            ->label('Pilih Pegawai (Data Induk)')
-                            ->options(function ($record) {
-                                // Show employees without user OR the current employee
-                                $query = \Modules\Kepegawaian\Models\DataInduk::query()
-                                    ->where(function ($q) use ($record) {
-                                        $q->whereNull('user_id');
-                                        if ($record && $record->employee) {
-                                            $q->orWhere('id', $record->employee->id);
-                                        }
-                                    });
-                                return $query->pluck('nama', 'id');
-                            })
-                            ->searchable()
-                            ->live()
-                            ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
-                                if ($state) {
-                                    $employee = \Modules\Kepegawaian\Models\DataInduk::find($state);
-                                    if ($employee) {
-                                        $set('name', $employee->nama);
-                                        $set('email', $employee->user->email ?? '');
-                                    }
-                                }
-                            })
-                            ->default(fn($record) => $record?->employee?->id)
-                            ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('name')
                             ->required()

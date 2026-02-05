@@ -26,13 +26,18 @@ class CreateDataInduk extends CreateRecord
                 'password' => Hash::make($data['password']),
             ]);
 
-            // Assign role based on who is creating the account
-            /** @var \App\Models\User $creator */
-            $creator = Auth::user();
-            if ($creator && $creator->hasRole('admin_unit')) {
-                $user->assignRole('admin_unit');
+            // Assign role
+            if (!empty($data['roles'])) {
+                $user->assignRole($data['roles']);
             } else {
-                $user->assignRole('staff');
+                // Fallback: Assign role based on who is creating the account
+                /** @var \App\Models\User $creator */
+                $creator = Auth::user();
+                if ($creator && $creator->hasRole('admin_unit')) {
+                    $user->assignRole('admin_unit');
+                } else {
+                    $user->assignRole('staff');
+                }
             }
 
             $record->update(['user_id' => $user->id]);

@@ -11,7 +11,7 @@ use Filament\Support\Enums\ActionSize;
 
 class PendingLeaveRequestsWidget extends BaseWidget
 {
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 5;
     protected int | string | array $columnSpan = 'md';
     protected static ?string $heading = 'Permohonan Izin Menunggu';
 

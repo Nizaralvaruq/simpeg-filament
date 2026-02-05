@@ -9,7 +9,7 @@ use Filament\Support\Colors\Color;
 
 class UnitAttendanceTrendChart extends ChartWidget
 {
-    protected static ?int $sort = 6;
+    protected static ?int $sort = 3;
     protected ?string $heading = 'Tren Keterlambatan (7 Hari Terakhir)';
     protected int | string | array $columnSpan = 'md';
     protected ?string $maxHeight = '250px';

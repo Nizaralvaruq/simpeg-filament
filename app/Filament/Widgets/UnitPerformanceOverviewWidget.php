@@ -11,7 +11,7 @@ use Modules\PenilaianKinerja\Models\AppraisalSession;
 
 class UnitPerformanceOverviewWidget extends BaseWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
     protected int | string | array $columnSpan = 'md';
     protected static ?string $heading = 'Top Performa Guru/Pegawai';
 
