@@ -113,12 +113,25 @@ class AppraisalAssignment extends Model
 
         $report = [];
         foreach ($categories as $cat) {
+            $avg = round(array_sum($cat['scores']) / count($cat['scores']), 2);
             $report[] = [
                 'category_name' => $cat['name'],
-                'average_score' => round(array_sum($cat['scores']) / count($cat['scores']), 2),
+                'average_score' => $avg,
+                'grade' => self::getGrade($avg),
             ];
         }
 
         return $report;
+    }
+
+    public static function getGrade($score)
+    {
+        if ($score >= 4.5) return 'A+ (Istimewa)';
+        if ($score >= 4.0) return 'A (Sangat Baik)';
+        if ($score >= 3.5) return 'B+ (Baik Sekali)';
+        if ($score >= 3.0) return 'B (Baik)';
+        if ($score >= 2.5) return 'C (Cukup)';
+        if ($score >= 2.0) return 'D (Kurang)';
+        return 'E (Sangat Kurang)';
     }
 }

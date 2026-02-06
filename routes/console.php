@@ -8,3 +8,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 \Illuminate\Support\Facades\Schedule::command('presensi:auto-alpha')->everyFifteenMinutes();
+\Illuminate\Support\Facades\Schedule::command('appraisal:send-reminders')->dailyAt('08:00');

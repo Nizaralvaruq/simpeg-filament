@@ -70,7 +70,7 @@ class UnitEmployeeListWidget extends BaseWidget
                     ->icon('heroicon-m-pencil-square')
                     ->color('primary')
                     // Redirect ke halaman create dengan pre-filled data_induk_id
-                    ->url(fn(DataInduk $record) => \Modules\PenilaianKinerja\Filament\Resources\PerformanceScoreResource::getUrl('create') . '?data_induk_id=' . $record->id)
+                    ->url(fn(DataInduk $record) => \Modules\PenilaianKinerja\Filament\Resources\NilaiKinerjaResource::getUrl('create') . '?data_induk_id=' . $record->id)
                     // Sembunyikan jika sudah dinilai
                     ->visible(fn($record) => !$record->has_score),
             ]);
