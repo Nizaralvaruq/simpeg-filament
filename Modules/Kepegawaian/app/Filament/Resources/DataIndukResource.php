@@ -273,6 +273,7 @@ class DataIndukResource extends Resource
                 ]),
 
             Section::make('Pendidikan & Keluarga')
+                ->collapsible()
                 ->schema([
                     Group::make()
                         ->schema([
@@ -408,6 +409,8 @@ class DataIndukResource extends Resource
                 ]),
 
             Section::make('Alamat & Domisili')
+                ->collapsible()
+                ->collapsed()
                 ->schema([
                     Group::make()
                         ->schema([
@@ -431,6 +434,7 @@ class DataIndukResource extends Resource
     {
         return [
             Section::make('Informasi Kepegawaian')
+                ->collapsible()
                 ->schema([
                     Group::make()
                         ->schema([
@@ -492,6 +496,8 @@ class DataIndukResource extends Resource
     {
         return [
             Section::make('Status Mutasi / Amanah / Jabatan')
+                ->collapsible()
+                ->collapsed()
                 ->schema([
                     Forms\Components\Select::make('pindah_tugas')
                         ->label('Riwayat Tugas')
@@ -708,6 +714,8 @@ class DataIndukResource extends Resource
     {
         return [
             Section::make('Informasi BPJS')
+                ->collapsible()
+                ->collapsed()
                 ->schema([
                     Forms\Components\TextInput::make('no_bpjs')->label('Nomor BPJS Kesehatan/Ketenagakerjaan'),
                     Forms\Components\TextInput::make('no_kjp_2p')->label('Nomor KJP 2P'),
@@ -720,6 +728,8 @@ class DataIndukResource extends Resource
     {
         return [
             Section::make('Akun Login')
+                ->collapsible()
+                ->collapsed()
                 ->description('Isi Email & Password di bawah jika ingin membuat akun baru untuk pegawai ini.')
                 ->visible(function (): bool {
                     /** @var \App\Models\User $user */
@@ -783,20 +793,40 @@ class DataIndukResource extends Resource
                     ->label('Foto')
                     ->circular()
                     ->disk('public'),
-                Tables\Columns\TextColumn::make('nama')->label('Nama')->searchable(),
-                Tables\Columns\TextColumn::make('jenis_kelamin')->label('JK')->toggleable(),
-                Tables\Columns\TextColumn::make('units.name')->label('Unit Kerja')->badge()->separator(', '),
-                Tables\Columns\TextColumn::make('jabatan')->label('Amanah/Jabatan')->searchable(),
-                Tables\Columns\TextColumn::make('golongan.name')->label('Golongan')->badge(),
+                Tables\Columns\TextColumn::make('nama')
+                    ->label('Nama')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('jenis_kelamin')
+                    ->label('JK')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('units.name')
+                    ->label('Unit Kerja')
+                    ->badge()
+                    ->separator(', ')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('jabatan')
+                    ->label('Amanah/Jabatan')
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('golongan.name')
+                    ->label('Golongan')
+                    ->badge()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn($state) => match ($state) {
                         'Aktif' => 'success',
                         'Cuti' => 'warning',
                         'Resign' => 'danger',
-                    }),
-                Tables\Columns\TextColumn::make('keterangan'),
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('keterangan')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->striped()
+            ->defaultPaginationPageOption(10)
+            ->persistFiltersInSession()
             ->filters([
                 Tables\Filters\SelectFilter::make('units')
                     ->label('Unit Kerja')

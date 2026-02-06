@@ -35,11 +35,14 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/logo1.png'))
             ->databaseNotifications(true)
-            ->globalSearch(false)
+            ->globalSearch(true)
+            ->spa()
+            ->sidebarCollapsibleOnDesktop()
+            ->collapsibleNavigationGroups(true)
             ->profile(\App\Filament\Pages\EditProfile::class)
-            ->font('Inter')
+            ->font('Plus Jakarta Sans')
             ->colors([
-                'primary' => Color::Indigo,
+                'primary' => Color::Sky,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverResources(in: base_path('Modules/Kepegawaian/app/Filament/Resources'), for: 'Modules\\Kepegawaian\\Filament\\Resources')

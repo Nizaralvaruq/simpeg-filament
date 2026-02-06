@@ -69,7 +69,7 @@ class LocationAttendance extends Page implements HasForms
                         ->image()
                         ->required()
                         ->directory('absensi-verifikasi')
-                        ->extraInputAttributes(['capture' => 'user']),
+                        ->directory('absensi-verifikasi'),
                     Textarea::make('keterangan')
                         ->label('Tujuan / Alasan Dinas Luar')
                         ->placeholder('Contoh: Kunjungan ke Client A')
