@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 class DashboardStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 2;
-    protected int | string | array $columnSpan = 'full';
+    protected int | string | array $columnSpan = 2;
     protected ?string $pollingInterval = '60s';
 
     public static function canView(): bool

@@ -797,6 +797,32 @@ class DataIndukResource extends Resource
                     }),
                 Tables\Columns\TextColumn::make('keterangan'),
             ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('units')
+                    ->label('Unit Kerja')
+                    ->relationship('units', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status Pegawai')
+                    ->options([
+                        'Aktif' => 'Aktif',
+                        'Cuti' => 'Cuti',
+                        'Resign' => 'Resign',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('jenis_kelamin')
+                    ->label('Jenis Kelamin')
+                    ->options([
+                        'Laki-laki' => 'Laki-laki',
+                        'Perempuan' => 'Perempuan',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('golongan')
+                    ->label('Golongan')
+                    ->relationship('golongan', 'name'),
+            ])
             ->recordActions([
                 ActionGroup::make([
                     Action::make('info')

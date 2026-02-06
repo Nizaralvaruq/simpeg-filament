@@ -12,7 +12,7 @@ use Carbon\Carbon;
 class HRStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
-    protected int | string | array $columnSpan = 'full';
+    protected int | string | array $columnSpan = 2;
 
     public static function canView(): bool
     {

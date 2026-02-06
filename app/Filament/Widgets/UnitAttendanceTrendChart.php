@@ -9,9 +9,9 @@ use Filament\Support\Colors\Color;
 
 class UnitAttendanceTrendChart extends ChartWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
     protected ?string $heading = 'Tren Keterlambatan (7 Hari Terakhir)';
-    protected int | string | array $columnSpan = 'md';
+    protected int | string | array $columnSpan = 1;
     protected ?string $maxHeight = '250px';
 
     public static function canView(): bool
@@ -56,6 +56,7 @@ class UnitAttendanceTrendChart extends ChartWidget
                     'borderColor' => '#f59e0b', // Warning color
                     'backgroundColor' => 'rgba(245, 158, 11, 0.2)',
                     'fill' => true,
+                    'tension' => 0.4,
                 ],
             ],
             'labels' => $labels,

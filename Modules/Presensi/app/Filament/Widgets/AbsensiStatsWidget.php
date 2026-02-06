@@ -14,6 +14,10 @@ class AbsensiStatsWidget extends BaseWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        // Hide if user has admin privileges to avoid clutter
+        if ($user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit'])) {
+            return false;
+        }
         return $user && $user->hasRole('staff');
     }
     protected function getStats(): array

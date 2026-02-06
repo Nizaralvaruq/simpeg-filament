@@ -17,6 +17,10 @@ class RecentAbsensiWidget extends BaseWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        // Hide if user has admin privileges
+        if ($user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit'])) {
+            return false;
+        }
         return $user && $user->hasRole('staff');
     }
 

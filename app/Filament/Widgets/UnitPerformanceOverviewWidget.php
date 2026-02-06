@@ -12,7 +12,7 @@ use Modules\PenilaianKinerja\Models\AppraisalSession;
 class UnitPerformanceOverviewWidget extends BaseWidget
 {
     protected static ?int $sort = 4;
-    protected int | string | array $columnSpan = 'md';
+    protected int | string | array $columnSpan = 1;
     protected static ?string $heading = 'Top Performa Guru/Pegawai';
 
     public static function canView(): bool

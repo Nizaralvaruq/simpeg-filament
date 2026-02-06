@@ -8,20 +8,36 @@ use Modules\Kepegawaian\Models\DataInduk;
 class GenderStatsOverview extends ChartWidget
 {
     protected ?string $heading = 'Distribusi Gender Pegawai';
-    protected static ?int $sort = 4;
-    protected int | string | array $columnSpan = 'md';
+    protected static ?int $sort = 3;
+    protected int | string | array $columnSpan = 1;
 
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
-        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
+        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit']);
     }
 
 
     protected function getData(): array
     {
-        $data = DataInduk::query()
+        /** @var \App\Models\User $user */
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $query = DataInduk::query();
+
+        // Filter for local admins: Only show employees in their units
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id')->all();
+                $query->whereHas('units', function ($q) use ($unitIds) {
+                    $q->whereIn('units.id', $unitIds);
+                });
+            } else {
+                $query->whereRaw('1=0'); // No units assigned
+            }
+        }
+
+        $data = $query
             ->selectRaw('jenis_kelamin, count(*) as count')
             ->groupBy('jenis_kelamin')
             ->pluck('count', 'jenis_kelamin')
@@ -55,5 +71,17 @@ class GenderStatsOverview extends ChartWidget
     protected function getType(): string
     {
         return 'doughnut';
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom', // Legend di bawah agar lebih rapi
+                ],
+            ],
+            'cutout' => '70%', // Lingkaran tipis (Modern look)
+        ];
     }
 }

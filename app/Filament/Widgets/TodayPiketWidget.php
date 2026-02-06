@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class TodayPiketWidget extends BaseWidget
 {
     protected static ?int $sort = 5;
-    protected int | string | array $columnSpan = 'md';
+    protected int | string | array $columnSpan = 1;
     protected static ?string $heading = 'Petugas Piket Hari Ini';
 
     public static function canView(): bool
