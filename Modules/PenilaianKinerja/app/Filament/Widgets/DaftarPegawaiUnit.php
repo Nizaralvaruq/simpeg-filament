@@ -13,7 +13,7 @@ use Filament\Actions\Action;
 
 class DaftarPegawaiUnit extends BaseWidget
 {
-    protected static ?int $sort = 10;
+    protected static ?int $sort = 102;
     protected int | string | array $columnSpan = 'full';
     protected static ?string $heading = 'Daftar Pegawai Unit Saya (Siap Dinilai)';
 

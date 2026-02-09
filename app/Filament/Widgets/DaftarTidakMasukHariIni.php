@@ -11,8 +11,8 @@ use Carbon\Carbon;
 
 class DaftarTidakMasukHariIni extends BaseWidget
 {
-    protected static ?int $sort = 70;
-    protected int | string | array $columnSpan = 2;
+    protected static ?int $sort = 11;
+    protected int | string | array $columnSpan = 'full';
     protected static ?string $heading = 'Siapa yang Tidak Masuk Hari Ini?';
 
     public static function canView(): bool

@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class JadwalPiketHariIni extends BaseWidget
 {
-    protected static ?int $sort = 60;
-    protected int | string | array $columnSpan = 2;
+    protected static ?int $sort = 10;
+    protected int | string | array $columnSpan = 'full';
     protected static ?string $heading = 'Petugas Piket Hari Ini';
 
     public static function canView(): bool

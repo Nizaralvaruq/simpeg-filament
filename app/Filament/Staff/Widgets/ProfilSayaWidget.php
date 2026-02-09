@@ -8,6 +8,7 @@ use Modules\Kepegawaian\Models\DataInduk;
 
 class ProfilSayaWidget extends Widget
 {
+    protected static ?int $sort = 103;
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */

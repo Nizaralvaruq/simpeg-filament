@@ -9,7 +9,7 @@ use Filament\Support\Colors\Color;
 
 class GrafikTrenKehadiran extends ChartWidget
 {
-    protected static ?int $sort = 31;
+    protected static ?int $sort = 4;
     protected ?string $heading = 'Tren Keterlambatan (7 Hari Terakhir)';
     protected int | string | array $columnSpan = 1;
     protected ?string $maxHeight = '250px';

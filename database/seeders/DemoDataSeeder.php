@@ -626,6 +626,30 @@ class DemoDataSeeder extends Seeder
             'updated_at' => '2026-01-07T13:50:21.000000Z',
         ]);
 
+        // AppraisalSession
+        $session = \Modules\PenilaianKinerja\Models\AppraisalSession::create([
+            'name' => 'Penilaian Semester Genap 2025/2026',
+            'start_date' => now()->startOfMonth(),
+            'end_date' => now()->endOfMonth(),
+            'is_active' => true,
+            'superior_weight' => 50,
+            'peer_weight' => 30,
+            'self_weight' => 20,
+        ]);
+
+        // Sample Assignments for Demo Data
+        // Assign to some existing staff for visualization
+        $demoEmployees = DataInduk::limit(5)->get();
+        foreach ($demoEmployees as $emp) {
+            \Modules\PenilaianKinerja\Models\AppraisalAssignment::create([
+                'session_id' => $session->id,
+                'ratee_id' => $emp->id,
+                'rater_id' => 39, // Kepala Sekolah
+                'relation_type' => 'superior',
+                'status' => $emp->id % 2 == 0 ? 'completed' : 'pending',
+            ]);
+        }
+
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }

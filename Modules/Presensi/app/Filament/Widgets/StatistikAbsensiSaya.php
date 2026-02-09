@@ -10,12 +10,13 @@ use Carbon\Carbon;
 
 class StatistikAbsensiSaya extends BaseWidget
 {
+    protected static ?int $sort = 100;
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        return $user && $user->can('View:StatistikAbsensiSaya');
+        return $user && $user->can('View:StatistikAbsensiSaya') && !$user->hasRole('super_admin');
     }
     protected function getStats(): array
     {

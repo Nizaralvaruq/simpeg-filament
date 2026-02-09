@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class GrafikProgresPenilaian extends ChartWidget
 {
-    protected static ?int $sort = 30;
+    protected static ?int $sort = 5;
     protected ?string $heading = 'Progres Sesi Penilaian Aktif';
     protected int | string | array $columnSpan = 1;
     protected ?string $maxHeight = '250px';
