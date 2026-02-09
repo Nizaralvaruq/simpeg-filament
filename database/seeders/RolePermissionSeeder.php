@@ -57,8 +57,9 @@ class RolePermissionSeeder extends Seeder
             'JadwalPiketHariIni',
             'RingkasanPerformaUnit',
             'RingkasanStatistikSDM',
-            'StatistikPegawaiTerlambat',
-            'StatistikPenilaianKinerja',
+            'RingkasanOperasionalUnit', // Consolidated widget (Pegawai Terlambat + Penilaian Kinerja)
+            'StatistikPegawaiTerlambat', // Legacy - kept for backward compatibility
+            'StatistikPenilaianKinerja', // Legacy - kept for backward compatibility
             'DaftarPegawaiUnit',
             'RiwayatAbsensiTerbaru',
             'StatistikAbsensiSaya',
