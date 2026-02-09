@@ -629,8 +629,8 @@ class DemoDataSeeder extends Seeder
         // AppraisalSession
         $session = \Modules\PenilaianKinerja\Models\AppraisalSession::create([
             'name' => 'Penilaian Semester Genap 2025/2026',
-            'start_date' => now()->startOfMonth(),
-            'end_date' => now()->endOfMonth(),
+            'start_date' => \Carbon\Carbon::now()->startOfMonth()->toDateString(),
+            'end_date' => \Carbon\Carbon::now()->endOfMonth()->toDateString(),
             'is_active' => true,
             'superior_weight' => 50,
             'peer_weight' => 30,
