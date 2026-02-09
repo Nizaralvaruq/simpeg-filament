@@ -29,7 +29,7 @@
 
         @foreach ($navItems as $item)
             @php $isActive = $currentUrl === $item['url']; @endphp
-            <a href="{{ $item['url'] }}"
+            <a href="{{ $item['url'] }}" wire:navigate
                 class="flex flex-col items-center transition-all duration-300 {{ $isActive ? 'text-sky-500 scale-110' : 'text-gray-500 hover:text-sky-400' }}">
                 <div class="relative p-1">
                     <x-filament::icon alias="panels::widgets.account.logout-button" icon="{{ $item['icon'] }}"
