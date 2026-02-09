@@ -244,8 +244,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function initQrCode() {
             const container = document.getElementById("qrcode");
+
+            // Clear previous QR code if exists
+            container.innerHTML = '';
 
             // Dynamic size based on container width
             const containerWidth = container.clientWidth || 300; // Fallback
@@ -269,47 +272,54 @@
                     svg.style.height = '100%';
                 }
             }, 50);
+        }
 
-            window.addEventListener('download-qr-png', function() {
-                const tempCanvas = document.createElement('canvas');
-                const size = 1000;
-                const logoSize = 160;
+        // Initialize on page load (for non-SPA navigation)
+        document.addEventListener('DOMContentLoaded', initQrCode);
 
-                new QRCode(tempCanvas, {
-                    text: "{{ $this->getQrContent() }}",
-                    width: size,
-                    height: size,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
+        // Re-initialize on Livewire navigation (for SPA mode)
+        document.addEventListener('livewire:navigated', initQrCode);
 
-                setTimeout(() => {
-                    const qrCanvas = tempCanvas.querySelector('canvas');
-                    const ctx = qrCanvas.getContext('2d');
-                    const centerX = size / 2;
-                    const centerY = size / 2;
-                    const radius = (logoSize / 2) + 20;
+        // Download QR PNG handler
+        window.addEventListener('download-qr-png', function() {
+            const tempCanvas = document.createElement('canvas');
+            const size = 1000;
+            const logoSize = 160;
 
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                    ctx.fillStyle = "white";
-                    ctx.fill();
-
-                    const logoImg = new Image();
-                    logoImg.src = "{{ asset('images/logo1.png') }}";
-                    logoImg.onload = function() {
-                        const x = centerX - (logoSize / 2);
-                        const y = centerY - (logoSize / 2);
-                        ctx.drawImage(logoImg, x, y, logoSize, logoSize);
-
-                        const link = document.createElement('a');
-                        link.download = "QR-Branded-{{ $this->getUserNip() }}.png";
-                        link.href = qrCanvas.toDataURL("image/png");
-                        link.click();
-                    };
-                }, 100);
+            new QRCode(tempCanvas, {
+                text: "{{ $this->getQrContent() }}",
+                width: size,
+                height: size,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
+
+            setTimeout(() => {
+                const qrCanvas = tempCanvas.querySelector('canvas');
+                const ctx = qrCanvas.getContext('2d');
+                const centerX = size / 2;
+                const centerY = size / 2;
+                const radius = (logoSize / 2) + 20;
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = "white";
+                ctx.fill();
+
+                const logoImg = new Image();
+                logoImg.src = "{{ asset('images/logo1.png') }}";
+                logoImg.onload = function() {
+                    const x = centerX - (logoSize / 2);
+                    const y = centerY - (logoSize / 2);
+                    ctx.drawImage(logoImg, x, y, logoSize, logoSize);
+
+                    const link = document.createElement('a');
+                    link.download = "QR-Branded-{{ $this->getUserNip() }}.png";
+                    link.href = qrCanvas.toDataURL("image/png");
+                    link.click();
+                };
+            }, 100);
         });
     </script>
 </x-filament-panels::page>
