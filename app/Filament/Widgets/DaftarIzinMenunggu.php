@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Modules\Leave\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
@@ -61,8 +62,8 @@ class DaftarIzinMenunggu extends BaseWidget
                     ->limit(20)
                     ->tooltip(fn($record) => $record->reason),
             ])
-            ->actions([
-                \Filament\Actions\Action::make('review')
+            ->recordActions([
+                Action::make('review')
                     ->label('Tinjau')
                     ->url(fn(LeaveRequest $record): string => LeaveRequestResource::getUrl('edit', ['record' => $record])),
             ])
