@@ -26,10 +26,14 @@ class RolePermissionSeeder extends Seeder
         $modules = [
             'Absensi',
             'DataInduk',
-            'AppraisalAssignment',
+            'PenugasanPenilaian',
             'LeaveRequest',
             'Resign',
-            'PerformanceScore',
+            'NilaiKinerja',
+            'SesiPenilaian',
+            'RubrikPenilaian',
+            'LaporanPenilaian',
+            'TugasPenilaianSaya',
             'Unit',
             'Golongan'
         ];
@@ -40,6 +44,29 @@ class RolePermissionSeeder extends Seeder
             foreach ($actions as $action) {
                 Permission::firstOrCreate(['name' => "{$action}:{$module}"]);
             }
+        }
+
+        // Widget Permissions
+        $widgets = [
+            'DaftarIzinMenunggu',
+            'DaftarTidakMasukHariIni',
+            'GrafikDistribusiPegawai',
+            'GrafikProgresPenilaian',
+            'GrafikStatistikGender',
+            'GrafikTrenKehadiran',
+            'JadwalPiketHariIni',
+            'RingkasanPerformaUnit',
+            'RingkasanStatistikSDM',
+            'StatistikPegawaiTerlambat',
+            'StatistikPenilaianKinerja',
+            'DaftarPegawaiUnit',
+            'RiwayatAbsensiTerbaru',
+            'StatistikAbsensiSaya',
+            'ProfilSayaWidget',
+        ];
+
+        foreach ($widgets as $widget) {
+            Permission::firstOrCreate(['name' => "View:{$widget}"]);
         }
 
         // Assign permissions to roles
@@ -55,6 +82,9 @@ class RolePermissionSeeder extends Seeder
             'Create:LeaveRequest',
             'ViewAny:Resign',
             'Create:Resign',
+            'View:ProfilSayaWidget',
+            'View:StatistikAbsensiSaya',
+            'View:RiwayatAbsensiTerbaru',
         ]);
 
         // Kepala Sekolah: view only
@@ -62,9 +92,15 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Absensi',
             'View:Absensi',
             'ViewAny:DataInduk',
-            'ViewAny:AppraisalAssignment',
+            'ViewAny:PenugasanPenilaian',
             'ViewAny:LeaveRequest',
             'ViewAny:Resign',
+            'ViewAny:LaporanPenilaian',
+            'ViewAny:NilaiKinerja',
+            'View:StatistikPegawaiTerlambat',
+            'View:StatistikPenilaianKinerja',
+            'View:GrafikTrenKehadiran',
+            'View:RingkasanStatistikSDM',
         ]);
 
         // Koor Jenjang: view only
@@ -72,9 +108,11 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Absensi',
             'View:Absensi',
             'ViewAny:DataInduk',
-            'ViewAny:AppraisalAssignment',
+            'ViewAny:PenugasanPenilaian',
             'ViewAny:LeaveRequest',
             'ViewAny:Resign',
+            'View:DaftarPegawaiUnit',
+            'View:StatistikPenilaianKinerja',
         ]);
 
         // Admin Unit: full CRUD (scoped to their unit)
@@ -86,14 +124,17 @@ class RolePermissionSeeder extends Seeder
             'Delete:Absensi',
             'ViewAny:DataInduk',
             'Update:DataInduk',
-            'ViewAny:AppraisalAssignment',
-            'Create:AppraisalAssignment',
-            'Update:AppraisalAssignment',
-            'Delete:AppraisalAssignment',
+            'ViewAny:PenugasanPenilaian',
+            'Create:PenugasanPenilaian',
+            'Update:PenugasanPenilaian',
+            'Delete:PenugasanPenilaian',
             'ViewAny:LeaveRequest',
             'Update:LeaveRequest',
             'ViewAny:Resign',
             'Update:Resign',
+            'View:DaftarPegawaiUnit',
+            'View:StatistikPegawaiTerlambat',
+            'View:StatistikPenilaianKinerja',
         ]);
 
         // Ketua PSDM: full CRUD (Global)
@@ -101,20 +142,17 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Absensi',
             'ViewAny:Absensi',
             'View:Absensi',
-            // 'Create:Absensi', // Revoked
-            // 'Update:Absensi', // Revoked
-            // 'Delete:Absensi', // Revoked
             'ViewAny:DataInduk',
             'View:DataInduk',
-            // 'Create:DataInduk', // Revoked
-            // 'Update:DataInduk', // Revoked
-            // 'Delete:DataInduk', // Revoked
-            'ViewAny:AppraisalAssignment',
-            'View:AppraisalAssignment',
-            'Create:AppraisalAssignment',
-            'Update:AppraisalAssignment',
-            'Delete:AppraisalAssignment',
-            'ViewAny:PerformanceScore',
+            'ViewAny:PenugasanPenilaian',
+            'View:PenugasanPenilaian',
+            'Create:PenugasanPenilaian',
+            'Update:PenugasanPenilaian',
+            'Delete:PenugasanPenilaian',
+            'ViewAny:NilaiKinerja',
+            'ViewAny:SesiPenilaian',
+            'ViewAny:RubrikPenilaian',
+            'ViewAny:LaporanPenilaian',
             'ViewAny:LeaveRequest',
             'View:LeaveRequest',
             'Update:LeaveRequest',
@@ -123,6 +161,17 @@ class RolePermissionSeeder extends Seeder
             'Update:Resign',
             'ViewAny:Unit',
             'ViewAny:Golongan',
+            'View:StatistikPegawaiTerlambat',
+            'View:StatistikPenilaianKinerja',
+            'View:GrafikTrenKehadiran',
+            'View:RingkasanStatistikSDM',
+            'View:GrafikDistribusiPegawai',
+            'View:GrafikStatistikGender',
+            'View:DaftarIzinMenunggu',
+            'View:DaftarTidakMasukHariIni',
+            'View:JadwalPiketHariIni',
+            'View:RingkasanPerformaUnit',
+            'View:GrafikProgresPenilaian',
         ]);
 
         $this->command->info('Roles and permissions created successfully!');
