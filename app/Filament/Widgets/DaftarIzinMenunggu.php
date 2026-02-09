@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Support\Enums\ActionSize;
 use Modules\Leave\Filament\Resources\LeaveRequestResource;
 
-class PendingLeaveRequestsWidget extends BaseWidget
+class DaftarIzinMenunggu extends BaseWidget
 {
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 50;
     protected int | string | array $columnSpan = 1;
     protected static ?string $heading = 'Permohonan Izin Menunggu';
 
@@ -20,7 +20,8 @@ class PendingLeaveRequestsWidget extends BaseWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user && $user->hasAnyRole(['kepala_sekolah', 'admin_unit', 'super_admin', 'ketua_psdm']);
+
+        return $user && $user->can('View:DaftarIzinMenunggu');
     }
 
     public function table(Table $table): Table

@@ -37,34 +37,4 @@ class PerformanceScorePolicy
         return $authUser->can('Delete:PerformanceScore');
     }
 
-    public function restore(AuthUser $authUser, PerformanceScore $performanceScore): bool
-    {
-        return $authUser->can('Restore:PerformanceScore');
-    }
-
-    public function forceDelete(AuthUser $authUser, PerformanceScore $performanceScore): bool
-    {
-        return $authUser->can('ForceDelete:PerformanceScore');
-    }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:PerformanceScore');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:PerformanceScore');
-    }
-
-    public function replicate(AuthUser $authUser, PerformanceScore $performanceScore): bool
-    {
-        return $authUser->can('Replicate:PerformanceScore');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:PerformanceScore');
-    }
-
 }

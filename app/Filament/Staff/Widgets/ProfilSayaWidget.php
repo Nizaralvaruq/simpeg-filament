@@ -6,13 +6,14 @@ use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 use Modules\Kepegawaian\Models\DataInduk;
 
-class StaffProfileWidget extends Widget
+class ProfilSayaWidget extends Widget
 {
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user && $user->hasRole('staff');
+
+        return $user && $user->can('View:ProfilSayaWidget');
     }
     protected string $view = 'filament.staff.widgets.staff-profile-widget';
 

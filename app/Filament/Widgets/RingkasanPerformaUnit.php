@@ -9,9 +9,9 @@ use Modules\PenilaianKinerja\Models\PerformanceScore;
 use Illuminate\Support\Facades\Auth;
 use Modules\PenilaianKinerja\Models\AppraisalSession;
 
-class UnitPerformanceOverviewWidget extends BaseWidget
+class RingkasanPerformaUnit extends BaseWidget
 {
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 51;
     protected int | string | array $columnSpan = 1;
     protected static ?string $heading = 'Top Performa Guru/Pegawai';
 
@@ -19,7 +19,8 @@ class UnitPerformanceOverviewWidget extends BaseWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user && $user->hasAnyRole(['kepala_sekolah', 'admin_unit', 'super_admin']);
+
+        return $user && $user->can('View:RingkasanPerformaUnit');
     }
 
     public function table(Table $table): Table

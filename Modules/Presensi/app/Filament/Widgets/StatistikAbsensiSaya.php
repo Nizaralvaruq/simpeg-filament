@@ -8,17 +8,14 @@ use Modules\Presensi\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-class AbsensiStatsWidget extends BaseWidget
+class StatistikAbsensiSaya extends BaseWidget
 {
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        // Hide if user has admin privileges to avoid clutter
-        if ($user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit'])) {
-            return false;
-        }
-        return $user && $user->hasRole('staff');
+
+        return $user && $user->can('View:StatistikAbsensiSaya');
     }
     protected function getStats(): array
     {

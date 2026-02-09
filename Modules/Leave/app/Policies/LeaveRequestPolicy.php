@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class LeaveRequestPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:LeaveRequest');
@@ -19,16 +19,7 @@ class LeaveRequestPolicy
 
     public function view(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->can('View:LeaveRequest')) {
-            // Staff filter
-            if ($authUser->hasRole('staff')) {
-                return $authUser->employee && $authUser->employee->id === $leaveRequest->data_induk_id;
-            }
-            return true;
-        }
-
-        return false;
+        return $authUser->can('View:LeaveRequest');
     }
 
     public function create(AuthUser $authUser): bool
@@ -46,33 +37,4 @@ class LeaveRequestPolicy
         return $authUser->can('Delete:LeaveRequest');
     }
 
-    public function restore(AuthUser $authUser, LeaveRequest $leaveRequest): bool
-    {
-        return $authUser->can('Restore:LeaveRequest');
-    }
-
-    public function forceDelete(AuthUser $authUser, LeaveRequest $leaveRequest): bool
-    {
-        return $authUser->can('ForceDelete:LeaveRequest');
-    }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:LeaveRequest');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:LeaveRequest');
-    }
-
-    public function replicate(AuthUser $authUser, LeaveRequest $leaveRequest): bool
-    {
-        return $authUser->can('Replicate:LeaveRequest');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:LeaveRequest');
-    }
 }

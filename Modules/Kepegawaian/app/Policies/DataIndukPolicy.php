@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class DataIndukPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:DataInduk');
@@ -19,16 +19,7 @@ class DataIndukPolicy
 
     public function view(AuthUser $authUser, DataInduk $dataInduk): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->can('View:DataInduk')) {
-            // Staff filter
-            if ($authUser->hasRole('staff')) {
-                return $authUser->employee && $authUser->employee->id === $dataInduk->id;
-            }
-            return true;
-        }
-
-        return $authUser->employee && $authUser->employee->id === $dataInduk->id;
+        return $authUser->can('View:DataInduk');
     }
 
     public function create(AuthUser $authUser): bool
@@ -46,33 +37,4 @@ class DataIndukPolicy
         return $authUser->can('Delete:DataInduk');
     }
 
-    public function restore(AuthUser $authUser, DataInduk $dataInduk): bool
-    {
-        return $authUser->can('Restore:DataInduk');
-    }
-
-    public function forceDelete(AuthUser $authUser, DataInduk $dataInduk): bool
-    {
-        return $authUser->can('ForceDelete:DataInduk');
-    }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:DataInduk');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:DataInduk');
-    }
-
-    public function replicate(AuthUser $authUser, DataInduk $dataInduk): bool
-    {
-        return $authUser->can('Replicate:DataInduk');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:DataInduk');
-    }
 }

@@ -54,87 +54,92 @@ class SesiPenilaianResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->schema([
-                    TextInput::make('name')
-                        ->label('Nama Sesi')
-                        ->required()
-                        ->placeholder('Contoh: Penilaian Q1 2025')
-                        ->maxLength(255),
-                    Grid::make(2)
-                        ->schema([
-                            DatePicker::make('start_date')
-                                ->label('Tanggal Mulai')
-                                ->required(),
-                            DatePicker::make('end_date')
-                                ->label('Tanggal Selesai')
-                                ->required(),
-                        ]),
-                    Grid::make(2)
-                        ->schema([
-                            Select::make('status')
-                                ->options([
-                                    'Draft' => 'Draft',
-                                    'Published' => 'Published',
-                                    'Closed' => 'Closed',
-                                ])
-                                ->default('Draft')
-                                ->required(),
-                            Toggle::make('is_active')
-                                ->label('Aktifkan Sesi Ini')
-                                ->default(false),
-                        ]),
-                    Section::make('Bobot Agregasi Skor (Total harus 100%)')
-                        ->collapsible()
-                        ->collapsed()
-                        ->schema([
-                            Grid::make(3)
-                                ->schema([
-                                    TextInput::make('superior_weight')
-                                        ->label('Atasan (%)')
-                                        ->numeric()
-                                        ->default(50)
-                                        ->required()
-                                        ->live()
-                                        ->rules([
-                                            fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                                                $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
-                                                if ($total !== 100) {
-                                                    $fail("Total bobot harus 100% (Saat ini: {$total}%)");
-                                                }
-                                            },
-                                        ]),
-                                    TextInput::make('peer_weight')
-                                        ->label('Rekan Sejawat (%)')
-                                        ->numeric()
-                                        ->default(30)
-                                        ->required()
-                                        ->live()
-                                        ->rules([
-                                            fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                                                $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
-                                                if ($total !== 100) {
-                                                    $fail("Total bobot harus 100% (Saat ini: {$total}%)");
-                                                }
-                                            },
-                                        ]),
-                                    TextInput::make('self_weight')
-                                        ->label('Diri Sendiri (%)')
-                                        ->numeric()
-                                        ->default(20)
-                                        ->required()
-                                        ->live()
-                                        ->rules([
-                                            fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                                                $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
-                                                if ($total !== 100) {
-                                                    $fail("Total bobot harus 100% (Saat ini: {$total}%)");
-                                                }
-                                            },
-                                        ]),
-                                ])
-                        ])
-                ])
+            \Filament\Schemas\Components\Wizard::make([
+                \Filament\Schemas\Components\Wizard\Step::make('Identitas Sesi')
+                    ->description('Nama dan jadwal sesi penilaian')
+                    ->icon('heroicon-o-information-circle')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Nama Sesi')
+                            ->required()
+                            ->placeholder('Contoh: Penilaian Q1 2025')
+                            ->maxLength(255),
+                        Grid::make(2)
+                            ->schema([
+                                DatePicker::make('start_date')
+                                    ->label('Tanggal Mulai')
+                                    ->required(),
+                                DatePicker::make('end_date')
+                                    ->label('Tanggal Selesai')
+                                    ->required(),
+                            ]),
+                        Grid::make(2)
+                            ->schema([
+                                Select::make('status')
+                                    ->options([
+                                        'Draft' => 'Draft',
+                                        'Published' => 'Published',
+                                        'Closed' => 'Closed',
+                                    ])
+                                    ->default('Draft')
+                                    ->required(),
+                                Toggle::make('is_active')
+                                    ->label('Aktifkan Sesi Ini')
+                                    ->default(false),
+                            ]),
+                    ]),
+
+                \Filament\Schemas\Components\Wizard\Step::make('Pengaturan Bobot')
+                    ->description('Bobot agregasi skor (Total harus 100%)')
+                    ->icon('heroicon-o-adjustments-horizontal')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make('superior_weight')
+                                    ->label('Atasan (%)')
+                                    ->numeric()
+                                    ->default(50)
+                                    ->required()
+                                    ->live()
+                                    ->rules([
+                                        fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
+                                            if ($total !== 100) {
+                                                $fail("Total bobot harus 100% (Saat ini: {$total}%)");
+                                            }
+                                        },
+                                    ]),
+                                TextInput::make('peer_weight')
+                                    ->label('Rekan Sejawat (%)')
+                                    ->numeric()
+                                    ->default(30)
+                                    ->required()
+                                    ->live()
+                                    ->rules([
+                                        fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
+                                            if ($total !== 100) {
+                                                $fail("Total bobot harus 100% (Saat ini: {$total}%)");
+                                            }
+                                        },
+                                    ]),
+                                TextInput::make('self_weight')
+                                    ->label('Diri Sendiri (%)')
+                                    ->numeric()
+                                    ->default(20)
+                                    ->required()
+                                    ->live()
+                                    ->rules([
+                                        fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
+                                            if ($total !== 100) {
+                                                $fail("Total bobot harus 100% (Saat ini: {$total}%)");
+                                            }
+                                        },
+                                    ]),
+                            ])
+                    ])
+            ])->columnSpanFull()
         ]);
     }
 

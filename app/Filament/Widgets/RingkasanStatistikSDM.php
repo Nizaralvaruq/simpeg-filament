@@ -9,16 +9,17 @@ use Modules\Leave\Models\LeaveRequest;
 use Modules\Resign\Models\Resign;
 use Carbon\Carbon;
 
-class HRStatsOverview extends BaseWidget
+class RingkasanStatistikSDM extends BaseWidget
 {
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 10;
     protected int | string | array $columnSpan = 2;
 
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
-        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
+
+        return $user && $user->can('View:RingkasanStatistikSDM');
     }
 
     protected function getColumns(): int

@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class ResignPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:Resign');
@@ -19,16 +19,7 @@ class ResignPolicy
 
     public function view(AuthUser $authUser, Resign $resign): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->can('View:Resign')) {
-            // Staff filter
-            if ($authUser->hasRole('staff')) {
-                return $authUser->id === $resign->user_id;
-            }
-            return true;
-        }
-
-        return false;
+        return $authUser->can('View:Resign');
     }
 
     public function create(AuthUser $authUser): bool
@@ -46,33 +37,4 @@ class ResignPolicy
         return $authUser->can('Delete:Resign');
     }
 
-    public function restore(AuthUser $authUser, Resign $resign): bool
-    {
-        return $authUser->can('Restore:Resign');
-    }
-
-    public function forceDelete(AuthUser $authUser, Resign $resign): bool
-    {
-        return $authUser->can('ForceDelete:Resign');
-    }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:Resign');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:Resign');
-    }
-
-    public function replicate(AuthUser $authUser, Resign $resign): bool
-    {
-        return $authUser->can('Replicate:Resign');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:Resign');
-    }
 }

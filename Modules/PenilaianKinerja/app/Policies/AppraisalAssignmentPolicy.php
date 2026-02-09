@@ -37,34 +37,4 @@ class AppraisalAssignmentPolicy
         return $authUser->can('Delete:AppraisalAssignment');
     }
 
-    public function restore(AuthUser $authUser, AppraisalAssignment $appraisalAssignment): bool
-    {
-        return $authUser->can('Restore:AppraisalAssignment');
-    }
-
-    public function forceDelete(AuthUser $authUser, AppraisalAssignment $appraisalAssignment): bool
-    {
-        return $authUser->can('ForceDelete:AppraisalAssignment');
-    }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:AppraisalAssignment');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:AppraisalAssignment');
-    }
-
-    public function replicate(AuthUser $authUser, AppraisalAssignment $appraisalAssignment): bool
-    {
-        return $authUser->can('Replicate:AppraisalAssignment');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:AppraisalAssignment');
-    }
-
 }

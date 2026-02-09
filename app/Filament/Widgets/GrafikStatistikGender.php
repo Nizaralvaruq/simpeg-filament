@@ -5,17 +5,18 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use Modules\Kepegawaian\Models\DataInduk;
 
-class GenderStatsOverview extends ChartWidget
+class GrafikStatistikGender extends ChartWidget
 {
     protected ?string $heading = 'Distribusi Gender Pegawai';
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 41;
     protected int | string | array $columnSpan = 1;
 
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
-        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit']);
+
+        return $user && $user->can('View:GrafikStatistikGender');
     }
 
 

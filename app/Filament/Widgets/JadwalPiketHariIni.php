@@ -7,15 +7,18 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Modules\Presensi\Models\JadwalPiket;
 use Illuminate\Support\Facades\Auth;
 
-class TodayPiketWidget extends BaseWidget
+class JadwalPiketHariIni extends BaseWidget
 {
-    protected static ?int $sort = 5;
-    protected int | string | array $columnSpan = 1;
+    protected static ?int $sort = 60;
+    protected int | string | array $columnSpan = 2;
     protected static ?string $heading = 'Petugas Piket Hari Ini';
 
     public static function canView(): bool
     {
-        return Auth::check();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        return $user && $user->can('View:JadwalPiketHariIni');
     }
 
     public function table(Tables\Table $table): Tables\Table

@@ -9,9 +9,9 @@ use Modules\Presensi\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-class WhoIsOutTodayWidget extends BaseWidget
+class DaftarTidakMasukHariIni extends BaseWidget
 {
-    protected static ?int $sort = 6;
+    protected static ?int $sort = 70;
     protected int | string | array $columnSpan = 2;
     protected static ?string $heading = 'Siapa yang Tidak Masuk Hari Ini?';
 
@@ -19,7 +19,8 @@ class WhoIsOutTodayWidget extends BaseWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit']);
+
+        return $user && $user->can('View:DaftarTidakMasukHariIni');
     }
 
     public function table(Table $table): Table

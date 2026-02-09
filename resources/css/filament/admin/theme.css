@@ -5,3 +5,43 @@
 @source '../../../../resources/views/filament/pages/auth/login.blade.php';
 @source '../../../../Modules/Presensi/resources/views/**/*.blade.php';
 @source '../../../../Modules/Presensi/app/Filament/**/*.php';
+
+.glass {
+    background: rgba(255, 255, 255, 0.4) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark .glass {
+    background: rgba(17, 24, 39, 0.6) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.bg-premium-gradient {
+    background-color: #1e2a4a;
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(199,100%,35%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(201,100%,25%,1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(197,100%,30%,1) 0, transparent 50%),
+        radial-gradient(at 0% 100%, hsla(205,100%,15%,1) 0, transparent 50%),
+        radial-gradient(at 100% 100%, hsla(202,100%,20%,1) 0, transparent 50%);
+}
+
+/* Global Filament Overrides for Glassmorphism */
+.fi-wi-stats-overview-stat,
+.fi-wi-widget > div {
+    @apply glass;
+    border-radius: 1rem !important;
+    overflow: hidden;
+}
+
+.fi-sidebar {
+    @apply glass;
+}
+
+.fi-topbar {
+    @apply glass;
+}

@@ -110,4 +110,3 @@ class DataInduk extends Model
         return $this->hasOne(Resign::class, 'data_induk_id')->where('status', 'disetujui');
     }
 }
-// Cache-buster: re-indexing trigger 2026-02-03

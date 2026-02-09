@@ -6,17 +6,18 @@ use Filament\Widgets\ChartWidget;
 use Modules\Kepegawaian\Models\DataInduk;
 use Modules\MasterData\Models\Unit;
 
-class EmployeeDistributionChart extends ChartWidget
+class GrafikDistribusiPegawai extends ChartWidget
 {
     protected ?string $heading = 'Distribusi Pegawai per Unit';
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 40;
     protected int | string | array $columnSpan = 1;
 
     public static function canView(): bool
     {
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
-        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
+
+        return $user && $user->can('View:GrafikDistribusiPegawai');
     }
 
 

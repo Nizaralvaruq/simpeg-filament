@@ -85,7 +85,7 @@ class LaporanPenilaianResource extends Resource
                     ->label('Filter Sesi')
                     ->options(AppraisalSession::whereNotNull('name')->pluck('name', 'id')),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
                     Action::make('print_report')
                         ->label('Cetak Raport')
@@ -108,10 +108,10 @@ class LaporanPenilaianResource extends Resource
 
                             return response()->streamDownload(
                                 fn() => print($pdf->output()),
-                                'Raport_Kinerja_' . str_replace(' ', '_', $ratee->nama) . '.pdf'
+                                "Raport_Penilaian_{$ratee->nama}.pdf"
                             );
                         }),
-                ])->label('Aksi'),
+                ])->button()->label('Aksi'),
             ]);
     }
 

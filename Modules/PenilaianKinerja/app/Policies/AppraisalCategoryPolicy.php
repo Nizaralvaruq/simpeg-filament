@@ -37,34 +37,4 @@ class AppraisalCategoryPolicy
         return $authUser->can('Delete:AppraisalCategory');
     }
 
-    public function restore(AuthUser $authUser, AppraisalCategory $appraisalCategory): bool
-    {
-        return $authUser->can('Restore:AppraisalCategory');
-    }
-
-    public function forceDelete(AuthUser $authUser, AppraisalCategory $appraisalCategory): bool
-    {
-        return $authUser->can('ForceDelete:AppraisalCategory');
-    }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:AppraisalCategory');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:AppraisalCategory');
-    }
-
-    public function replicate(AuthUser $authUser, AppraisalCategory $appraisalCategory): bool
-    {
-        return $authUser->can('Replicate:AppraisalCategory');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:AppraisalCategory');
-    }
-
 }

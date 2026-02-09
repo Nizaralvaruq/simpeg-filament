@@ -8,7 +8,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Modules\Presensi\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
 
-class RecentAbsensiWidget extends BaseWidget
+class RiwayatAbsensiTerbaru extends BaseWidget
 {
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
@@ -17,11 +17,8 @@ class RecentAbsensiWidget extends BaseWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        // Hide if user has admin privileges
-        if ($user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah', 'admin_unit'])) {
-            return false;
-        }
-        return $user && $user->hasRole('staff');
+
+        return $user && $user->can('View:RiwayatAbsensiTerbaru');
     }
 
     public function table(Table $table): Table

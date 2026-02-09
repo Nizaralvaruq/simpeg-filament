@@ -7,9 +7,9 @@ use Modules\Presensi\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
 use Filament\Support\Colors\Color;
 
-class UnitAttendanceTrendChart extends ChartWidget
+class GrafikTrenKehadiran extends ChartWidget
 {
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 31;
     protected ?string $heading = 'Tren Keterlambatan (7 Hari Terakhir)';
     protected int | string | array $columnSpan = 1;
     protected ?string $maxHeight = '250px';
@@ -18,7 +18,8 @@ class UnitAttendanceTrendChart extends ChartWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user && $user->hasAnyRole(['kepala_sekolah', 'admin_unit', 'super_admin']);
+
+        return $user && $user->can('View:GrafikTrenKehadiran');
     }
 
     protected function getData(): array
@@ -51,12 +52,15 @@ class UnitAttendanceTrendChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Jumlah Pegawai Terlambat',
+                    'label' => 'Pegawai Terlambat',
                     'data' => $data,
-                    'borderColor' => '#f59e0b', // Warning color
-                    'backgroundColor' => 'rgba(245, 158, 11, 0.2)',
+                    'borderColor' => '#0ea5e9', // Sky Blue
+                    'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
                     'fill' => true,
                     'tension' => 0.4,
+                    'pointBackgroundColor' => '#0ea5e9',
+                    'pointBorderColor' => '#fff',
+                    'pointRadius' => 4,
                 ],
             ],
             'labels' => $labels,

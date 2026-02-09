@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Support\Enums\FontWeight;
 use Filament\Actions\Action;
 
-class UnitEmployeeListWidget extends BaseWidget
+class DaftarPegawaiUnit extends BaseWidget
 {
     protected static ?int $sort = 10;
     protected int | string | array $columnSpan = 'full';
@@ -80,6 +80,7 @@ class UnitEmployeeListWidget extends BaseWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user && $user->hasRole('koor_jenjang');
+
+        return $user && $user->can('View:DaftarPegawaiUnit');
     }
 }

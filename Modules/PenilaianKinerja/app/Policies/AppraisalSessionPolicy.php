@@ -37,34 +37,4 @@ class AppraisalSessionPolicy
         return $authUser->can('Delete:AppraisalSession');
     }
 
-    public function restore(AuthUser $authUser, AppraisalSession $appraisalSession): bool
-    {
-        return $authUser->can('Restore:AppraisalSession');
-    }
-
-    public function forceDelete(AuthUser $authUser, AppraisalSession $appraisalSession): bool
-    {
-        return $authUser->can('ForceDelete:AppraisalSession');
-    }
-
-    public function forceDeleteAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('ForceDeleteAny:AppraisalSession');
-    }
-
-    public function restoreAny(AuthUser $authUser): bool
-    {
-        return $authUser->can('RestoreAny:AppraisalSession');
-    }
-
-    public function replicate(AuthUser $authUser, AppraisalSession $appraisalSession): bool
-    {
-        return $authUser->can('Replicate:AppraisalSession');
-    }
-
-    public function reorder(AuthUser $authUser): bool
-    {
-        return $authUser->can('Reorder:AppraisalSession');
-    }
-
 }

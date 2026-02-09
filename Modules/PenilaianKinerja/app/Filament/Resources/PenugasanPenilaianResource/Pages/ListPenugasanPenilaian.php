@@ -31,69 +31,81 @@ class ListPenugasanPenilaian extends ListRecords
                 ->icon('heroicon-o-sparkles')
                 ->color('success')
                 ->schema([
-                    Select::make('session_id')
-                        ->label('Sesi Penilaian')
-                        ->options(AppraisalSession::where('is_active', true)->whereNotNull('name')->pluck('name', 'id'))
-                        ->required(),
-                    Select::make('unit_id')
-                        ->label('Unit / Jenjang')
-                        ->options(function () {
-                            /** @var \App\Models\User $user */
-                            $user = Auth::user();
-                            $query = Unit::query();
+                    \Filament\Schemas\Components\Wizard::make([
+                        \Filament\Schemas\Components\Wizard\Step::make('Target')
+                            ->description('Pilih sesi dan unit kerja')
+                            ->schema([
+                                Select::make('session_id')
+                                    ->label('Sesi Penilaian')
+                                    ->options(AppraisalSession::where('is_active', true)->whereNotNull('name')->pluck('name', 'id'))
+                                    ->required(),
+                                Select::make('unit_id')
+                                    ->label('Unit / Jenjang')
+                                    ->options(function () {
+                                        /** @var \App\Models\User $user */
+                                        $user = Auth::user();
+                                        $query = Unit::query();
 
-                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
-                                $unitIds = $user->employee?->units->pluck('id')->toArray() ?? [];
-                                $query->whereIn('id', $unitIds);
-                            }
+                                        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                                            $unitIds = $user->employee?->units->pluck('id')->toArray() ?? [];
+                                            $query->whereIn('id', $unitIds);
+                                        }
 
-                            return $query->whereNotNull('name')->pluck('name', 'id');
-                        })
-                        ->default(function () {
-                            /** @var \App\Models\User $user */
-                            $user = Auth::user();
-                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
-                                return $user->employee?->units->first()?->id;
-                            }
-                            return null;
-                        })
-                        ->required()
-                        ->reactive(),
-                    CheckboxList::make('types')
-                        ->label('Jenis Penilaian yang di-Generate')
-                        ->options([
-                            'self' => 'Self Assessment (Penilaian Diri)',
-                            'peer' => 'Peer Review (Rekan Sejawat)',
-                            'superior' => 'Superior (Penilaian Atasan)',
-                        ])
-                        ->required()
-                        ->reactive(),
-                    TextInput::make('peer_limit')
-                        ->label('Batas Rekan per Pegawai')
-                        ->helperText('Kosongkan untuk menyertakan seluruh rekan dalam unit.')
-                        ->numeric()
-                        ->minValue(1)
-                        ->visible(fn(Get $get) => in_array('peer', $get('types') ?? [])),
-                    Select::make('superior_id')
-                        ->label('Pilih Atasan/Penilai (Untuk Superior Review)')
-                        ->options(function (Get $get) {
-                            $unitId = $get('unit_id');
-                            if (!$unitId) return [];
+                                        return $query->whereNotNull('name')->pluck('name', 'id');
+                                    })
+                                    ->default(function () {
+                                        /** @var \App\Models\User $user */
+                                        $user = Auth::user();
+                                        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                                            return $user->employee?->units->first()?->id;
+                                        }
+                                        return null;
+                                    })
+                                    ->required()
+                                    ->reactive(),
+                            ]),
+                        \Filament\Schemas\Components\Wizard\Step::make('Metode')
+                            ->description('Pilih jenis penilaian')
+                            ->schema([
+                                CheckboxList::make('types')
+                                    ->label('Jenis Penilaian yang di-Generate')
+                                    ->options([
+                                        'self' => 'Self Assessment (Penilaian Diri)',
+                                        'peer' => 'Peer Review (Rekan Sejawat)',
+                                        'superior' => 'Superior (Penilaian Atasan)',
+                                    ])
+                                    ->required()
+                                    ->reactive(),
+                            ]),
+                        \Filament\Schemas\Components\Wizard\Step::make('Konfigurasi')
+                            ->description('Pengaturan tambahan')
+                            ->schema([
+                                TextInput::make('peer_limit')
+                                    ->label('Batas Rekan per Pegawai')
+                                    ->helperText('Kosongkan untuk menyertakan seluruh rekan dalam unit.')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->visible(fn(Get $get) => in_array('peer', $get('types') ?? [])),
+                                Select::make('superior_id')
+                                    ->label('Pilih Atasan/Penilai (Untuk Superior Review)')
+                                    ->options(function (Get $get) {
+                                        $unitId = $get('unit_id');
+                                        if (!$unitId) return [];
 
-                            return User::where(function ($query) use ($unitId) {
-                                // Pimpinan Global (Ketua PSDM & Super Admin) selalu muncul
-                                $query->whereHas('roles', fn($q) => $q->whereIn('name', ['ketua_psdm', 'super_admin']))
-                                    // Pimpinan Unit muncul jika di unit tersebut
-                                    ->orWhere(function ($q) use ($unitId) {
-                                        $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['koor_jenjang', 'admin_unit', 'kepala_sekolah']))
-                                            ->whereHas('employee.units', fn($uq) => $uq->where('units.id', $unitId));
-                                    });
-                            })
-                                ->whereNotNull('name')
-                                ->pluck('name', 'id');
-                        })
-                        ->visible(fn(Get $get) => in_array('superior', $get('types') ?? []))
-                        ->required(fn(Get $get) => in_array('superior', $get('types') ?? [])),
+                                        return User::where(function ($query) use ($unitId) {
+                                            $query->whereHas('roles', fn($q) => $q->whereIn('name', ['ketua_psdm', 'super_admin']))
+                                                ->orWhere(function ($q) use ($unitId) {
+                                                    $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['koor_jenjang', 'admin_unit', 'kepala_sekolah']))
+                                                        ->whereHas('employee.units', fn($uq) => $uq->where('units.id', $unitId));
+                                                });
+                                        })
+                                            ->whereNotNull('name')
+                                            ->pluck('name', 'id');
+                                    })
+                                    ->visible(fn(Get $get) => in_array('superior', $get('types') ?? []))
+                                    ->required(fn(Get $get) => in_array('superior', $get('types') ?? [])),
+                            ]),
+                    ])->columnSpanFull()
                 ])
                 ->action(function (array $data) {
                     $employees = DataInduk::whereHas('units', fn($q) => $q->where('units.id', $data['unit_id']))
