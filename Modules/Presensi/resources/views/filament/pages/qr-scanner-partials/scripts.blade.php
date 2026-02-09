@@ -76,7 +76,7 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function initQrScanner() {
             const html5QrCode = new Html5Qrcode("reader");
             let isScanning = false;
 
@@ -208,7 +208,13 @@
                 window.html5QrCode = html5QrCode;
                 startScanner();
             }
-        });
+        }
+
+        // Initialize on page load (for non-SPA navigation)
+        document.addEventListener('DOMContentLoaded', initQrScanner);
+
+        // Re-initialize on Livewire navigation (for SPA mode)
+        document.addEventListener('livewire:navigated', initQrScanner);
 
         window.addEventListener('scan-success', (event) => {
             const scannedUser = {
