@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\Action;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Modules\Leave\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +49,9 @@ class DaftarIzinMenunggu extends BaseWidget
                 Tables\Columns\TextColumn::make('employee.nama')
                     ->label('Nama')
                     ->weight('bold')
-                    ->description(fn($record) => $record->leave_type ? ucfirst($record->leave_type) : 'Cuti'),
+                    ->description(fn($record) => $record->leave_type ? ucfirst($record->leave_type) : 'Cuti')
+                    ->url(fn(LeaveRequest $record): string => LeaveRequestResource::getUrl('edit', ['record' => $record]))
+                    ->color('primary'),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Tanggal')
@@ -61,11 +62,6 @@ class DaftarIzinMenunggu extends BaseWidget
                     ->label('Alasan')
                     ->limit(20)
                     ->tooltip(fn($record) => $record->reason),
-            ])
-            ->recordActions([
-                Action::make('review')
-                    ->label('Tinjau')
-                    ->url(fn(LeaveRequest $record): string => LeaveRequestResource::getUrl('edit', ['record' => $record])),
             ])
             ->paginated(false);
     }
