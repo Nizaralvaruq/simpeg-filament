@@ -7,7 +7,6 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 use Modules\Kepegawaian\Models\DataInduk;
 use Modules\Leave\Models\LeaveRequest;
 use Modules\Resign\Models\Resign;
-use Carbon\Carbon;
 
 class RingkasanStatistikSDM extends BaseWidget
 {
@@ -55,8 +54,6 @@ class RingkasanStatistikSDM extends BaseWidget
         $lastMonthEmployees = (clone $employeeQuery)
             ->where('created_at', '<', now()->startOfMonth())
             ->count();
-
-        $employeeGrowth = $currentMonthEmployees - $lastMonthEmployees;
 
         // Hitung Gender breakdown
         $maleCount = (clone $employeeQuery)->where('jenis_kelamin', 'Laki-laki')->count();

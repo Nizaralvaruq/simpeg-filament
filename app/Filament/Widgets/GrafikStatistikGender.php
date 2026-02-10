@@ -24,19 +24,17 @@ class GrafikStatistikGender extends ChartWidget
     {
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
-        $query = DataInduk::query();
+        $isGlobalAdmin = $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
 
-        // Filter for local admins: Only show employees in their units
-        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id')->all();
-                $query->whereHas('units', function ($q) use ($unitIds) {
-                    $q->whereIn('units.id', $unitIds);
-                });
-            } else {
-                $query->whereRaw('1=0'); // No units assigned
-            }
-        }
+        $query = DataInduk::query()
+            ->when(!$isGlobalAdmin, function ($q) use ($user) {
+                $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                if (!empty($unitIds)) {
+                    $q->whereHas('units', fn($sq) => $sq->whereIn('units.id', $unitIds));
+                } else {
+                    $q->whereRaw('1=0');
+                }
+            });
 
         $data = $query
             ->selectRaw('jenis_kelamin, count(*) as count')
@@ -79,10 +77,10 @@ class GrafikStatistikGender extends ChartWidget
         return [
             'plugins' => [
                 'legend' => [
-                    'position' => 'bottom', // Legend di bawah agar lebih rapi
+                    'position' => 'bottom', // 
                 ],
             ],
-            'cutout' => '70%', // Lingkaran tipis (Modern look)
+            'cutout' => '70%', // 
         ];
     }
 }

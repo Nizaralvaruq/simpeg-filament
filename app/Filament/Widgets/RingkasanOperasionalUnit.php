@@ -59,21 +59,21 @@ class RingkasanOperasionalUnit extends BaseWidget
             ->where('status', 'hadir')
             ->whereNotNull('jam_masuk');
 
-        if (!$isGlobalAdmin && $user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id');
-                $queryAbsensi->whereHas('user.employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
-            } else {
-                $queryAbsensi->whereRaw('1 = 0');
-            }
-        }
-
         $isWorkingDay = Absensi::isWorkingDay($today);
         $lateCount = 0;
         $totalPresentToday = 0;
         $latePercentage = 0;
 
         if ($isWorkingDay) {
+            $queryAbsensi->when(!$isGlobalAdmin, function ($q) use ($user) {
+                $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                if (!empty($unitIds)) {
+                    $q->whereHas('user.employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
+                } else {
+                    $q->whereRaw('1=0');
+                }
+            });
+
             $lateCount = (clone $queryAbsensi)->where('jam_masuk', '>', $effectiveLateTime)->count();
             $totalPresentToday = $queryAbsensi->count();
             $latePercentage = $totalPresentToday > 0 ? ($lateCount / $totalPresentToday) * 100 : 0;
@@ -100,7 +100,7 @@ class RingkasanOperasionalUnit extends BaseWidget
     {
         $activeSession = AppraisalSession::where('is_active', true)->latest()->first();
 
-        if (!$activeSession) {
+        if (!$activeSession || !$activeSession->isActiveAndOpen()) {
             return [
                 Stat::make('Progres Penilaian', 'Tidak ada sesi')
                     ->color('gray')
@@ -113,14 +113,14 @@ class RingkasanOperasionalUnit extends BaseWidget
 
         $queryAssignments = AppraisalAssignment::where('session_id', $activeSession->id);
 
-        if (!$isGlobalAdmin && $user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id');
-                $queryAssignments->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+        $queryAssignments->when(!$isGlobalAdmin, function ($q) use ($user) {
+            $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+            if (!empty($unitIds)) {
+                $q->whereHas('ratee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
             } else {
-                $queryAssignments->whereRaw('1 = 0');
+                $q->whereRaw('1=0');
             }
-        }
+        });
 
         // Progres
         $totalAssignments = (clone $queryAssignments)->count();
@@ -199,20 +199,19 @@ class RingkasanOperasionalUnit extends BaseWidget
                 ->where('jam_masuk', '>', $effectiveLateTime);
 
 
-            if (!Absensi::isWorkingDay($date)) {
+            if (Absensi::isWorkingDay($date)) {
+                $query->when(!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']), function ($q) use ($user) {
+                    $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                    if (!empty($unitIds)) {
+                        $q->whereHas('user.employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
+                    } else {
+                        $q->whereRaw('1=0');
+                    }
+                });
+                $data[] = $query->count();
+            } else {
                 $data[] = 0;
-                continue;
             }
-
-            if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']) && $user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
-                if ($user->employee && $user->employee->units->isNotEmpty()) {
-                    $unitIds = $user->employee->units->pluck('id');
-                    $query->whereHas('user.employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
-                } else {
-                    $query->whereRaw('1=0');
-                }
-            }
-            $data[] = $query->count();
         }
         return $data;
     }

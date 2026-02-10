@@ -26,26 +26,32 @@ class RingkasanPerformaUnit extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(
-                PerformanceScore::query()
+            ->query(function () {
+                /** @var \App\Models\User $user */
+                $user = Auth::user();
+                $isGlobalAdmin = $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
+
+                $session = AppraisalSession::where('is_active', true)->latest()->first();
+
+                if (!$session || !$session->isActiveAndOpen()) {
+                    return PerformanceScore::query()->whereRaw('1=0');
+                }
+
+                return PerformanceScore::query()
                     ->select('performance_scores.*')
                     ->selectRaw('((COALESCE(kualitas_hasil,0) + COALESCE(ketelitian,0) + COALESCE(kuantitas_hasil,0) + COALESCE(ketepatan_waktu,0) + COALESCE(kehadiran,0) + COALESCE(kepatuhan_aturan,0) + COALESCE(etika_kerja,0) + COALESCE(tanggung_jawab,0) + COALESCE(komunikasi,0) + COALESCE(kerjasama_tim,0)) / 10) as average_score_raw')
-                    ->whereHas(
-                        'employee.units',
-                        function ($query) {
-                            /** @var \App\Models\User $user */
-                            $user = Auth::user();
-                            if ($user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
-                                return $query;
-                            }
-                            $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
-                            return $query->whereIn('units.id', $unitIds);
+                    ->when(!$isGlobalAdmin, function ($q) use ($user) {
+                        $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                        if (!empty($unitIds)) {
+                            $q->whereHas('employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
+                        } else {
+                            $q->whereRaw('1=0');
                         }
-                    )
+                    })
                     ->with(['employee'])
                     ->orderByDesc('average_score_raw')
-                    ->limit(5)
-            )
+                    ->limit(5);
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('employee.nama')
                     ->label('Nama')

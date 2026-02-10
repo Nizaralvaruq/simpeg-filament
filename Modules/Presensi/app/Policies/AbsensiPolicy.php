@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class AbsensiPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:Absensi');
@@ -19,7 +19,30 @@ class AbsensiPolicy
 
     public function view(AuthUser $authUser, Absensi $absensi): bool
     {
-        return $authUser->can('View:Absensi');
+        if (!$authUser->can('View:Absensi')) {
+            return false;
+        }
+
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            return true;
+        }
+
+        if ($authUser->hasRole('staff')) {
+            return $absensi->user_id === $authUser->id;
+        }
+
+        // For Unit Admins: Check if target employee belongs to my unit
+        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
+            $myUnitIds = $authUser->employee->units->pluck('id')->all();
+
+            $targetEmployee = $absensi->user?->employee;
+            if (!$targetEmployee) return false;
+
+            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
+        }
+
+        return false;
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,12 +52,54 @@ class AbsensiPolicy
 
     public function update(AuthUser $authUser, Absensi $absensi): bool
     {
-        return $authUser->can('Update:Absensi');
+        if (!$authUser->can('Update:Absensi')) {
+            return false;
+        }
+
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            return true;
+        }
+
+        // Staff can only update their own records
+        if ($authUser->hasRole('staff')) {
+            return $absensi->user_id === $authUser->id;
+        }
+
+        // For Unit Admins: Check Unit
+        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
+            $myUnitIds = $authUser->employee->units->pluck('id')->all();
+
+            $targetEmployee = $absensi->user?->employee;
+            if (!$targetEmployee) return false;
+
+            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
+        }
+
+        return false;
     }
 
     public function delete(AuthUser $authUser, Absensi $absensi): bool
     {
-        return $authUser->can('Delete:Absensi');
-    }
+        if (!$authUser->can('Delete:Absensi')) {
+            return false;
+        }
 
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            return true;
+        }
+
+        // Unit Admins check
+        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
+            $myUnitIds = $authUser->employee->units->pluck('id')->all();
+
+            $targetEmployee = $absensi->user?->employee;
+            if (!$targetEmployee) return false;
+
+            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
+        }
+
+        return false;
+    }
 }

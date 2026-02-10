@@ -5,7 +5,6 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use Modules\Presensi\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
-use Filament\Support\Colors\Color;
 
 class GrafikTrenKehadiran extends ChartWidget
 {
@@ -35,16 +34,19 @@ class GrafikTrenKehadiran extends ChartWidget
             $date = now()->subDays($i);
             $labels[] = $date->format('d M');
 
+            $isGlobalAdmin = $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
+
             $query = Absensi::query()
                 ->whereDate('tanggal', $date)
-                ->where('late_minutes', '>', 0);
-
-            if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
-                $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
-                $query->whereHas('user.employee.units', function ($q) use ($unitIds) {
-                    $q->whereIn('units.id', $unitIds);
+                ->where('late_minutes', '>', 0)
+                ->when(!$isGlobalAdmin, function ($q) use ($user) {
+                    $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                    if (!empty($unitIds)) {
+                        $q->whereHas('user.employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
+                    } else {
+                        $q->whereRaw('1=0');
+                    }
                 });
-            }
 
             $data[] = $query->count();
         }

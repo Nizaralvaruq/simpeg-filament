@@ -135,7 +135,11 @@ class TugasPenilaianSayaResource extends Resource
                     ->label('Beri Nilai')
                     ->icon('heroicon-m-star')
                     ->color('primary')
-                    ->visible(fn(AppraisalAssignment $record) => $record->status === 'pending')
+                    ->visible(
+                        fn(AppraisalAssignment $record) =>
+                        $record->status === 'pending' &&
+                            ($record->session?->isActiveAndOpen() ?? false)
+                    )
                     ->schema(function (AppraisalAssignment $record) {
                         $categories = AppraisalCategory::with('indicators')->orderBy('weight', 'desc')->get();
                         $steps = [];

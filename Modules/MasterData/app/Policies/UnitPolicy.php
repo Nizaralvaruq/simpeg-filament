@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class UnitPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:Unit');
@@ -19,7 +19,20 @@ class UnitPolicy
 
     public function view(AuthUser $authUser, Unit $unit): bool
     {
-        return $authUser->can('View:Unit');
+        if (!$authUser->can('View:Unit')) {
+            return false;
+        }
+
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('super_admin')) {
+            return true;
+        }
+
+        if ($authUser->hasRole('admin_unit') && $authUser->employee) {
+            return $authUser->employee->units->contains('id', $unit->id);
+        }
+
+        return false;
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,12 +42,37 @@ class UnitPolicy
 
     public function update(AuthUser $authUser, Unit $unit): bool
     {
-        return $authUser->can('Update:Unit');
+        if (!$authUser->can('Update:Unit')) {
+            return false;
+        }
+
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('super_admin')) {
+            return true;
+        }
+
+        if ($authUser->hasRole('admin_unit') && $authUser->employee) {
+            return $authUser->employee->units->contains('id', $unit->id);
+        }
+
+        return false;
     }
 
     public function delete(AuthUser $authUser, Unit $unit): bool
     {
-        return $authUser->can('Delete:Unit');
-    }
+        if (!$authUser->can('Delete:Unit')) {
+            return false;
+        }
 
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('super_admin')) {
+            return true;
+        }
+
+        if ($authUser->hasRole('admin_unit') && $authUser->employee) {
+            return $authUser->employee->units->contains('id', $unit->id);
+        }
+
+        return false;
+    }
 }

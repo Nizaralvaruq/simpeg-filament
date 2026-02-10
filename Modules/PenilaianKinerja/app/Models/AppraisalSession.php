@@ -22,4 +22,14 @@ class AppraisalSession extends Model
     {
         return $this->hasMany(AppraisalAssignment::class, 'session_id');
     }
+
+    public function isActiveAndOpen(): bool
+    {
+        if (!$this->is_active) {
+            return false;
+        }
+
+        $today = now()->startOfDay();
+        return $today->between($this->start_date->startOfDay(), $this->end_date->endOfDay());
+    }
 }

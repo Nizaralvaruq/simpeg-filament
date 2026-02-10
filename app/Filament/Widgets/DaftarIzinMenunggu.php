@@ -7,7 +7,6 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Modules\Leave\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
-use Filament\Support\Enums\ActionSize;
 use Modules\Leave\Filament\Resources\LeaveRequestResource;
 
 class DaftarIzinMenunggu extends BaseWidget
@@ -27,24 +26,23 @@ class DaftarIzinMenunggu extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(
-                LeaveRequest::query()
+            ->query(function () {
+                /** @var \App\Models\User $user */
+                $user = Auth::user();
+                $isGlobalAdmin = $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
+
+                return LeaveRequest::query()
                     ->where('status', 'pending')
-                    ->whereHas(
-                        'employee.units',
-                        function ($query) {
-                            /** @var \App\Models\User $user */
-                            $user = Auth::user();
-                            if ($user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
-                                return $query;
-                            }
-                            // Filter by user's unit
-                            $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
-                            return $query->whereIn('units.id', $unitIds);
+                    ->when(!$isGlobalAdmin, function ($q) use ($user) {
+                        $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                        if (!empty($unitIds)) {
+                            $q->whereHas('employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
+                        } else {
+                            $q->whereRaw('1=0');
                         }
-                    )
-                    ->with(['employee'])
-            )
+                    })
+                    ->with(['employee']);
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('employee.nama')
                     ->label('Nama')

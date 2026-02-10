@@ -110,7 +110,16 @@ class UserResource extends Resource
                             ->maxLength(255),
 
                         Forms\Components\Select::make('roles')
-                            ->relationship('roles', 'name')
+                            ->relationship('roles', 'name', modifyQueryUsing: function ($query) {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                if ($user->hasRole('super_admin')) {
+                                    return $query;
+                                }
+
+                                // Prevent non-super admins from assigning high-level roles
+                                return $query->whereNotIn('name', ['super_admin', 'ketua_psdm', 'kepala_sekolah']);
+                            })
                             ->multiple()
                             ->preload()
                             ->searchable()
