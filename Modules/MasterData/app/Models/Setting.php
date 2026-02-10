@@ -20,6 +20,10 @@ class Setting extends Model
 
     protected $casts = [
         'working_days' => 'array',
+        'late_tolerance' => 'integer',
+        'office_radius' => 'integer',
+        'office_latitude' => 'float',
+        'office_longitude' => 'float',
     ];
 
     /**

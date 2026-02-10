@@ -51,7 +51,7 @@ class RingkasanOperasionalUnit extends BaseWidget
         $today = Carbon::today();
         $settings = \Modules\MasterData\Models\Setting::get();
         $standardWorkTime = $settings->office_start_time;
-        $tolerance = $settings->late_tolerance ?? 0;
+        $tolerance = (int) ($settings->late_tolerance ?? 0);
 
         $effectiveLateTime = Carbon::parse($standardWorkTime)->addMinutes($tolerance)->format('H:i:s');
 
@@ -197,6 +197,7 @@ class RingkasanOperasionalUnit extends BaseWidget
                 ->where('status', 'hadir')
                 ->whereNotNull('jam_masuk')
                 ->where('jam_masuk', '>', $effectiveLateTime);
+
 
             if (!Absensi::isWorkingDay($date)) {
                 $data[] = 0;

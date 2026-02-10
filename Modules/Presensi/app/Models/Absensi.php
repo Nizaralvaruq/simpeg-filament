@@ -73,7 +73,7 @@ class Absensi extends Model
         // Ensure both are on the same date for accurate time-only comparison
         $startTime->setDate($jamMasuk->year, $jamMasuk->month, $jamMasuk->day);
 
-        $tolerance = $settings->late_tolerance ?? 0;
+        $tolerance = (int) ($settings->late_tolerance ?? 0);
         $startTimeWithTolerance = $startTime->copy()->addMinutes($tolerance);
 
         if ($jamMasuk->lte($startTimeWithTolerance)) {
