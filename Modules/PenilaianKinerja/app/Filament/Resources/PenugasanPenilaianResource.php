@@ -90,7 +90,7 @@ class PenugasanPenilaianResource extends Resource
                                     $user = Auth::user();
                                     $query = User::query();
 
-                                    if ($user->hasRole('koor_jenjang')) {
+                                    if ($user->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah'])) {
                                         $unitIds = $user->employee->units->pluck('id');
                                         $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
                                     }
@@ -107,7 +107,7 @@ class PenugasanPenilaianResource extends Resource
                                     $user = Auth::user();
                                     $query = DataInduk::query();
 
-                                    if ($user->hasRole('koor_jenjang')) {
+                                    if ($user->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah'])) {
                                         $unitIds = $user->employee->units->pluck('id');
                                         $query->whereHas('units', fn($q) => $q->whereIn('units.id', $unitIds));
                                     }
@@ -200,7 +200,7 @@ class PenugasanPenilaianResource extends Resource
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($user && $user->hasAnyRole(['koor_jenjang', 'admin_unit'])) {
+        if ($user && $user->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah'])) {
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id');
                 $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));

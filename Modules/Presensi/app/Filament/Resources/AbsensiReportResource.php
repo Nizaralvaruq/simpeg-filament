@@ -172,7 +172,15 @@ class AbsensiReportResource extends Resource
 
                 Tables\Filters\SelectFilter::make('unit')
                     ->label('Unit Kerja')
-                    ->relationship('units', 'name')
+                    ->relationship('units', 'name', modifyQueryUsing: function (Builder $query) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+                            return $query;
+                        }
+                        $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                        return $query->whereIn('units.id', $unitIds);
+                    })
                     ->searchable()
                     ->preload()
                     ->visible(fn() => !($user = Auth::user()) || !($user instanceof User) || !$user->hasRole('staff')),

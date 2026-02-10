@@ -30,26 +30,47 @@ class RingkasanStatistikSDM extends BaseWidget
     protected function getStats(): array
     {
         // 1. Employee Growth Logic
-        $currentMonthEmployees = DataInduk::whereIn('status', ['aktif', 'Aktif'])->count();
-        $lastMonthEmployees = DataInduk::whereIn('status', ['aktif', 'Aktif'])
+        /** @var \App\Models\User $user */
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        $employeeQuery = DataInduk::whereIn('status', ['aktif', 'Aktif']);
+        $leaveQuery = LeaveRequest::where('status', 'pending');
+        $resignQuery = Resign::where('status', 'diajukan');
+
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
+            $unitIds = $user->employee?->units->pluck('id')->toArray() ?? [];
+            if (!empty($unitIds)) {
+                $employeeQuery->whereHas('units', fn($q) => $q->whereIn('units.id', $unitIds));
+                $leaveQuery->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+                $resignQuery->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+            } else {
+                // User has no unit but is not super_admin (edge case)
+                $employeeQuery->whereRaw('1=0');
+                $leaveQuery->whereRaw('1=0');
+                $resignQuery->whereRaw('1=0');
+            }
+        }
+
+        $currentMonthEmployees = (clone $employeeQuery)->count();
+        $lastMonthEmployees = (clone $employeeQuery)
             ->where('created_at', '<', now()->startOfMonth())
             ->count();
 
         $employeeGrowth = $currentMonthEmployees - $lastMonthEmployees;
 
         // Hitung Gender breakdown
-        $maleCount = DataInduk::whereIn('status', ['aktif', 'Aktif'])->where('jenis_kelamin', 'Laki-laki')->count();
-        $femaleCount = DataInduk::whereIn('status', ['aktif', 'Aktif'])->where('jenis_kelamin', 'Perempuan')->count();
+        $maleCount = (clone $employeeQuery)->where('jenis_kelamin', 'Laki-laki')->count();
+        $femaleCount = (clone $employeeQuery)->where('jenis_kelamin', 'Perempuan')->count();
 
         $employeeDescription = "{$maleCount} Laki-laki / {$femaleCount} Perempuan";
         $employeeIcon = 'heroicon-m-users';
         $employeeColor = 'primary';
 
         // 2. Pending Leave Logic
-        $pendingLeaves = LeaveRequest::where('status', 'pending')->count();
+        $pendingLeaves = $leaveQuery->count();
 
         // 3. Pending Resign Logic
-        $pendingResigns = Resign::where('status', 'diajukan')->count();
+        $pendingResigns = $resignQuery->count();
 
 
         return [

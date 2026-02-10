@@ -27,7 +27,7 @@ class GrafikStatistikGender extends ChartWidget
         $query = DataInduk::query();
 
         // Filter for local admins: Only show employees in their units
-        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id')->all();
                 $query->whereHas('units', function ($q) use ($unitIds) {

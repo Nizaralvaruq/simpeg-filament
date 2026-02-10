@@ -47,7 +47,7 @@ class AbsensiKegiatansRelationManager extends RelationManager
                 $user = \Illuminate\Support\Facades\Auth::user();
 
                 // Admin Unit & Koor Jenjang: Only see attendance records from employees in their units
-                if ($user && $user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                if ($user && $user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
                     if ($user->employee && $user->employee->units->isNotEmpty()) {
                         $unitIds = $user->employee->units->pluck('id');
                         $query->whereHas('user.employee.units', fn($q) => $q->whereIn('units.id', $unitIds));

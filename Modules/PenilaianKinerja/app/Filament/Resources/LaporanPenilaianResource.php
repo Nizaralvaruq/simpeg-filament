@@ -45,6 +45,9 @@ class LaporanPenilaianResource extends Resource
 
     public static function table(Table $table): Table
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         return $table
             ->query(
                 AppraisalAssignment::query()
@@ -58,6 +61,17 @@ class LaporanPenilaianResource extends Resource
                         'appraisal_assignments'
                     )
                     ->with(['session', 'ratee'])
+                    ->when(
+                        $user?->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah']),
+                        function ($query) use ($user) {
+                            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                                $unitIds = $user->employee->units->pluck('id');
+                                $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+                            } else {
+                                $query->whereRaw('1=0');
+                            }
+                        }
+                    )
             )
             ->columns([
                 TextColumn::make('session.name')
@@ -121,7 +135,7 @@ class LaporanPenilaianResource extends Resource
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($user && $user->hasAnyRole(['koor_jenjang', 'admin_unit'])) {
+        if ($user && $user->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah'])) {
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id');
                 $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));

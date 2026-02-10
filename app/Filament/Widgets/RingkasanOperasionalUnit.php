@@ -207,6 +207,8 @@ class RingkasanOperasionalUnit extends BaseWidget
                 if ($user->employee && $user->employee->units->isNotEmpty()) {
                     $unitIds = $user->employee->units->pluck('id');
                     $query->whereHas('user.employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+                } else {
+                    $query->whereRaw('1=0');
                 }
             }
             $data[] = $query->count();

@@ -101,10 +101,12 @@ class ManageSettings extends Page implements HasForms
                             ->label('Batas Akhir Absen (Auto-Alpha)')
                             ->helperText('Pegawai yang belum melakukan scan masuk setelah jam ini akan otomatis dianggap Alpha oleh sistem.')
                             ->seconds(false)
+                            ->after('office_start_time')
                             ->required(),
                         \Filament\Forms\Components\TimePicker::make('office_end_time')
                             ->label('Jam Pulang Kantor')
                             ->seconds(false)
+                            ->after('office_start_time')
                             ->required(),
                         \Filament\Forms\Components\TextInput::make('late_tolerance')
                             ->label('Toleransi Keterlambatan')
@@ -128,12 +130,22 @@ class ManageSettings extends Page implements HasForms
                                     ->extraInputAttributes(['step' => 'any'])
                                     ->id('office-latitude')
                                     ->placeholder('-6.2088')
-                                    ->suffixAction(
+                                    ->suffixActions([
                                         Action::make('getLocation')
                                             ->icon('heroicon-m-map-pin')
-                                            ->label('Ambil Lokasi Saat Ini')
-                                            ->action(fn() => $this->dispatch('get-current-location'))
-                                    ),
+                                            ->color('warning')
+                                            ->tooltip('Ambil lokasi dari device INI (Laptop/HP). Pastikan Anda sedang berada di kantor!')
+                                            ->action(fn() => $this->dispatch('get-current-location')),
+                                        Action::make('openMap')
+                                            ->icon('heroicon-m-globe-alt')
+                                            ->color('info')
+                                            ->tooltip('Lihat di Google Maps')
+                                            ->url(fn($get) => $get('office_latitude') && $get('office_longitude')
+                                                ? 'https://www.google.com/maps/search/?api=1&query=' . $get('office_latitude') . ',' . $get('office_longitude')
+                                                : null)
+                                            ->openUrlInNewTab()
+                                            ->visible(fn($get) => $get('office_latitude') && $get('office_longitude')),
+                                    ]),
                                 \Filament\Forms\Components\TextInput::make('office_longitude')
                                     ->label('Longitude Kantor')
                                     ->id('office-longitude')

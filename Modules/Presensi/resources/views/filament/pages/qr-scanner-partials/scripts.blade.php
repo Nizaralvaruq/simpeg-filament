@@ -76,9 +76,71 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
-        function initQrScanner() {
-            const html5QrCode = new Html5Qrcode("reader");
+        // Store component ID globally for dynamic access
+        window.filamentQrScannerComponentId = '{{ $this->getId() }}';
+
+        if (!window.hasInitializedQrScanner) {
+            window.hasInitializedQrScanner = true;
+
+            // Helper to get audio source safely
+            const getAudioSrc = (id) => {
+                const el = document.getElementById(id);
+                if (!el) return null;
+                return el.currentSrc || el.querySelector('source')?.src;
+            };
+
+            // Singleton Audio Elements
+            let audioCheckIn, audioCheckOut, audioError;
+
+            let html5QrCode = null;
             let isScanning = false;
+
+            // Master init function
+            window.initQrScannerMaster = function() {
+                // Init Audio if not ready
+                if (!audioCheckIn && document.getElementById('beep-checkin')) {
+                    audioCheckIn = new Audio(getAudioSrc('beep-checkin'));
+                    audioCheckOut = new Audio(getAudioSrc('beep-checkout'));
+                    audioError = new Audio(getAudioSrc('beep-error'));
+                }
+
+                if (html5QrCode) {
+                    html5QrCode.stop().then(() => {
+                        startScanner();
+                    }).catch(() => startScanner());
+                } else {
+                    html5QrCode = new Html5Qrcode("reader");
+                    startScanner();
+                }
+
+                bindManualInput();
+            };
+
+            const bindManualInput = () => {
+                const manualSubmit = document.getElementById('manual-submit');
+                const manualTokenInput = document.getElementById('manual-token');
+
+                if (manualSubmit) {
+                    manualSubmit.onclick = () => {
+                        const token = manualTokenInput.value.trim();
+                        if (token) {
+                            window.dispatchEvent(new CustomEvent('close-modal', {
+                                detail: {
+                                    id: 'manual-input-modal'
+                                }
+                            }));
+                            manualTokenInput.value = '';
+                            processScan(token, null, null);
+                        }
+                    };
+                }
+
+                if (manualTokenInput) {
+                    manualTokenInput.onkeypress = (e) => {
+                        if (e.key === 'Enter') manualSubmit.click();
+                    };
+                }
+            };
 
             const startScanner = () => {
                 html5QrCode.start({
@@ -100,37 +162,56 @@
                         }
 
                         isScanning = true;
-                        document.getElementById('scan-overlay').style.opacity = '1';
+                        if (document.getElementById('scan-overlay')) document.getElementById('scan-overlay').style
+                            .opacity = '1';
 
                         setTimeout(() => {
                             if (navigator.geolocation) {
                                 navigator.geolocation.getCurrentPosition(
                                     (pos) => {
-                                        document.getElementById('scan-overlay').style.opacity =
-                                            '0';
+                                        if (document.getElementById('scan-overlay')) document
+                                            .getElementById('scan-overlay').style.opacity = '0';
                                         processScan(decodedText, pos.coords.latitude, pos.coords
                                             .longitude);
                                     },
                                     (err) => {
-                                        document.getElementById('scan-overlay').style.opacity =
-                                            '0';
+                                        // Debug Alert
+                                        alert(`GPS Error (${err.code}): ${err.message}`);
+                                        if (document.getElementById('scan-overlay')) document
+                                            .getElementById('scan-overlay').style.opacity = '0';
                                         processScan(decodedText, null, null);
                                     }, {
-                                        timeout: 3000,
+                                        timeout: 10000,
                                         enableHighAccuracy: true
                                     }
                                 );
                             } else {
-                                document.getElementById('scan-overlay').style.opacity = '0';
+                                if (document.getElementById('scan-overlay')) document.getElementById(
+                                    'scan-overlay').style.opacity = '0';
                                 processScan(decodedText, null, null);
                             }
                         }, 300);
                     }
                 ).catch(err => {
                     console.error("Camera Error:", err);
-                    // Auto restart if camera fails
                     setTimeout(startScanner, 2000);
                 });
+            };
+
+            const processScan = (token, lat, lng) => {
+                // Dynamic Component Lookup
+                const component = Livewire.find(window.filamentQrScannerComponentId);
+
+                if (component) {
+                    component.call('processScan', token, lat, lng).then(() => {
+                        setTimeout(() => isScanning = false, 1500);
+                    }).catch(() => {
+                        isScanning = false;
+                    });
+                } else {
+                    console.error("Scanner Component Not Found");
+                    isScanning = false;
+                }
             };
 
             const handleOfflineScan = (token) => {
@@ -141,53 +222,72 @@
                     lat: null,
                     lng: null
                 };
-                modal.offlineQueue.push(scan);
-                modal.saveOfflineQueue();
+                if (modal && modal.offlineQueue) {
+                    modal.offlineQueue.push(scan);
+                    modal.saveOfflineQueue();
 
-                // Fake success for offline user
-                window.dispatchEvent(new CustomEvent('scan-success', {
-                    detail: {
-                        name: 'Offline Saved',
-                        email: 'Sync waiting...',
-                        avatar: null,
-                        type: 'offline'
-                    }
-                }));
+                    window.dispatchEvent(new CustomEvent('scan-success', {
+                        detail: {
+                            name: 'Offline Saved',
+                            email: 'Sync waiting...',
+                            avatar: null,
+                            type: 'offline'
+                        }
+                    }));
+                }
             };
 
-            const processScan = (token, lat, lng) => {
-                @this.processScan(token, lat, lng).then(() => {
-                    // Quick lockout for fast scanning (1.5s)
-                    setTimeout(() => isScanning = false, 1500);
-                }).catch(() => {
-                    isScanning = false;
-                });
-            };
+            // Events - Added ONCE
+            window.addEventListener('scan-success', (event) => {
+                const component = Livewire.find(window.filamentQrScannerComponentId);
+                const volume = (component?.volume ?? 70) / 100;
 
-            const manualSubmit = document.getElementById('manual-submit');
-            if (manualSubmit) {
-                manualSubmit.addEventListener('click', () => {
-                    const token = document.getElementById('manual-token').value.trim();
-                    if (token) {
-                        window.dispatchEvent(new CustomEvent('close-modal', {
-                            detail: {
-                                id: 'manual-input-modal'
-                            }
-                        }));
-                        document.getElementById('manual-token').value = '';
-                        processScan(token, null, null);
+                // 1. Play Sound
+                if (event.detail.type === 'check-in') {
+                    if (audioCheckIn) {
+                        audioCheckIn.volume = volume;
+                        audioCheckIn.play();
                     }
-                });
-            }
+                } else if (event.detail.type === 'check-out') {
+                    if (audioCheckOut) {
+                        audioCheckOut.volume = volume;
+                        audioCheckOut.play();
+                    }
+                }
 
-            const manualTokenInput = document.getElementById('manual-token');
-            if (manualTokenInput) {
-                manualTokenInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') manualSubmit.click();
-                });
-            }
+                // 2. Update Alpine Store (legacy support)
+                Alpine.store('scanner', event.detail);
 
-            // F11 for fullscreen
+                // 3. Trigger Modal (Improvement)
+                const alpineEl = document.querySelector('[x-data]');
+                if (alpineEl && alpineEl.__x) {
+                    const data = alpineEl.__x.$data;
+                    data.scannedUser = event.detail;
+                    data.showSuccessModal = true;
+                    data.countdown = 10;
+
+                    // Countdown Logic
+                    if (window.scanCountdownInterval) clearInterval(window.scanCountdownInterval);
+                    window.scanCountdownInterval = setInterval(() => {
+                        if (data.countdown > 0) {
+                            data.countdown--;
+                        } else {
+                            data.showSuccessModal = false;
+                            clearInterval(window.scanCountdownInterval);
+                        }
+                    }, 1000);
+                }
+            });
+
+            window.addEventListener('scan-error', (event) => {
+                const component = Livewire.find(window.filamentQrScannerComponentId);
+                const volume = (component?.volume ?? 70) / 100;
+                if (audioError) {
+                    audioError.volume = volume;
+                    audioError.play();
+                }
+            });
+
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'F11') {
                     e.preventDefault();
@@ -199,54 +299,25 @@
                 }
             });
 
-            // Prevent multiple starts on re-renders
-            if (window.html5QrCode) {
-                window.html5QrCode.stop().then(() => {
-                    startScanner();
-                }).catch(() => startScanner());
-            } else {
-                window.html5QrCode = html5QrCode;
-                startScanner();
-            }
+            document.addEventListener('livewire:navigated', () => {
+                if (document.getElementById('reader')) {
+                    window.initQrScannerMaster();
+                } else {
+                    if (html5QrCode) {
+                        html5QrCode.stop().catch(e => {});
+                    }
+                }
+            });
         }
 
-        // Initialize on page load (for non-SPA navigation)
-        document.addEventListener('DOMContentLoaded', initQrScanner);
-
-        // Re-initialize on Livewire navigation (for SPA mode)
-        document.addEventListener('livewire:navigated', initQrScanner);
-
-        window.addEventListener('scan-success', (event) => {
-            const scannedUser = {
-                name: event.detail.name,
-                email: event.detail.email,
-                avatar: event.detail.avatar,
-                type: event.detail.type
-            };
-
-            Alpine.store('scanner', scannedUser);
-
-            // Play appropriate sound
-            const volume = @this.volume / 100;
-            const audio = event.detail.type === 'check-in' ?
-                document.getElementById('beep-checkin') :
-                document.getElementById('beep-checkout');
-
-            if (audio) {
-                audio.volume = volume;
-                audio.play();
+        if (document.getElementById('reader')) {
+            if (window.initQrScannerMaster) {
+                window.initQrScannerMaster();
+            } else {
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (window.initQrScannerMaster) window.initQrScannerMaster();
+                });
             }
-
-            // No visual effects (modal/confetti) as requested.
-        });
-
-        window.addEventListener('scan-error', (event) => {
-            const volume = @this.volume / 100;
-            const audio = document.getElementById('beep-error');
-            if (audio) {
-                audio.volume = volume;
-                audio.play();
-            }
-        });
+        }
     </script>
 @endpush

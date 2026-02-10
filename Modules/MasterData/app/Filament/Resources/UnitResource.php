@@ -12,6 +12,7 @@ use Filament\Forms;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Auth;
+use Filament\Actions\Action;
 
 class UnitResource extends Resource
 {
@@ -107,7 +108,23 @@ class UnitResource extends Resource
                                 Forms\Components\TextInput::make('latitude')
                                     ->numeric()
                                     ->step(0.00000001)
-                                    ->placeholder('-6.xxxx'),
+                                    ->placeholder('-6.xxxx')
+                                    ->suffixActions([
+                                        Action::make('getLocation')
+                                            ->icon('heroicon-m-map-pin')
+                                            ->color('warning')
+                                            ->tooltip('Ambil lokasi saat ini')
+                                            ->action(fn($livewire) => $livewire->dispatch('get-current-location')),
+                                        Action::make('openMap')
+                                            ->icon('heroicon-m-globe-alt')
+                                            ->color('info')
+                                            ->tooltip('Lihat di Peta')
+                                            ->url(fn($get) => $get('latitude') && $get('longitude')
+                                                ? 'https://www.google.com/maps/search/?api=1&query=' . $get('latitude') . ',' . $get('longitude')
+                                                : null)
+                                            ->openUrlInNewTab()
+                                            ->visible(fn($get) => $get('latitude') && $get('longitude')),
+                                    ]),
                                 Forms\Components\TextInput::make('longitude')
                                     ->numeric()
                                     ->step(0.00000001)

@@ -124,7 +124,7 @@ class AbsensiResource extends Resource
                             ->disabled(function () {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
-                                return ! ($user?->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'ketua_psdm']) ?? false);
+                                return ! ($user?->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'ketua_psdm', 'kepala_sekolah']) ?? false);
                             })
                             ->dehydrated(),
 
@@ -135,7 +135,7 @@ class AbsensiResource extends Resource
                             ->disabled(function () {
                                 /** @var \App\Models\User $user */
                                 $user = Auth::user();
-                                return ! ($user?->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'ketua_psdm']) ?? false);
+                                return ! ($user?->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'ketua_psdm', 'kepala_sekolah']) ?? false);
                             })
                             ->dehydrated(),
 
@@ -279,7 +279,7 @@ class AbsensiResource extends Resource
 
                             if ($user->hasRole('super_admin')) return true;
 
-                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
                                 /** @var \App\Models\User $manager */
                                 $manager = $user;
                                 $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];
@@ -300,7 +300,7 @@ class AbsensiResource extends Resource
 
                             if ($user->hasRole('super_admin')) return true;
 
-                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang'])) {
+                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
                                 /** @var \App\Models\User $manager */
                                 $manager = $user;
                                 $managerUnitIds = $manager->employee?->units->pluck('id')->all() ?? [];

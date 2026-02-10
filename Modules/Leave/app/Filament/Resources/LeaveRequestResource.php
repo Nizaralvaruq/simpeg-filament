@@ -48,14 +48,14 @@ class LeaveRequestResource extends Resource
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        if (!$user?->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit'])) {
+        if (!$user?->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
             return null;
         }
 
         $query = static::getModel()::where('status', 'pending');
 
         // Admin Unit: Only count pending requests from their units
-        if ($user->hasRole('admin_unit')) {
+        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id');
                 $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
@@ -197,7 +197,7 @@ class LeaveRequestResource extends Resource
                 ->visible(function () {
                     /** @var \App\Models\User $user */
                     $user = Auth::user();
-                    return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm']);
+                    return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm', 'koor_jenjang', 'kepala_sekolah']);
                 })
                 ->schema([
                     Forms\Components\Select::make('status')
@@ -302,7 +302,7 @@ class LeaveRequestResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm', 'koor_jenjang', 'kepala_sekolah'])
                                 && $record->status === 'pending';
                         })
                         ->action(function ($record) {
@@ -365,7 +365,7 @@ class LeaveRequestResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm', 'koor_jenjang', 'kepala_sekolah'])
                                 && $record->status === 'pending';
                         })
                         ->action(fn($record, array $data) => $record->update([
@@ -382,9 +382,20 @@ class LeaveRequestResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasRole('super_admin')
-                                && $record->status === 'approved'
-                                && in_array($record->keterangan_kembali, [null, 'belum kembali']);
+                            if (!$user) return false;
+
+                            if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) return $record->status === 'approved' && in_array($record->keterangan_kembali, [null, 'belum kembali']);
+
+                            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+                                $managerUnitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                                $recordOwnerUnitIds = $record->employee?->units->pluck('id')->all() ?? [];
+
+                                return !empty(array_intersect($managerUnitIds, $recordOwnerUnitIds))
+                                    && $record->status === 'approved'
+                                    && in_array($record->keterangan_kembali, [null, 'belum kembali']);
+                            }
+
+                            return false;
                         })
                         ->action(function ($record) {
                             // 1. UPDATE CUTI

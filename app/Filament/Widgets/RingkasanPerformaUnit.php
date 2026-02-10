@@ -35,7 +35,7 @@ class RingkasanPerformaUnit extends BaseWidget
                         function ($query) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            if ($user->hasRole('super_admin')) {
+                            if ($user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
                                 return $query;
                             }
                             $unitIds = $user->employee?->units->pluck('id')->all() ?? [];

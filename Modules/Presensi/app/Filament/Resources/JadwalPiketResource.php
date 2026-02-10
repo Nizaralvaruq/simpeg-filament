@@ -62,7 +62,15 @@ class JadwalPiketResource extends Resource
                     ->schema([
                         Select::make('user_id')
                             ->label('Petugas Piket')
-                            ->relationship('user', 'name')
+                            ->relationship('user', 'name', modifyQueryUsing: function (Builder $query) {
+                                /** @var User $user */
+                                $user = Auth::user();
+                                if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+                                    return $query;
+                                }
+                                $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                                return $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+                            })
                             ->searchable()
                             ->preload()
                             ->required()
@@ -163,7 +171,15 @@ class JadwalPiketResource extends Resource
 
                 SelectFilter::make('user_id')
                     ->label('Petugas')
-                    ->relationship('user', 'name')
+                    ->relationship('user', 'name', modifyQueryUsing: function (Builder $query) {
+                        /** @var User $user */
+                        $user = Auth::user();
+                        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+                            return $query;
+                        }
+                        $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                        return $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+                    })
                     ->searchable()
                     ->preload(),
 
@@ -208,6 +224,32 @@ class JadwalPiketResource extends Resource
             ->defaultSort('tanggal', 'desc');
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->with(['user.employee.units']);
+        /** @var User $user */
+        $user = Auth::user();
+
+        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            return $query;
+        }
+
+        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang', 'admin_unit'])) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id')->all();
+
+                return $query->whereHas(
+                    'user.employee.units',
+                    fn($q) => $q->whereIn('units.id', $unitIds)
+                );
+            }
+
+            return $query->whereRaw('1=0');
+        }
+
+        return $query;
+    }
+
     public static function getPages(): array
     {
         return [
@@ -222,14 +264,14 @@ class JadwalPiketResource extends Resource
     {
         /** @var User|null $user */
         $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah']) ?? false;
+        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah', 'koor_jenjang']) ?? false;
     }
 
     public static function canViewAny(): bool
     {
         /** @var User|null $user */
         $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah']) ?? false;
+        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah', 'koor_jenjang']) ?? false;
     }
 
     public static function canCreate(): bool
@@ -240,20 +282,20 @@ class JadwalPiketResource extends Resource
         if ($user?->hasRole('ketua_psdm')) {
             return false;
         }
-        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'kepala_sekolah']) ?? false;
+        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'kepala_sekolah', 'koor_jenjang']) ?? false;
     }
 
     public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
     {
         /** @var User|null $user */
         $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'kepala_sekolah']) ?? false;
+        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'kepala_sekolah', 'koor_jenjang']) ?? false;
     }
 
     public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
     {
         /** @var User|null $user */
         $user = Auth::user();
-        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'kepala_sekolah']) ?? false;
+        return $user?->hasAnyRole(['super_admin', 'admin_unit', 'kepala_sekolah', 'koor_jenjang']) ?? false;
     }
 }

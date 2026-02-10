@@ -17,7 +17,9 @@ class GrafikDistribusiPegawai extends ChartWidget
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
 
-        return $user && $user->can('View:GrafikDistribusiPegawai');
+        // Hanya tampil untuk Global Admin (Super Admin / Ketua PSDM)
+        // Admin Unit tidak perlu melihat distribusi unit lain
+        return $user && $user->can('View:GrafikDistribusiPegawai') && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
     }
 
 

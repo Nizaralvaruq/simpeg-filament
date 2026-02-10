@@ -11,7 +11,7 @@ class GrafikTrenKehadiran extends ChartWidget
 {
     protected static ?int $sort = 4;
     protected ?string $heading = 'Tren Keterlambatan (7 Hari Terakhir)';
-    protected int | string | array $columnSpan = 1;
+    protected int | string | array $columnSpan = 'full';
     protected ?string $maxHeight = '250px';
 
     public static function canView(): bool
@@ -39,7 +39,7 @@ class GrafikTrenKehadiran extends ChartWidget
                 ->whereDate('tanggal', $date)
                 ->where('late_minutes', '>', 0);
 
-            if (!$user->hasRole('super_admin')) {
+            if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
                 $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
                 $query->whereHas('user.employee.units', function ($q) use ($unitIds) {
                     $q->whereIn('units.id', $unitIds);

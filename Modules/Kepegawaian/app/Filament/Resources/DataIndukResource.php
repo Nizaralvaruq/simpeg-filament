@@ -466,7 +466,15 @@ class DataIndukResource extends Resource
                         ->schema([
                             Forms\Components\Select::make('units')
                                 ->label('Unit Kerja')
-                                ->relationship('units', 'name')
+                                ->relationship('units', 'name', modifyQueryUsing: function (Builder $query) {
+                                    /** @var \App\Models\User $user */
+                                    $user = Auth::user();
+                                    if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+                                        return $query;
+                                    }
+                                    $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                                    return $query->whereIn('units.id', $unitIds);
+                                })
                                 ->multiple()
                                 ->preload(),
                             Forms\Components\Select::make('status_kepegawaian')
@@ -734,7 +742,7 @@ class DataIndukResource extends Resource
                 ->visible(function (): bool {
                     /** @var \App\Models\User $user */
                     $user = Auth::user();
-                    return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm']);
+                    return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'koor_jenjang', 'kepala_sekolah']);
                 })
                 ->schema([
                     Forms\Components\TextInput::make('email')
@@ -754,7 +762,17 @@ class DataIndukResource extends Resource
 
                     Forms\Components\Select::make('roles')
                         ->label('Roles')
-                        ->options(\Spatie\Permission\Models\Role::pluck('name', 'name'))
+                        ->options(function () {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            $query = \Spatie\Permission\Models\Role::query();
+
+                            if (!$user->hasRole('super_admin')) {
+                                $query->where('name', '!=', 'super_admin');
+                            }
+
+                            return $query->pluck('name', 'name');
+                        })
                         ->multiple()
                         ->searchable()
                         ->preload()
@@ -830,7 +848,15 @@ class DataIndukResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('units')
                     ->label('Unit Kerja')
-                    ->relationship('units', 'name')
+                    ->relationship('units', 'name', modifyQueryUsing: function (Builder $query) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+                            return $query;
+                        }
+                        $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                        return $query->whereIn('units.id', $unitIds);
+                    })
                     ->searchable()
                     ->preload(),
 
