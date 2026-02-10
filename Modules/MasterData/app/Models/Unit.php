@@ -12,6 +12,12 @@ class Unit extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'radius' => 'integer',
+    ];
+
     public function employees()
     {
         return $this->belongsToMany(DataInduk::class, 'employee_unit', 'unit_id', 'employee_id');

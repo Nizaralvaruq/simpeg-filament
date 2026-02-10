@@ -158,8 +158,8 @@ class QrScanner extends Page
         if ($userUnits && $userUnits->isNotEmpty()) {
             // Check if user is within ANY of their units' geofences
             foreach ($userUnits as $unit) {
-                $dist = $this->calculateDistance($lat, $lng, $unit->latitude, $unit->longitude);
-                $radius = $unit->radius ?? $globalSettings->office_radius ?? 100;
+                $dist = $this->calculateDistance($lat, $lng, (float)$unit->latitude, (float)$unit->longitude);
+                $radius = (int) ($unit->radius ?? $globalSettings->office_radius ?? 100);
 
                 if ($dist <= $radius) {
                     $validGeofence = [
@@ -185,9 +185,9 @@ class QrScanner extends Page
             }
         } else {
             // 2. Fallback to Global Settings
-            $officeLat = $globalSettings->office_latitude;
-            $officeLng = $globalSettings->office_longitude;
-            $maxRadiusMeters = $globalSettings->office_radius ?? 100;
+            $officeLat = (float) $globalSettings->office_latitude;
+            $officeLng = (float) $globalSettings->office_longitude;
+            $maxRadiusMeters = (int) ($globalSettings->office_radius ?? 100);
 
             if ($officeLat && $officeLng) {
                 if (!$lat || !$lng) {
