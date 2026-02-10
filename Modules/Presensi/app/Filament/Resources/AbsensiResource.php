@@ -175,7 +175,7 @@ class AbsensiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn($query) => $query->with(['user']))
+            ->modifyQueryUsing(fn($query) => $query->with(['user.employee.units']))
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Pegawai')

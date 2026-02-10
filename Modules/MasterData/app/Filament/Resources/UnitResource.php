@@ -107,6 +107,8 @@ class UnitResource extends Resource
                             ->schema([
                                 Forms\Components\TextInput::make('latitude')
                                     ->numeric()
+                                    ->minValue(-90)
+                                    ->maxValue(90)
                                     ->step(0.00000001)
                                     ->placeholder('-6.xxxx')
                                     ->suffixActions([
@@ -127,6 +129,8 @@ class UnitResource extends Resource
                                     ]),
                                 Forms\Components\TextInput::make('longitude')
                                     ->numeric()
+                                    ->minValue(-180)
+                                    ->maxValue(180)
                                     ->step(0.00000001)
                                     ->placeholder('106.xxxx'),
                                 Forms\Components\TextInput::make('radius')

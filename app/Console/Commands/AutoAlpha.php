@@ -32,8 +32,11 @@ class AutoAlpha extends Command
             return;
         }
 
-        // 3. Get all staff users
-        $users = \App\Models\User::role('staff')->get();
+        // 3. Get all users with active employee record
+        $users = \App\Models\User::whereHas('employee', function ($q) {
+            $q->whereIn('status', ['Aktif', 'aktif']);
+        })->get();
+
         $count = 0;
 
         foreach ($users as $user) {

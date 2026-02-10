@@ -32,19 +32,25 @@ class AppraisalAssignment extends Model
         return $this->hasMany(AppraisalResult::class, 'assignment_id');
     }
 
+    protected static $sessionCache = [];
+
     public static function getAggregatedReport($sessionId, $rateeId)
     {
         $assignments = self::where('session_id', $sessionId)
             ->where('ratee_id', $rateeId)
             ->where('status', 'completed')
-            ->with(['results.indicator.category'])
+            ->with(['results'])
             ->get();
 
         if ($assignments->isEmpty()) {
             return null;
         }
 
-        $session = AppraisalSession::find($sessionId);
+        if (!isset(self::$sessionCache[$sessionId])) {
+            self::$sessionCache[$sessionId] = AppraisalSession::find($sessionId);
+        }
+
+        $session = self::$sessionCache[$sessionId];
         $weights = [
             'superior' => $session->superior_weight ?? 50,
             'peer' => $session->peer_weight ?? 30,

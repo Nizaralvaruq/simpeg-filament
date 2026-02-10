@@ -127,6 +127,8 @@ class ManageSettings extends Page implements HasForms
                                 \Filament\Forms\Components\TextInput::make('office_latitude')
                                     ->label('Latitude Kantor')
                                     ->numeric()
+                                    ->minValue(-90)
+                                    ->maxValue(90)
                                     ->extraInputAttributes(['step' => 'any'])
                                     ->id('office-latitude')
                                     ->placeholder('-6.2088')
@@ -151,6 +153,8 @@ class ManageSettings extends Page implements HasForms
                                     ->id('office-longitude')
                                     ->extraInputAttributes(['step' => 'any'])
                                     ->numeric()
+                                    ->minValue(-180)
+                                    ->maxValue(180)
                                     ->placeholder('106.8456'),
                             ]),
                         \Filament\Forms\Components\TextInput::make('office_radius')
