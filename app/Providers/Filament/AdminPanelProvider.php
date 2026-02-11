@@ -86,10 +86,6 @@ class AdminPanelProvider extends PanelProvider
                 'Penilaian Kinerja',
                 'Data Master',
                 'Authorization',
-            ])
-            ->renderHook(
-                \Filament\View\PanelsRenderHook::BODY_END,
-                fn(): string => view('filament.components.bottom-navigation')->render(),
-            );
+            ]);
     }
 }

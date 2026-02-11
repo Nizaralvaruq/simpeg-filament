@@ -8,6 +8,30 @@ Route::get('/', function () {
     return redirect('/admin');
 })->name('home');
 
+Route::get('/my-qr-image', function () {
+    $user = \Illuminate\Support\Facades\Auth::user();
+    if (!$user) abort(403);
+
+    $token = $user->qr_token;
+    if (empty($token)) {
+        // Return transparent 1x1 pixel
+        return response(base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='))
+            ->header('Content-Type', 'image/png');
+    }
+
+    $options = new \chillerlan\QRCode\QROptions([
+        'version'    => 5,
+        'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
+        'eccLevel'   => \chillerlan\QRCode\QRCode::ECC_L,
+        'scale'      => 10,
+        'imageBase64' => false,
+    ]);
+
+    $qrcode = (new \chillerlan\QRCode\QRCode($options))->render($token);
+
+    return response($qrcode)->header('Content-Type', 'image/png');
+})->middleware(['auth', 'verified'])->name('my-qr-image');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

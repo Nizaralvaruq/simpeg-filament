@@ -20,6 +20,28 @@
                 document.addEventListener('fullscreenchange', () => {
                     this.isFullscreen = !!document.fullscreenElement;
                 });
+
+                // Initialize Scanner with Retry
+                this.$nextTick(() => {
+                    this.startScannerWithRetry();
+                });
+            },
+            destroy() {
+                // Cleanup scanner when component is removed
+                if (window.stopQrScannerMaster) {
+                    window.stopQrScannerMaster();
+                }
+            },
+            startScannerWithRetry(attempts = 0) {
+                if (typeof window.initQrScannerMaster === 'function') {
+                    window.initQrScannerMaster();
+                } else {
+                    if (attempts < 10) {
+                        setTimeout(() => this.startScannerWithRetry(attempts + 1), 300);
+                    } else {
+                        console.error('Failed to load QR Scanner script.');
+                    }
+                }
             },
             toggleFullscreen() {
                 if (!document.fullscreenElement) {
@@ -95,8 +117,45 @@
             let html5QrCode = null;
             let isScanning = false;
 
-            // Master init function
-            window.initQrScannerMaster = function() {
+            window.initQrScannerMaster = function(attempts = 0) {
+                // Check if library is loaded
+                if (typeof Html5Qrcode === 'undefined') {
+                    if (attempts < 20) {
+                        // console.log('Library not ready, retrying...', attempts);
+                        setTimeout(() => window.initQrScannerMaster(attempts + 1), 500);
+                    } else {
+                        console.error('Html5Qrcode library failed to load.');
+                        alert('Gagal memuat sistem kamera. Silakan refresh halaman.');
+                    }
+                    return;
+                }
+
+                // Determine if reader element exists
+                const reader = document.getElementById('reader');
+                if (!reader) {
+                    // console.log('Reader element not found, skipping init.');
+                    return;
+                }
+
+                // If scanner already instance exists, ensure it's stopped/cleared or reused
+                if (html5QrCode) {
+                    try {
+                        if (html5QrCode.isScanning) {
+                            html5QrCode.stop().then(() => {
+                                html5QrCode.clear();
+                                setTimeout(() => startScanner(), 200);
+                            }).catch(err => {
+                                console.warn('Stop failed?', err);
+                                startScanner();
+                            });
+                            return; // Wait for stop
+                        }
+                    } catch (e) {
+                        console.error('Error checking scanning status', e);
+                        html5QrCode = null; // Force reset
+                    }
+                }
+
                 // Init Audio if not ready
                 if (!audioCheckIn && document.getElementById('beep-checkin')) {
                     audioCheckIn = new Audio(getAudioSrc('beep-checkin'));
@@ -104,21 +163,43 @@
                     audioError = new Audio(getAudioSrc('beep-error'));
                 }
 
-                if (html5QrCode) {
-                    html5QrCode.stop().then(() => {
-                        startScanner();
-                    }).catch(() => startScanner());
-                } else {
+                if (!html5QrCode) {
                     html5QrCode = new Html5Qrcode("reader");
-                    startScanner();
                 }
 
+                startScanner();
                 bindManualInput();
+            };
+
+            window.stopQrScannerMaster = function() {
+                if (html5QrCode) {
+                    try {
+                        html5QrCode.stop().then(() => {
+                            html5QrCode.clear();
+                            // html5QrCode = null; // Do not nullify, reuse instance? Better to nullify to be safe?
+                            // Html5Qrcode instances are tied to element ID. If element is removed, instance is zombie.
+                            html5QrCode = null;
+                        }).catch(err => {
+                            console.log('Failed to stop scanner:', err);
+                            html5QrCode = null;
+                        });
+                    } catch (e) {
+                        html5QrCode = null;
+                    }
+                }
             };
 
             const bindManualInput = () => {
                 const manualSubmit = document.getElementById('manual-submit');
                 const manualTokenInput = document.getElementById('manual-token');
+
+                // Also bind Start Camera button if exists
+                const btnStart = document.getElementById('btn-start-camera');
+                if (btnStart) {
+                    btnStart.onclick = () => {
+                        window.initQrScannerMaster();
+                    };
+                }
 
                 if (manualSubmit) {
                     manualSubmit.onclick = () => {
@@ -143,6 +224,9 @@
             };
 
             const startScanner = () => {
+                // Double check element existence before starting
+                if (!document.getElementById('reader')) return;
+
                 html5QrCode.start({
                         facingMode: "environment"
                     }, {
@@ -176,9 +260,12 @@
                                     },
                                     (err) => {
                                         // Debug Alert
-                                        alert(`GPS Error (${err.code}): ${err.message}`);
+                                        // alert(`GPS Error (${err.code}): ${err.message}`);
+                                        console.warn(`GPS Error (${err.code}): ${err.message}`);
                                         if (document.getElementById('scan-overlay')) document
                                             .getElementById('scan-overlay').style.opacity = '0';
+
+                                        // Still process scan even if GPS fails, backend will handle validation
                                         processScan(decodedText, null, null);
                                     }, {
                                         timeout: 10000,
@@ -194,7 +281,8 @@
                     }
                 ).catch(err => {
                     console.error("Camera Error:", err);
-                    setTimeout(startScanner, 2000);
+                    // Avoid infinite rapid loops
+                    // setTimeout(startScanner, 2000); 
                 });
             };
 
@@ -300,24 +388,16 @@
             });
 
             document.addEventListener('livewire:navigated', () => {
+                // Managed by Alpine init() now, but keeping this as backup for full page navs
                 if (document.getElementById('reader')) {
-                    window.initQrScannerMaster();
+                    // window.initQrScannerMaster(); 
+                    // Let Alpine handle it to avoid double init
                 } else {
                     if (html5QrCode) {
                         html5QrCode.stop().catch(e => {});
                     }
                 }
             });
-        }
-
-        if (document.getElementById('reader')) {
-            if (window.initQrScannerMaster) {
-                window.initQrScannerMaster();
-            } else {
-                document.addEventListener('DOMContentLoaded', () => {
-                    if (window.initQrScannerMaster) window.initQrScannerMaster();
-                });
-            }
         }
     </script>
 @endpush

@@ -171,8 +171,10 @@
                 <div class="bg-circle" style="bottom: -2.5rem; right: -2.5rem; background-color: rgba(0,0,0,0.1);"></div>
 
                 <!-- QR Container -->
-                <div id="qrcode-container" class="qr-container">
-                    <div id="qrcode" style="width: 100%; height: 100%;"></div>
+                <div class="qr-container">
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ route('my-qr-image') }}" alt="My QR Code" style="width: 100%; height: 100%;">
+                    </div>
                     <!-- Logo Overlay -->
                     <div
                         style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
@@ -238,88 +240,4 @@
             Tips: Gunakan tingkat kecerahan layar maksimal saat melakukan scanning pada mesin Terminal Absensi.
         </div>
     </div>
-
-    <!-- Hidden canvas for PNG export -->
-    <canvas id="qr-canvas" style="display:none;"></canvas>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
-        function initQrCode() {
-            const container = document.getElementById("qrcode");
-
-            // Clear previous QR code if exists
-            container.innerHTML = '';
-
-            // Dynamic size based on container width
-            const containerWidth = container.clientWidth || 300; // Fallback
-
-            const qrcode = new QRCode(container, {
-                text: "{{ $this->getQrContent() }}",
-                width: containerWidth,
-                height: containerWidth,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H,
-                useSVG: true
-            });
-
-            // Adjust the actual SVG inside to be responsive to the container
-            setTimeout(() => {
-                const svg = container.querySelector('svg');
-                if (svg) {
-                    svg.setAttribute('viewBox', `0 0 ${containerWidth} ${containerWidth}`);
-                    svg.style.width = '100%';
-                    svg.style.height = '100%';
-                }
-            }, 50);
-        }
-
-        // Initialize on page load (for non-SPA navigation)
-        document.addEventListener('DOMContentLoaded', initQrCode);
-
-        // Re-initialize on Livewire navigation (for SPA mode)
-        document.addEventListener('livewire:navigated', initQrCode);
-
-        // Download QR PNG handler
-        window.addEventListener('download-qr-png', function() {
-            const tempCanvas = document.createElement('canvas');
-            const size = 1000;
-            const logoSize = 160;
-
-            new QRCode(tempCanvas, {
-                text: "{{ $this->getQrContent() }}",
-                width: size,
-                height: size,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            setTimeout(() => {
-                const qrCanvas = tempCanvas.querySelector('canvas');
-                const ctx = qrCanvas.getContext('2d');
-                const centerX = size / 2;
-                const centerY = size / 2;
-                const radius = (logoSize / 2) + 20;
-
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                ctx.fillStyle = "white";
-                ctx.fill();
-
-                const logoImg = new Image();
-                logoImg.src = "{{ asset('images/logo1.png') }}";
-                logoImg.onload = function() {
-                    const x = centerX - (logoSize / 2);
-                    const y = centerY - (logoSize / 2);
-                    ctx.drawImage(logoImg, x, y, logoSize, logoSize);
-
-                    const link = document.createElement('a');
-                    link.download = "QR-Branded-{{ $this->getUserNip() }}.png";
-                    link.href = qrCanvas.toDataURL("image/png");
-                    link.click();
-                };
-            }, 100);
-        });
-    </script>
 </x-filament-panels::page>

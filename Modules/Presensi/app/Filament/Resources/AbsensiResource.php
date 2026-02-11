@@ -175,6 +175,7 @@ class AbsensiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('5s')
             ->modifyQueryUsing(fn($query) => $query->with(['user.employee.units']))
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')

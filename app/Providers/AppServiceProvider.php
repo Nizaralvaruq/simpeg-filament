@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Set timezone to Indonesia (WIB)
         date_default_timezone_set('Asia/Jakarta');
-
+        config(['app.timezone' => 'Asia/Jakarta']);
         Carbon::setLocale('id');
 
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
@@ -78,6 +78,21 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Gate::policy(
             \Modules\Resign\Models\Resign::class,
             \Modules\Resign\Policies\ResignPolicy::class
+        );
+
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\MasterData\Models\Unit::class,
+            \Modules\MasterData\Policies\UnitPolicy::class
+        );
+
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\MasterData\Models\Golongan::class,
+            \Modules\MasterData\Policies\GolonganPolicy::class
+        );
+
+        \Illuminate\Support\Facades\Gate::policy(
+            \App\Models\User::class,
+            \App\Policies\UserPolicy::class
         );
     }
 }

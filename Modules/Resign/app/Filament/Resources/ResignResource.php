@@ -166,7 +166,7 @@ class ResignResource extends Resource
                     ->visible(function () {
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
-                        return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm']);
+                        return $user?->hasAnyRole(['super_admin', 'admin', 'ketua_psdm']);
                     })
                     ->schema([
                         Forms\Components\Select::make('status')
@@ -262,7 +262,7 @@ class ResignResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'ketua_psdm'])
                                 && $record->status === 'diajukan';
                         })
                         ->action(function ($record) {
@@ -293,7 +293,7 @@ class ResignResource extends Resource
                         ->visible(function ($record) {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
-                            return $user?->hasAnyRole(['super_admin', 'admin', 'admin_unit', 'ketua_psdm'])
+                            return $user?->hasAnyRole(['super_admin', 'admin', 'ketua_psdm'])
                                 && $record->status === 'diajukan';
                         })
                         ->action(
