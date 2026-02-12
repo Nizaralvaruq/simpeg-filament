@@ -91,6 +91,92 @@ class LaporanPenilaianResource extends Resource
                     ->state(fn($record) => AppraisalAssignment::getAggregatedReport($record->session_id, $record->ratee_id) ?? '-')
                     ->weight('bold')
                     ->color('primary'),
+                TextColumn::make('breakdown')
+                    ->label('Detail Skor')
+                    ->html()
+                    ->state(function ($record) {
+                        $sessionId = $record->session_id;
+                        $rateeId = $record->ratee_id;
+                        $session = $record->session;
+
+                        $html = '<div class="flex gap-1 flex-wrap">';
+
+                        // Helper to generate badge HTML
+                        $getBadge = function ($label, $score, $title) {
+                            $color = '#94a3b8'; // gray
+                            if ($score >= 4.5) $color = '#22c55e'; // green
+                            elseif ($score >= 3.5) $color = '#3b82f6'; // blue
+                            elseif ($score >= 2.5) $color = '#f59e0b'; // amber
+                            else $color = '#ef4444'; // red
+
+                            return "<span title='{$title}: {$score}' class='px-1.5 py-0.5 rounded text-[10px] font-bold text-white' style='background-color: {$color}'>{$label}: {$score}</span>";
+                        };
+
+                        // Manual scores from all assignments (completed + expired)
+                        $assignments = AppraisalAssignment::where('session_id', $sessionId)
+                            ->where('ratee_id', $rateeId)
+                            ->whereIn('status', ['completed', 'expired'])
+                            ->with('results')
+                            ->get();
+
+                        $scoresByType = ['superior' => [], 'peer' => [], 'self' => []];
+                        $missingByType = ['superior' => 0, 'peer' => 0, 'self' => 0];
+
+                        foreach ($assignments as $a) {
+                            if ($a->status === 'expired') {
+                                $missingByType[$a->relation_type]++;
+                                continue;
+                            }
+                            $avg = $a->results->avg('score');
+                            if ($avg) $scoresByType[$a->relation_type][] = $avg;
+                        }
+
+                        if (!empty($scoresByType['superior'])) {
+                            $score = round(array_sum($scoresByType['superior']) / count($scoresByType['superior']), 1);
+                            $html .= $getBadge('A', $score, 'Atasan');
+                        } elseif ($missingByType['superior'] > 0) {
+                            $html .= "<span title='Tugas Atasan Kedaluwarsa' class='px-1.5 py-0.5 rounded text-[10px] font-bold text-white bg-slate-400 opacity-60'>A: -</span>";
+                        }
+
+                        if (!empty($scoresByType['peer'])) {
+                            $score = round(array_sum($scoresByType['peer']) / count($scoresByType['peer']), 1);
+                            $html .= $getBadge('R', $score, 'Rekan');
+                        }
+
+                        // Show additional indicators for missing peers
+                        if ($missingByType['peer'] > 0) {
+                            for ($i = 0; $i < $missingByType['peer']; $i++) {
+                                $html .= "<span title='Tugas Rekan Kedaluwarsa' class='px-1.5 py-0.5 rounded text-[10px] font-bold text-white bg-slate-400 opacity-60'>R: -</span>";
+                            }
+                        }
+
+                        if (!empty($scoresByType['self'])) {
+                            $score = round(array_sum($scoresByType['self']) / count($scoresByType['self']), 1);
+                            $html .= $getBadge('S', $score, 'Diri');
+                        } elseif ($missingByType['self'] > 0) {
+                            $html .= "<span title='Self Assessment Kedaluwarsa' class='px-1.5 py-0.5 rounded text-[10px] font-bold text-white bg-slate-400 opacity-60'>S: -</span>";
+                        }
+
+                        // Auto scores
+                        if ($session->attendance_weight > 0) {
+                            $ratee = DataInduk::find($rateeId);
+                            if ($ratee && $ratee->user_id) {
+                                $att = \Modules\PenilaianKinerja\Services\AutoScoreService::getAttendanceScore($ratee->user_id, $session->start_date, $session->end_date);
+                                $html .= $getBadge('H', $att['score'], 'Harian');
+                            }
+                        }
+
+                        if ($session->activity_weight > 0) {
+                            $ratee = DataInduk::find($rateeId);
+                            if ($ratee && $ratee->user_id) {
+                                $act = \Modules\PenilaianKinerja\Services\AutoScoreService::getActivityScore($ratee->user_id, $session->start_date, $session->end_date);
+                                $html .= $getBadge('K', $act['score'], 'Kegiatan');
+                            }
+                        }
+
+                        $html .= '</div>';
+                        return $html;
+                    }),
             ])
             ->striped()
             ->persistFiltersInSession()
@@ -112,12 +198,24 @@ class LaporanPenilaianResource extends Resource
                             $finalGrade = AppraisalAssignment::getGrade($finalScore);
                             $categoryReport = AppraisalAssignment::getCategoryReport($record->session_id, $record->ratee_id);
 
+                            $attendanceData = null;
+                            if ($session->attendance_weight > 0 && $ratee->user_id) {
+                                $attendanceData = \Modules\PenilaianKinerja\Services\AutoScoreService::getAttendanceScore($ratee->user_id, $session->start_date, $session->end_date);
+                            }
+
+                            $activityData = null;
+                            if ($session->activity_weight > 0 && $ratee->user_id) {
+                                $activityData = \Modules\PenilaianKinerja\Services\AutoScoreService::getActivityScore($ratee->user_id, $session->start_date, $session->end_date);
+                            }
+
                             $pdf = Pdf::loadView('penilaiankinerja::reports.performance_report', [
                                 'session' => $session,
                                 'ratee' => $ratee,
                                 'finalScore' => $finalScore,
                                 'finalGrade' => $finalGrade,
                                 'categoryReport' => $categoryReport,
+                                'attendanceData' => $attendanceData,
+                                'activityData' => $activityData,
                             ]);
 
                             return response()->streamDownload(

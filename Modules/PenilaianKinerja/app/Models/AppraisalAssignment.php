@@ -55,6 +55,8 @@ class AppraisalAssignment extends Model
             'superior' => $session->superior_weight ?? 50,
             'peer' => $session->peer_weight ?? 30,
             'self' => $session->self_weight ?? 20,
+            'attendance' => $session->attendance_weight ?? 0,
+            'activity' => $session->activity_weight ?? 0,
         ];
 
         $scoresByType = [
@@ -78,6 +80,34 @@ class AppraisalAssignment extends Model
                 $avgForType = array_sum($scores) / count($scores);
                 $finalScore += $avgForType * ($weights[$type] / 100);
                 $totalAvailableWeight += $weights[$type];
+            }
+        }
+
+        // Calculate Attendance Score
+        if (!empty($weights['attendance']) && $weights['attendance'] > 0) {
+            $ratee = DataInduk::find($rateeId);
+            if ($ratee && $ratee->user_id) {
+                $attendanceData = \Modules\PenilaianKinerja\Services\AutoScoreService::getAttendanceScore(
+                    $ratee->user_id,
+                    $session->start_date,
+                    $session->end_date
+                );
+                $finalScore += $attendanceData['score'] * ($weights['attendance'] / 100);
+                $totalAvailableWeight += $weights['attendance'];
+            }
+        }
+
+        // Calculate Activity Score
+        if (!empty($weights['activity']) && $weights['activity'] > 0) {
+            $ratee = DataInduk::find($rateeId);
+            if ($ratee && $ratee->user_id) {
+                $activityData = \Modules\PenilaianKinerja\Services\AutoScoreService::getActivityScore(
+                    $ratee->user_id,
+                    $session->start_date,
+                    $session->end_date
+                );
+                $finalScore += $activityData['score'] * ($weights['activity'] / 100);
+                $totalAvailableWeight += $weights['activity'];
             }
         }
 
@@ -125,6 +155,33 @@ class AppraisalAssignment extends Model
                 'average_score' => $avg,
                 'grade' => self::getGrade($avg),
             ];
+        }
+
+        // Add Virtual Categories for Auto Scores
+        $session = AppraisalSession::find($sessionId);
+        if ($session) {
+            $ratee = DataInduk::find($rateeId);
+            if ($ratee && $ratee->user_id) {
+                // Kehadiran
+                if ($session->attendance_weight > 0) {
+                    $att = \Modules\PenilaianKinerja\Services\AutoScoreService::getAttendanceScore($ratee->user_id, $session->start_date, $session->end_date);
+                    $report[] = [
+                        'category_name' => 'Kehadiran Harian (Otomatis)',
+                        'average_score' => $att['score'],
+                        'grade' => self::getGrade($att['score']),
+                    ];
+                }
+
+                // Kegiatan
+                if ($session->activity_weight > 0) {
+                    $act = \Modules\PenilaianKinerja\Services\AutoScoreService::getActivityScore($ratee->user_id, $session->start_date, $session->end_date);
+                    $report[] = [
+                        'category_name' => 'Partisipasi Kegiatan (Otomatis)',
+                        'average_score' => $act['score'],
+                        'grade' => self::getGrade($act['score']),
+                    ];
+                }
+            }
         }
 
         return $report;

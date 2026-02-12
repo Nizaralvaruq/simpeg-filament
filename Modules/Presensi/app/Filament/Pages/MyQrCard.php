@@ -111,8 +111,8 @@ class MyQrCard extends Page
         try {
             $options = new \chillerlan\QRCode\QROptions([
                 'version'      => 5,
-                'outputType'   => \chillerlan\QRCode\QRCode::OUTPUT_MARKUP_SVG,
-                'eccLevel'     => \chillerlan\QRCode\QRCode::ECC_L,
+                'outputInterface' => \chillerlan\QRCode\Output\QRMarkupSVG::class,
+                'eccLevel'     => \chillerlan\QRCode\Common\EccLevel::L,
                 'addQuietzone' => false,
             ]);
 
@@ -138,8 +138,8 @@ class MyQrCard extends Page
 
         $options = new \chillerlan\QRCode\QROptions([
             'version'    => 5,
-            'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
-            'eccLevel'   => \chillerlan\QRCode\QRCode::ECC_L,
+            'outputInterface' => \chillerlan\QRCode\Output\QRGdImagePNG::class,
+            'eccLevel'   => \chillerlan\QRCode\Common\EccLevel::L,
             'scale'      => 10,
             'imageBase64' => false,
         ]);

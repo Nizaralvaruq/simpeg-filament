@@ -55,11 +55,6 @@ class RubrikPenilaianResource extends Resource
                         ->required()
                         ->placeholder('Contoh: Kompetensi Teknis')
                         ->maxLength(255),
-                    TextInput::make('weight')
-                        ->label('Bobot (%)')
-                        ->numeric()
-                        ->required()
-                        ->placeholder('Contoh: 40'),
                 ]),
 
             Section::make('Indikator Penilaian')
@@ -88,9 +83,6 @@ class RubrikPenilaianResource extends Resource
                 TextColumn::make('name')
                     ->label('Nama Kategori')
                     ->searchable(),
-                TextColumn::make('weight')
-                    ->label('Bobot (%)')
-                    ->sortable(),
                 TextColumn::make('indicators_count')
                     ->label('Jumlah Indikator')
                     ->counts('indicators'),

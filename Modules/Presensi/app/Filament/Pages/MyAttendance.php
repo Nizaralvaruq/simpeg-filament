@@ -64,6 +64,7 @@ class MyAttendance extends Page implements HasTable
                         'sakit' => 'danger',
                         'alpha' => 'gray',
                         'dinas_luar' => 'info',
+                        'cuti' => 'primary',
                     })
                     ->formatStateUsing(fn(string $state): string => str($state)->replace('_', ' ')->title()),
                 TextColumn::make('jam_masuk')
@@ -106,6 +107,7 @@ class MyAttendance extends Page implements HasTable
                         'dinas_luar' => 'Dinas Luar',
                         'izin' => 'Izin',
                         'sakit' => 'Sakit',
+                        'cuti' => 'Cuti',
                         'alpha' => 'Alpha',
                     ]),
                 Filter::make('tanggal')
@@ -143,15 +145,15 @@ class MyAttendance extends Page implements HasTable
             ->get()
             ->sum('late_minutes');
 
-        $izinSakit = Absensi::where('user_id', $userId)
+        $izinSakitCuti = Absensi::where('user_id', $userId)
             ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->whereIn('status', ['izin', 'sakit'])
+            ->whereIn('status', ['izin', 'sakit', 'cuti'])
             ->count();
 
         return [
             'hadir' => $hadir,
             'late' => $lateMinutes,
-            'izin_sakit' => $izinSakit,
+            'izin_sakit' => $izinSakitCuti,
         ];
     }
 }

@@ -142,8 +142,10 @@ class AbsensiResource extends Resource
                         Forms\Components\Select::make('status')
                             ->options([
                                 'hadir' => 'Hadir',
+                                'dinas_luar' => 'Dinas Luar',
                                 'izin' =>  'Izin',
                                 'sakit' => 'Sakit',
+                                'cuti' => 'Cuti',
                                 'alpha' => 'Alpha',
                             ])
                             ->required()
@@ -195,6 +197,7 @@ class AbsensiResource extends Resource
                         'sakit' => 'danger',
                         'alpha' => 'gray',
                         'dinas_luar' => 'info',
+                        'cuti' => 'primary',
                     })
                     ->formatStateUsing(fn(string $state): string => str($state)->replace('_', ' ')->title()),
 
@@ -248,8 +251,10 @@ class AbsensiResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'hadir' => 'Hadir',
+                        'dinas_luar' => 'Dinas Luar',
                         'izin' => 'Izin',
                         'sakit' => 'Sakit',
+                        'cuti' => 'Cuti',
                         'alpha' => 'Alpha',
                     ]),
                 Tables\Filters\Filter::make('tanggal')

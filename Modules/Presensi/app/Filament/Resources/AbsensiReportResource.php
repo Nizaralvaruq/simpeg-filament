@@ -91,6 +91,11 @@ class AbsensiReportResource extends Resource
                                 ->whereMonth('tanggal', $month)
                                 ->whereYear('tanggal', $year);
                         },
+                        'absensis as cuti_count' => function ($q) use ($month, $year) {
+                            $q->where('status', 'cuti')
+                                ->whereMonth('tanggal', $month)
+                                ->whereYear('tanggal', $year);
+                        },
                     ])
                     ->withSum([
                         'absensis as total_late_minutes' => function ($q) use ($month, $year) {
@@ -128,7 +133,8 @@ class AbsensiReportResource extends Resource
                             ($record->dinas_luar_count ?? 0) +
                             ($record->sakit_count ?? 0) +
                             ($record->izin_count ?? 0) +
-                            ($record->alpha_count ?? 0);
+                            ($record->alpha_count ?? 0) +
+                            ($record->cuti_count ?? 0);
 
                         $present = ($record->hadir_count ?? 0) + ($record->dinas_luar_count ?? 0);
 

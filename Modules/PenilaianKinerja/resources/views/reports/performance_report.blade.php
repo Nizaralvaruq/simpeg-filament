@@ -140,7 +140,7 @@
         <thead>
             <tr>
                 <th style="width: 5%">No</th>
-                <th style="width: 60%">Aspek Penilaian</th>
+                <th style="width: 60%">Aspek Penilaian (Rubrik)</th>
                 <th style="width: 15%; text-align: center;">Skor (1-5)</th>
                 <th style="width: 20%; text-align: center;">Grade</th>
             </tr>
@@ -156,6 +156,41 @@
             @endforeach
         </tbody>
     </table>
+
+    @if (($attendanceData && $session->attendance_weight > 0) || ($activityData && $session->activity_weight > 0))
+        <div
+            style="margin-top: 20px; font-weight: bold; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Komponen Penilaian Otomatis</div>
+        <table class="score-table" style="margin-top: 5px;">
+            <thead>
+                <tr>
+                    <th style="width: 5%">No</th>
+                    <th style="width: 40%">Komponen</th>
+                    <th style="width: 35%">Detail Data</th>
+                    <th style="width: 20%; text-align: center;">Skor (1-5)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $autoIndex = 1; @endphp
+                @if ($attendanceData && $session->attendance_weight > 0)
+                    <tr>
+                        <td style="text-align: center;">{{ $autoIndex++ }}</td>
+                        <td>Kehadiran Harian (Bobot: {{ $session->attendance_weight }}%)</td>
+                        <td>{{ $attendanceData['detail'] }}</td>
+                        <td style="text-align: center;">{{ number_format($attendanceData['score'], 2) }}</td>
+                    </tr>
+                @endif
+                @if ($activityData && $session->activity_weight > 0)
+                    <tr>
+                        <td style="text-align: center;">{{ $autoIndex++ }}</td>
+                        <td>Partisipasi Kegiatan (Bobot: {{ $session->activity_weight }}%)</td>
+                        <td>{{ $activityData['detail'] }}</td>
+                        <td style="text-align: center;">{{ number_format($activityData['score'], 2) }}</td>
+                    </tr>
+                @endif
+            </tbody>
+        </table>
+    @endif
 
     <div class="summary-box">
         <div style="font-size: 14px; text-align: center; margin-bottom: 10px;">SKOR AKHIR TERAGREGASI:</div>

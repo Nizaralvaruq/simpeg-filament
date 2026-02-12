@@ -16,6 +16,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Schemas\Components\Tabs\Tab;
 
 class ListPenugasanPenilaian extends ListRecords
 {
@@ -176,6 +178,27 @@ class ListPenugasanPenilaian extends ListRecords
                         ->success()
                         ->send();
                 }),
+        ];
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            'all' => Tab::make('Semua Tugas'),
+            'pending' => Tab::make('Pending')
+                ->modifyQueryUsing(
+                    fn(Builder $query) => $query->where('status', 'pending')
+                        ->whereHas('session', fn($q) => $q->where('is_active', true))
+                )
+                ->badge(AppraisalAssignment::where('status', 'pending')
+                    ->whereHas('session', fn($q) => $q->where('is_active', true))
+                    ->count()),
+            'completed' => Tab::make('Selesai')
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'completed')),
+            'expired' => Tab::make('Kedaluwarsa')
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'expired'))
+                ->badge(AppraisalAssignment::where('status', 'expired')->count())
+                ->badgeColor('danger'),
         ];
     }
 }

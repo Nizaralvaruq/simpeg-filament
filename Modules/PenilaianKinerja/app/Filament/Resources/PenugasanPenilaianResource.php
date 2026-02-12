@@ -169,8 +169,18 @@ class PenugasanPenilaianResource extends Resource
                     ->color(fn(string $state): string => match ($state) {
                         'pending' => 'gray',
                         'completed' => 'success',
+                        'expired' => 'danger',
                     }),
             ])
+            ->groups([
+                Tables\Grouping\Group::make('session.name')
+                    ->label('Sesi Penilaian')
+                    ->collapsible(),
+                Tables\Grouping\Group::make('ratee.nama')
+                    ->label('Yang Dinilai')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('session.name')
             ->striped()
             ->persistFiltersInSession()
             ->defaultPaginationPageOption(10)
@@ -196,7 +206,8 @@ class PenugasanPenilaianResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with(['session', 'rater', 'ratee']);
+        $query = parent::getEloquentQuery()
+            ->with(['session', 'rater', 'ratee.units']); // Eager load specifically needed relations
         /** @var \App\Models\User $user */
         $user = Auth::user();
 

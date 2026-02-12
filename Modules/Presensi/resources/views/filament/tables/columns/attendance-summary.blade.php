@@ -28,4 +28,9 @@
         <span class="text-[10px] font-bold uppercase text-gray-600 dark:text-gray-400">Alpha</span>
         <span class="text-sm font-black text-gray-700 dark:text-gray-300">{{ $record->alpha_count ?? 0 }}</span>
     </div>
+    <div
+        class="flex flex-col items-center px-2 py-1 bg-primary-50 dark:bg-primary-500/10 rounded-lg border border-primary-100 dark:border-primary-500/20">
+        <span class="text-[10px] font-bold uppercase text-primary-600 dark:text-primary-400">Cuti</span>
+        <span class="text-sm font-black text-primary-700 dark:text-primary-300">{{ $record->cuti_count ?? 0 }}</span>
+    </div>
 </div>

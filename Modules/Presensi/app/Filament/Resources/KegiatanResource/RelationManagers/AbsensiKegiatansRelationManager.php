@@ -84,7 +84,15 @@ class AbsensiKegiatansRelationManager extends RelationManager
                     ]),
             ])
             ->headerActions([
-                // Tables\Actions\CreateAction::make(),
+                \Filament\Actions\CreateAction::make()
+                    ->label('Tambah Kehadiran Manual')
+                    ->modalHeading('Input Kehadiran Manual')
+                    ->icon('heroicon-o-plus-circle')
+                    ->visible(function () {
+                        /** @var \App\Models\User $user */
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah']);
+                    }),
                 \Filament\Actions\Action::make('export')
                     ->label('Export Excel')
                     ->icon('heroicon-o-arrow-down-tray')
@@ -101,11 +109,11 @@ class AbsensiKegiatansRelationManager extends RelationManager
                         );
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

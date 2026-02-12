@@ -14,7 +14,7 @@ class ListUnits extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Unit'),
+                ->label('Tambah Unit/Jenjang'),
         ];
     }
 }

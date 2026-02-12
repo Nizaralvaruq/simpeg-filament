@@ -11,6 +11,11 @@ class EditUnit extends EditRecord
 
     protected string $view = 'masterdata::filament.resources.unit-resource.pages.edit-unit';
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function getFooterWidgets(): array
     {
         return [];

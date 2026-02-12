@@ -5,6 +5,7 @@ namespace Modules\PenilaianKinerja\Filament\Resources;
 use Modules\PenilaianKinerja\Filament\Resources\SesiPenilaianResource\Pages;
 use Modules\PenilaianKinerja\Models\AppraisalSession;
 use Filament\Forms;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Utilities\Get;
 use Closure;
 use Filament\Schemas\Schema;
@@ -101,43 +102,104 @@ class SesiPenilaianResource extends Resource
                                     ->default(50)
                                     ->required()
                                     ->live()
-                                    ->rules([
-                                        fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
+                                    ->afterStateUpdated(fn(Set $set) => $set('total_weight', null))
+                                    ->rule(function (Get $get) {
+                                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight') + (int) $get('attendance_weight') + (int) $get('activity_weight');
                                             if ($total !== 100) {
                                                 $fail("Total bobot harus 100% (Saat ini: {$total}%)");
                                             }
-                                        },
-                                    ]),
+                                        };
+                                    }),
                                 TextInput::make('peer_weight')
                                     ->label('Rekan Sejawat (%)')
                                     ->numeric()
                                     ->default(30)
                                     ->required()
                                     ->live()
-                                    ->rules([
-                                        fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
+                                    ->afterStateUpdated(fn(Set $set) => $set('total_weight', null))
+                                    ->rule(function (Get $get) {
+                                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight') + (int) $get('attendance_weight') + (int) $get('activity_weight');
                                             if ($total !== 100) {
                                                 $fail("Total bobot harus 100% (Saat ini: {$total}%)");
                                             }
-                                        },
-                                    ]),
+                                        };
+                                    }),
                                 TextInput::make('self_weight')
                                     ->label('Diri Sendiri (%)')
                                     ->numeric()
                                     ->default(20)
                                     ->required()
                                     ->live()
-                                    ->rules([
-                                        fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight');
+                                    ->afterStateUpdated(fn(Set $set) => $set('total_weight', null))
+                                    ->rule(function (Get $get) {
+                                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight') + (int) $get('attendance_weight') + (int) $get('activity_weight');
                                             if ($total !== 100) {
                                                 $fail("Total bobot harus 100% (Saat ini: {$total}%)");
                                             }
-                                        },
-                                    ]),
-                            ])
+                                        };
+                                    }),
+                                TextInput::make('attendance_weight')
+                                    ->label('Kehadiran (%)')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(fn(Set $set) => $set('total_weight', null))
+                                    ->rule(function (Get $get) {
+                                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight') + (int) $get('attendance_weight') + (int) $get('activity_weight');
+                                            if ($total !== 100) {
+                                                $fail("Total bobot harus 100% (Saat ini: {$total}%)");
+                                            }
+                                        };
+                                    }),
+                                TextInput::make('activity_weight')
+                                    ->label('Kegiatan (%)')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(fn(Set $set) => $set('total_weight', null))
+                                    ->rule(function (Get $get) {
+                                        return function (string $attribute, $value, Closure $fail) use ($get) {
+                                            $total = (int) $get('superior_weight') + (int) $get('peer_weight') + (int) $get('self_weight') + (int) $get('attendance_weight') + (int) $get('activity_weight');
+                                            if ($total !== 100) {
+                                                $fail("Total bobot harus 100% (Saat ini: {$total}%)");
+                                            }
+                                        };
+                                    }),
+                            ]),
+
+                        \Filament\Schemas\Components\Html::make(function (Get $get) {
+                            $total = (int) $get('superior_weight')
+                                + (int) $get('peer_weight')
+                                + (int) $get('self_weight')
+                                + (int) $get('attendance_weight')
+                                + (int) $get('activity_weight');
+
+                            $color = $total === 100 ? '#22c55e' : ($total > 100 ? '#f97316' : '#ef4444');
+                            $message = $total === 100 ? 'Siap digunakan' : ($total > 100 ? 'Bobot melebihi 100%' : 'Bobot kurang dari 100%');
+
+                            return new \Illuminate\Support\HtmlString("
+                                    <div class='flex flex-col gap-1 mb-4'>
+                                        <span class='text-sm font-medium text-gray-700 dark:text-gray-300'>Status Akurasi Bobot</span>
+                                        <div class='flex items-center gap-4 p-4 border rounded-xl' style='border-color: {$color}22; background-color: {$color}08'>
+                                            <div class='flex-1'>
+                                                <div class='flex justify-between mb-1'>
+                                                    <span class='text-sm font-medium' style='color: {$color}'>Total Bobot: {$total}%</span>
+                                                    <span class='text-xs' style='color: {$color}'>{$message}</span>
+                                                </div>
+                                                <div class='w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden'>
+                                                    <div class='h-2.5 rounded-full transition-all duration-500' style='width: " . min(100, $total) . "%; background-color: {$color}'></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ");
+                        })
                     ])
             ])->columnSpanFull()
         ]);

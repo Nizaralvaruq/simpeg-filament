@@ -1,5 +1,9 @@
 <x-filament-panels::page>
-    {{ $this->form }}
+    <form wire:submit.prevent="create" class="space-y-6">
+        {{ $this->form }}
+
+        <x-filament::actions :actions="$this->getFormActions()" />
+    </form>
 
     @push('scripts')
         <script>
