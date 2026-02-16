@@ -26,7 +26,7 @@ class QrCodeService
         try {
             $options = new QROptions([
                 'version'    => 5,
-                'outputType' => QROutputInterface::CUSTOM,
+                'outputType' => 'custom',
                 'outputInterface' => QRGdImagePNG::class,
                 'eccLevel'   => EccLevel::H,
                 'scale'      => 10,
