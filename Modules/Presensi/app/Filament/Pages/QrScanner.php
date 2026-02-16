@@ -9,6 +9,7 @@ use Modules\Presensi\Models\JadwalPiket;
 use Modules\Presensi\Models\Kegiatan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Filament\Notifications\Notification;
 use Carbon\Carbon;
 
@@ -443,6 +444,12 @@ class QrScanner extends Page
             'status' => 'hadir',
         ]);
 
+        Log::info('QR Event Attendance', [
+            'user' => $user->name,
+            'kegiatan' => $kegiatan->nama_kegiatan,
+            'admin' => Auth::user()->name ?? 'System',
+        ]);
+
         if (!$isSilent) {
             $this->dispatch(
                 'scan-success',
@@ -454,7 +461,7 @@ class QrScanner extends Page
 
             Notification::make()
                 ->title('Hadir di Event')
-                ->body("{$user->name} berhasil check-in di {$kegiatan->nama_kegiatan}.")
+                ->body("{$user->name} berhasil check-in di {$kegiatan->nama_kegiatan}. Cek Laporan Kegiatan.")
                 ->success()
                 ->send();
         }

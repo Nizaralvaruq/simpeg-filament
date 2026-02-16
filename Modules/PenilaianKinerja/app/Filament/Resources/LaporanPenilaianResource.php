@@ -72,6 +72,12 @@ class LaporanPenilaianResource extends Resource
                             }
                         }
                     )
+                    ->when(
+                        $user?->hasRole('staff'),
+                        fn($query) => $user->employee
+                            ? $query->where('ratee_id', $user->employee->id)
+                            : $query->whereRaw('1=0')
+                    )
             )
             ->columns([
                 TextColumn::make('session.name')
@@ -237,6 +243,14 @@ class LaporanPenilaianResource extends Resource
             if ($user->employee && $user->employee->units->isNotEmpty()) {
                 $unitIds = $user->employee->units->pluck('id');
                 $query->whereHas('ratee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+            } else {
+                return $query->whereRaw('1=0');
+            }
+        }
+
+        if ($user && $user->hasRole('staff')) {
+            if ($user->employee) {
+                $query->where('ratee_id', $user->employee->id);
             } else {
                 return $query->whereRaw('1=0');
             }

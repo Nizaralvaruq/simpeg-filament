@@ -6,6 +6,7 @@ use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Filament\Notifications\Notification;
+use App\Services\QrCodeService;
 
 class MyQrCard extends Page
 {
@@ -91,63 +92,53 @@ class MyQrCard extends Page
             : 'Permanent (NIP Based)';
     }
 
-    public function getQrCodeSvg(): string
+    public function getQrImageBase64(): string
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $token = $user->qr_token;
 
-        Log::info('MyQrCard Debug', [
-            'user_id' => $user->id,
-            'token' => $token,
-            'token_length' => strlen($token ?? ''),
-        ]);
-
         if (empty($token)) {
-            Log::warning('MyQrCard: Token is empty');
-            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB4PSIxMCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0icmVkIj5ObyBRUiBUb2tlbjwvdGV4dD48L3N2Zz4=';
+            // Return 1x1 transparent pixel
+            return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
         }
 
         try {
-            $options = new \chillerlan\QRCode\QROptions([
-                'version'      => 5,
-                'outputInterface' => \chillerlan\QRCode\Output\QRMarkupSVG::class,
-                'eccLevel'     => \chillerlan\QRCode\Common\EccLevel::L,
-                'addQuietzone' => false,
-            ]);
+            $qrService = new QrCodeService();
+            $image = $qrService->generateQrImage($token);
 
-            $svg = (new \chillerlan\QRCode\QRCode($options))->render($token);
+            if ($image) {
+                ob_start();
+                imagepng($image);
+                $finalData = ob_get_clean();
 
-            // Ensure responsive attributes
-            $svg = str_replace('<svg ', '<svg width="100%" height="100%" ', $svg);
-
-            $dataUri = 'data:image/svg+xml;base64,' . base64_encode($svg);
-            Log::info('MyQrCard: SVG Generated', ['data_uri_start' => substr($dataUri, 0, 50)]);
-
-            return $dataUri;
+                return 'data:image/png;base64,' . base64_encode($finalData);
+            }
         } catch (\Throwable $e) {
-            Log::error('MyQrCard Error', ['message' => $e->getMessage()]);
-            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB4PSIxMCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0icmVkIj5FcnJvcjwvdGV4dD48L3N2Zz4=';
+            Log::error('MyQrCard SSR Error', ['msg' => $e->getMessage()]);
         }
+
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
     }
 
     public function downloadQrCode()
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        $token = $user->qr_token ?? '';
 
-        $options = new \chillerlan\QRCode\QROptions([
-            'version'    => 5,
-            'outputInterface' => \chillerlan\QRCode\Output\QRGdImagePNG::class,
-            'eccLevel'   => \chillerlan\QRCode\Common\EccLevel::L,
-            'scale'      => 10,
-            'imageBase64' => false,
-        ]);
+        $qrService = new QrCodeService();
+        $image = $qrService->generateQrImage($token);
 
-        $qrcode = (new \chillerlan\QRCode\QRCode($options))->render($user->qr_token ?? '');
+        $qrCodeBinary = '';
+        if ($image) {
+            ob_start();
+            imagepng($image);
+            $qrCodeBinary = ob_get_clean();
+        }
 
-        return response()->streamDownload(function () use ($qrcode) {
-            echo $qrcode;
+        return response()->streamDownload(function () use ($qrCodeBinary) {
+            echo $qrCodeBinary;
         }, 'QR-Code-' . ($user->employee?->nip ?? 'User') . '.png', [
             'Content-Type' => 'image/png',
         ]);

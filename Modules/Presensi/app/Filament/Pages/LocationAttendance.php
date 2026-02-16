@@ -68,7 +68,6 @@ class LocationAttendance extends Page implements HasForms
                         ->label('Foto Selfie / Lokasi')
                         ->image()
                         ->required()
-                        ->directory('absensi-verifikasi')
                         ->directory('absensi-verifikasi'),
                     Textarea::make('keterangan')
                         ->label('Tujuan / Alasan Dinas Luar')

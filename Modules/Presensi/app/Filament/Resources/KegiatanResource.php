@@ -141,11 +141,21 @@ class KegiatanResource extends Resource
                     ->time(),
                 Tables\Columns\TextColumn::make('lokasi')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('absensi_kegiatans_count')
+                    ->counts('absensiKegiatans')
+                    ->label('Jml Hadir')
+                    ->badge()
+                    ->color('success')
+                    ->visible(function () {
+                        /** @var User $user */
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return $user && $user->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'kepala_sekolah']);
+                    }),
                 Tables\Columns\IconColumn::make('is_wajib')
                     ->boolean()
                     ->label('Wajib'),
                 Tables\Columns\TextColumn::make('absensiKegiatans.status')
-                    ->label('Status Absensi')
+                    ->label('Status Anda')
                     ->badge()
                     ->color(fn(?string $state): string => match ($state) {
                         'hadir' => 'success',

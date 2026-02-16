@@ -65,8 +65,27 @@
         </div>
     </div>
 
-    <div
-        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-        {{ $this->table }}
+    <div x-data="{ activeTab: 'harian' }" class="space-y-6">
+        <x-filament::tabs label="Content tabs">
+            <x-filament::tabs.item @click="activeTab = 'harian'" :active="$activeTab === 'harian'" icon="heroicon-o-calendar-days">
+                Absensi Harian
+            </x-filament::tabs.item>
+
+            <x-filament::tabs.item @click="activeTab = 'kegiatan'" :active="$activeTab === 'kegiatan'" icon="heroicon-o-ticket">
+                Absensi Kegiatan
+            </x-filament::tabs.item>
+        </x-filament::tabs>
+
+        <!-- Tab Content: Harian -->
+        <div x-show="activeTab === 'harian'" x-transition:enter="transition ease-out duration-300 opacity-0"
+            x-transition:enter-end="opacity-100">
+            @livewire(\Modules\Presensi\Filament\Widgets\HistoryAbsensiTable::class)
+        </div>
+
+        <!-- Tab Content: Kegiatan -->
+        <div x-show="activeTab === 'kegiatan'" x-transition:enter="transition ease-out duration-300 opacity-0"
+            x-transition:enter-end="opacity-100" style="display: none;">
+            @livewire(\Modules\Presensi\Filament\Widgets\HistoryKegiatanTable::class)
+        </div>
     </div>
 </x-filament-panels::page>

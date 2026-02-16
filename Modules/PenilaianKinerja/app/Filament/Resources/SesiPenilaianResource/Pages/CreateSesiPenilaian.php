@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateSesiPenilaian extends CreateRecord
 {
     protected static string $resource = SesiPenilaianResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

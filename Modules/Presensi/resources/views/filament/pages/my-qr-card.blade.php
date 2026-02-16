@@ -173,16 +173,7 @@
                 <!-- QR Container -->
                 <div class="qr-container">
                     <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                        <img src="{{ route('my-qr-image') }}" alt="My QR Code" style="width: 100%; height: 100%;">
-                    </div>
-                    <!-- Logo Overlay -->
-                    <div
-                        style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
-                        <div
-                            style="background-color: white; padding: 0.25rem; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 2px solid white;">
-                            <img src="{{ asset('images/logo1.png') }}"
-                                style="width: 2.5rem; height: 2.5rem; object-fit: contain;" alt="Logo">
-                        </div>
+                        <img src="{{ $this->getQrImageBase64() }}" alt="My QR Code" style="width: 100%; height: 100%;">
                     </div>
                 </div>
 

@@ -26,6 +26,9 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Grid;
+use ZipArchive;
+use Illuminate\Support\Facades\Storage;
+use App\Services\QrCodeService;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -908,6 +911,47 @@ class DataIndukResource extends Resource
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    BulkAction::make('download_qr_zip')
+                        ->label('Download QR (ZIP)')
+                        ->icon('heroicon-o-qr-code')
+                        ->action(function ($records) {
+                            $zipFileName = 'qr-codes-' . now()->timestamp . '.zip';
+                            $zipPath = storage_path('app/public/' . $zipFileName);
+                            $zip = new ZipArchive;
+
+                            if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+                                $qrService = new QrCodeService();
+                                $count = 0;
+
+                                foreach ($records as $record) {
+                                    // Load user relation if not already loaded (though we access via ->user)
+                                    $user = $record->user;
+                                    if (!$user || !$user->qr_token) continue;
+
+                                    $image = $qrService->generateQrImage($user->qr_token);
+                                    if ($image) {
+                                        ob_start();
+                                        imagepng($image);
+                                        $content = ob_get_clean();
+
+                                        // Filename: NIP.png or Name.png
+                                        $filename = ($record->nip ?? $record->nama) . '.png';
+
+                                        // Sanitize filename
+                                        $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $filename);
+
+                                        $zip->addFromString($filename, $content);
+                                        $count++;
+                                    }
+                                }
+                                $zip->close();
+
+                                if ($count > 0) {
+                                    return response()->download($zipPath)->deleteFileAfterSend();
+                                }
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     BulkAction::make('export')
                         ->label('Export Terpilih')
                         ->icon('heroicon-o-arrow-down-tray')
