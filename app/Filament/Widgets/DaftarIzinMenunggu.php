@@ -11,7 +11,7 @@ use Modules\Leave\Filament\Resources\LeaveRequestResource;
 
 class DaftarIzinMenunggu extends BaseWidget
 {
-    protected static ?int $sort = 8;
+    protected static ?int $sort = 6;
     protected int | string | array $columnSpan = 1;
     protected static ?string $heading = 'Permohonan Izin Menunggu';
 

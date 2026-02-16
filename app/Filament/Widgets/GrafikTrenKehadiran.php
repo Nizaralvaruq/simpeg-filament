@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class GrafikTrenKehadiran extends ChartWidget
 {
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 3;
     protected ?string $heading = 'Tren Keterlambatan (7 Hari Terakhir)';
     protected int | string | array $columnSpan = 'full';
     protected ?string $maxHeight = '250px';

@@ -61,7 +61,8 @@ class RolePermissionSeeder extends Seeder
             'StatistikPegawaiTerlambat', // Legacy - kept for backward compatibility
             'StatistikPenilaianKinerja', // Legacy - kept for backward compatibility
             'DaftarPegawaiUnit',
-            'RiwayatAbsensiTerbaru',
+            'HistoryAbsensiTable',
+            'HistoryKegiatanTable',
             'StatistikAbsensiSaya',
             'ProfilSayaWidget',
         ];
@@ -85,7 +86,8 @@ class RolePermissionSeeder extends Seeder
             'Create:Resign',
             'View:ProfilSayaWidget',
             'View:StatistikAbsensiSaya',
-            'View:RiwayatAbsensiTerbaru',
+            'View:HistoryAbsensiTable',
+            'View:HistoryKegiatanTable',
         ]);
 
         // Kepala Sekolah: view only

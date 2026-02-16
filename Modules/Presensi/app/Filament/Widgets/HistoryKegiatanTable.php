@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class HistoryKegiatanTable extends BaseWidget
 {
+    protected static ?int $sort = 11;
     protected int | string | array $columnSpan = 'full';
 
     public function table(Table $table): Table

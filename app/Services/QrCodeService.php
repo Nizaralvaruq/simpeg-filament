@@ -6,6 +6,7 @@ use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use chillerlan\QRCode\Common\EccLevel;
 use chillerlan\QRCode\Output\QROutputInterface;
+use chillerlan\QRCode\Output\QRGdImagePNG;
 use Illuminate\Support\Facades\Log;
 
 class QrCodeService
@@ -25,7 +26,8 @@ class QrCodeService
         try {
             $options = new QROptions([
                 'version'    => 5,
-                'outputType' => QROutputInterface::GDIMAGE_PNG,
+                'outputType' => QROutputInterface::CUSTOM,
+                'outputInterface' => QRGdImagePNG::class,
                 'eccLevel'   => EccLevel::H,
                 'scale'      => 10,
                 'outputBase64' => false,
