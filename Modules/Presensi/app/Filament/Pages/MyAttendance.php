@@ -24,6 +24,8 @@ class MyAttendance extends Page
 
     protected string $view = 'presensi::filament.pages.my-attendance';
 
+    public string $activeTab = 'harian';
+
     protected static string | \UnitEnum | null $navigationGroup = 'Presensi';
 
     protected static ?string $navigationLabel = 'Absensi Saya';

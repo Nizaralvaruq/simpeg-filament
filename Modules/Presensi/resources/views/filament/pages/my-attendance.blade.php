@@ -65,27 +65,31 @@
         </div>
     </div>
 
-    <div x-data="{ activeTab: 'harian' }" class="space-y-6">
+    <div class="space-y-6">
         <x-filament::tabs label="Content tabs">
-            <x-filament::tabs.item @click="activeTab = 'harian'" :active="$activeTab === 'harian'" icon="heroicon-o-calendar-days">
+            <x-filament::tabs.item wire:click="$set('activeTab', 'harian')" :active="$activeTab === 'harian'"
+                icon="heroicon-o-calendar-days">
                 Absensi Harian
             </x-filament::tabs.item>
 
-            <x-filament::tabs.item @click="activeTab = 'kegiatan'" :active="$activeTab === 'kegiatan'" icon="heroicon-o-ticket">
+            <x-filament::tabs.item wire:click="$set('activeTab', 'kegiatan')" :active="$activeTab === 'kegiatan'"
+                icon="heroicon-o-ticket">
                 Absensi Kegiatan
             </x-filament::tabs.item>
         </x-filament::tabs>
 
         <!-- Tab Content: Harian -->
-        <div x-show="activeTab === 'harian'" x-transition:enter="transition ease-out duration-300 opacity-0"
-            x-transition:enter-end="opacity-100">
-            @livewire(\Modules\Presensi\Filament\Widgets\HistoryAbsensiTable::class)
-        </div>
+        @if ($activeTab === 'harian')
+            <div x-transition:enter="transition ease-out duration-300 opacity-0" x-transition:enter-end="opacity-100">
+                @livewire(\Modules\Presensi\Filament\Widgets\HistoryAbsensiTable::class)
+            </div>
+        @endif
 
         <!-- Tab Content: Kegiatan -->
-        <div x-show="activeTab === 'kegiatan'" x-transition:enter="transition ease-out duration-300 opacity-0"
-            x-transition:enter-end="opacity-100" style="display: none;">
-            @livewire(\Modules\Presensi\Filament\Widgets\HistoryKegiatanTable::class)
-        </div>
+        @if ($activeTab === 'kegiatan')
+            <div x-transition:enter="transition ease-out duration-300 opacity-0" x-transition:enter-end="opacity-100">
+                @livewire(\Modules\Presensi\Filament\Widgets\HistoryKegiatanTable::class)
+            </div>
+        @endif
     </div>
 </x-filament-panels::page>
