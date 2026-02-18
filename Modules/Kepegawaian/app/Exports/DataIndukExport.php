@@ -41,6 +41,7 @@ class DataIndukExport implements WithEvents
                     $sheet->setCellValue('C14', $p->status_perkawinan);
                     $sheet->setCellValue('C15', $p->suami_istri ?: '-');
                     $sheet->setCellValue('C16', $p->alamat);
+                    $sheet->setCellValue('C17', $p->alamat_domisili ?: '-');
                     $sheet->setCellValue('C18', $p->email ?: '-');
                     $sheet->setCellValue('C19', $p->no_bpjs ?: '-');
                     $sheet->setCellValue('C20', $p->no_kjp_2p ?: 'Tidak ikut lembaga');
@@ -71,51 +72,59 @@ class DataIndukExport implements WithEvents
                     $sheet->setCellValue('C7', $p->nik ?: '-');
                     $sheet->setCellValue('B8', 'Tempat, Tgl Lahir');
                     $sheet->setCellValue('C8', ($p->tempat_lahir ?? '-') . ', ' . ($p->tanggal_lahir instanceof \Carbon\Carbon ? $p->tanggal_lahir->format('d F Y') : '-'));
-                    $sheet->setCellValue('B9', 'No. HP');
-                    $sheet->setCellValue('C9', $p->no_hp ?: '-');
-                    $sheet->setCellValue('B10', 'Email');
-                    $sheet->setCellValue('C10', $p->email ?: '-');
-                    $sheet->setCellValue('B11', 'Alamat');
-                    $sheet->setCellValue('C11', $p->alamat ?: '-');
-                    $sheet->setCellValue('B12', 'Status Nikah');
-                    $sheet->setCellValue('C12', $p->status_perkawinan ?: '-');
+                    $sheet->setCellValue('B9', 'Agama');
+                    $sheet->setCellValue('C9', $p->agama ?: '-');
+                    $sheet->setCellValue('B10', 'Golongan Darah');
+                    $sheet->setCellValue('C10', $p->golongan_darah ?: '-');
+                    $sheet->setCellValue('B11', 'No. HP');
+                    $sheet->setCellValue('C11', $p->no_hp ?: '-');
+                    $sheet->setCellValue('B12', 'Email');
+                    $sheet->setCellValue('C12', $p->email ?: '-');
+                    $sheet->setCellValue('B13', 'Alamat KTP');
+                    $sheet->setCellValue('C13', $p->alamat ?: '-');
+                    $sheet->setCellValue('B14', 'Alamat Domisili');
+                    $sheet->setCellValue('C14', $p->alamat_domisili ?: '-');
+                    $sheet->setCellValue('B15', 'Jarak ke Kantor');
+                    $sheet->setCellValue('C15', ($p->jarak_ke_kantor ?? '0') . ' KM');
+                    $sheet->setCellValue('B16', 'Status Nikah');
+                    $sheet->setCellValue('C16', $p->status_perkawinan ?: '-');
 
                     // --- DATA KEPEGAWAIAN ---
-                    $sheet->setCellValue('B14', 'DATA KEPEGAWAIAN');
-                    $sheet->getStyle('B14')->getFont()->setBold(true);
+                    $sheet->setCellValue('B18', 'DATA KEPEGAWAIAN');
+                    $sheet->getStyle('B18')->getFont()->setBold(true);
 
-                    $sheet->setCellValue('B15', 'Unit Kerja');
-                    $sheet->setCellValue('C15', $p->units->pluck('name')->join(', ') ?: '-');
-                    $sheet->setCellValue('B16', 'Amanah/Jabatan');
-                    $sheet->setCellValue('C16', $p->jabatan ?: '-');
-                    $sheet->setCellValue('B17', 'Golongan');
-                    $sheet->setCellValue('C17', optional($p->golongan)->name ?: '-');
-                    $sheet->setCellValue('B18', 'TMT Awal');
-                    $sheet->setCellValue('C18', $p->tmt_awal instanceof \Carbon\Carbon ? $p->tmt_awal->format('d F Y') : '-');
-                    $sheet->setCellValue('B19', 'Status Kerja');
-                    $sheet->setCellValue('C19', $p->status_kepegawaian ?: '-');
+                    $sheet->setCellValue('B19', 'Unit Kerja');
+                    $sheet->setCellValue('C19', $p->units->pluck('name')->join(', ') ?: '-');
+                    $sheet->setCellValue('B20', 'Amanah/Jabatan');
+                    $sheet->setCellValue('C20', $p->jabatan ?: '-');
+                    $sheet->setCellValue('B21', 'Golongan');
+                    $sheet->setCellValue('C21', optional($p->golongan)->name ?: '-');
+                    $sheet->setCellValue('B22', 'TMT Awal');
+                    $sheet->setCellValue('C22', $p->tmt_awal instanceof \Carbon\Carbon ? $p->tmt_awal->format('d F Y') : '-');
+                    $sheet->setCellValue('B23', 'Status Kerja');
+                    $sheet->setCellValue('C23', $p->status_kepegawaian ?: '-');
 
                     // --- DATA BPJS & KJP ---
-                    $sheet->setCellValue('B21', 'JAMINAN SOSIAL');
-                    $sheet->getStyle('B21')->getFont()->setBold(true);
+                    $sheet->setCellValue('B25', 'JAMINAN SOSIAL');
+                    $sheet->getStyle('B25')->getFont()->setBold(true);
 
-                    $sheet->setCellValue('B22', 'No. BPJS');
-                    $sheet->setCellValue('C22', $p->no_bpjs ?: '-');
-                    $sheet->setCellValue('B23', 'No. KJP 2P');
-                    $sheet->setCellValue('C23', $p->no_kjp_2p ?: '-');
-                    $sheet->setCellValue('B24', 'No. KJP 3P');
-                    $sheet->setCellValue('C24', $p->no_kjp_3p ?: '-');
+                    $sheet->setCellValue('B26', 'No. BPJS');
+                    $sheet->setCellValue('C26', $p->no_bpjs ?: '-');
+                    $sheet->setCellValue('B27', 'No. KJP 2P');
+                    $sheet->setCellValue('C27', $p->no_kjp_2p ?: '-');
+                    $sheet->setCellValue('B28', 'No. KJP 3P');
+                    $sheet->setCellValue('C28', $p->no_kjp_3p ?: '-');
 
                     // --- DATA PENDIDIKAN ---
-                    $sheet->setCellValue('B26', 'PENDIDIKAN TERAKHIR');
-                    $sheet->getStyle('B26')->getFont()->setBold(true);
+                    $sheet->setCellValue('B30', 'PENDIDIKAN TERAKHIR');
+                    $sheet->getStyle('B30')->getFont()->setBold(true);
 
-                    $sheet->setCellValue('B27', 'Pendidikan');
-                    $sheet->setCellValue('C27', $p->pendidikan ?: '-');
-                    $sheet->setCellValue('B28', 'Jurusan');
-                    $sheet->setCellValue('C28', $p->jurusan ?: '-');
-                    $sheet->setCellValue('B29', 'Instansi');
-                    $sheet->setCellValue('C29', $p->instansi ?: '-');
+                    $sheet->setCellValue('B31', 'Pendidikan');
+                    $sheet->setCellValue('C31', $p->pendidikan ?: '-');
+                    $sheet->setCellValue('B32', 'Jurusan');
+                    $sheet->setCellValue('C32', $p->jurusan ?: '-');
+                    $sheet->setCellValue('B33', 'Instansi');
+                    $sheet->setCellValue('C33', $p->instansi ?: '-');
 
                     // Auto-size columns
                     foreach (range('B', 'C') as $columnID) {

@@ -47,18 +47,17 @@ class ListDataInduks extends ListRecords
                             Actions\Action::make('downloadTemplate')
                                 ->label('Download Template')
                                 ->icon('heroicon-o-document-arrow-down')
-                                ->url(asset('template/template_data_induk.xlsx'))
-                                ->openUrlInNewTab()
+                                ->action(fn() => Excel::download(new \App\Exports\PegawaiTemplateExport, 'template_data_induk.xlsx'))
                         ),
                 ])
                 ->action(function (array $data) {
                     $path = storage_path('app/public/' . $data['file']);
 
-                    Excel::queueImport(new DataIndukImport, $path);
+                    Excel::import(new DataIndukImport, $path);
 
                     Notification::make()
-                        ->title('Import masuk antrian.')
-                        ->body('Data akan diproses di background. Cek log jika data tidak muncul.')
+                        ->title('Import Berhasil')
+                        ->body('Data pegawai telah berhasil diimport ke sistem.')
                         ->success()
                         ->send();
                 }),

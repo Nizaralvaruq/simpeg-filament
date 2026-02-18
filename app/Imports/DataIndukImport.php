@@ -5,11 +5,9 @@ namespace App\Imports;
 use Modules\Kepegawaian\Models\DataInduk;
 use Modules\MasterData\Models\Golongan;
 use Modules\MasterData\Models\Unit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\OnEachRow;
+use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +15,7 @@ use App\Models\User;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Illuminate\Support\Facades\Log;
 
-class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunkReading, WithBatchInserts, WithMapping, WithValidation
+class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithValidation
 {
     public function map($row): array
     {
@@ -39,8 +37,9 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
         ];
     }
 
-    public function model(array $row)
+    public function onRow(Row $row)
     {
+        $row = $row->toArray();
         $nik  = trim((string) ($row['nik'] ?? ''));
         $nama = trim((string) ($row['nama'] ?? ''));
 
@@ -65,16 +64,20 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
             ['nik' => $nik],
             [
                 'nama'              => $nama,
+                'jenis_kelamin'     => $row['jenis_kelamin'] ?? null,
                 'nip'               => $row['nip'] ?? null,
                 'no_hp'             => $row['no_hp'] ?? null,
                 'tempat_lahir'      => $row['tempat_lahir'] ?? null,
                 'tanggal_lahir'     => $row['tanggal_lahir'] ?? null,
                 'pendidikan'        => $row['pendidikan'] ?? null,
-                'jurusan'           => $row['jurusan'] ?? null,
                 'instansi'          => $row['instansi'] ?? null,
                 'status_perkawinan' => $row['status_perkawinan'] ?? null,
                 'suami_istri'       => $row['suami_istri'] ?? null,
+                'agama'             => $row['agama'] ?? null,
+                'golongan_darah'    => $row['golongan_darah'] ?? null,
                 'alamat'            => $row['alamat'] ?? null,
+                'alamat_domisili'   => $row['alamat_domisili'] ?? null,
+                'jarak_ke_kantor'   => $row['jarak_ke_kantor'] ?? null,
                 'jabatan'           => $row['jabatan'] ?? null,
                 'golongan_id'       => $golonganId,
                 'tmt_awal'          => $row['tmt_awal'] ?? null,
@@ -123,8 +126,6 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
         }
 
         Log::info("Import DataInduk: Berhasil memproses {$nama} (NIK: {$nik})");
-
-        return $dataInduk;
     }
 
     private function transformDate($value)
@@ -141,15 +142,5 @@ class DataIndukImport implements ToModel, WithHeadingRow, ShouldQueue, WithChunk
         } catch (\Exception $e) {
             return null;
         }
-    }
-
-    public function chunkSize(): int
-    {
-        return 500;
-    }
-
-    public function batchSize(): int
-    {
-        return 500;
     }
 }
