@@ -269,16 +269,12 @@ class ResignResource extends Resource
                             $record->update([
                                 'status' => 'disetujui',
                             ]);
-                            // UPDATE DATA INDUK
-                            $record->employee->update([
-                                'status' => 'Resign',
-                                'keterangan' => $record->alasan,
-                            ]);
 
-                            // DELETE USER (Jika ada)
-                            if ($record->employee->user) {
-                                $record->employee->user->delete();
-                            }
+                            \Filament\Notifications\Notification::make()
+                                ->title('Resign Disetujui')
+                                ->body('Pengajuan berhasil disetujui. Akun user akan otomatis dinonaktifkan pada ' . \Carbon\Carbon::parse($record->tanggal_resign)->format('d F Y') . '.')
+                                ->success()
+                                ->send();
                         }),
 
                     Action::make('reject')

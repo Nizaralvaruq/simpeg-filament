@@ -81,7 +81,7 @@ class Absensi extends Model
         }
 
         // Return positive difference in minutes
-        $diff = $jamMasuk->diffInMinutes($startTime, false);
+        $diff = $startTime->diffInMinutes($jamMasuk, false);
         return (int) max(0, $diff);
     }
 

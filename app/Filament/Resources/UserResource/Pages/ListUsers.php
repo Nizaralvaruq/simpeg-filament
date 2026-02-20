@@ -19,7 +19,7 @@ class ListUsers extends ListRecords
                 ->label('Buat Akun Koor')
                 ->icon('heroicon-o-sparkles')
                 ->color('success')
-                ->form([
+                ->schema([
                     \Filament\Forms\Components\TextInput::make('name')
                         ->label('Nama Koor')
                         ->required(),

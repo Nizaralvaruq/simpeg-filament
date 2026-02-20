@@ -38,7 +38,7 @@ class MyAttendance extends Page
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return $user && $user->hasRole('staff');
+        return $user && $user->hasAnyRole(['staff', 'ketua_psdm', 'koor_jenjang', 'kepala_sekolah', 'admin_unit']);
     }
 
 
