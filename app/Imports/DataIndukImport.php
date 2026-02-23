@@ -90,18 +90,20 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
             ]
         );
 
-        // Handle User Creation if email is provided and doesn't exist on employee
-        if (!empty($row['email']) && !$dataInduk->user_id) {
-            $user = User::where('email', $row['email'])->first();
+        // Create User if doesn't exist. Use NIP@ihya.id if email is empty.
+        $email = !empty($row['email']) ? trim($row['email']) : ($dataInduk->nip ? trim($dataInduk->nip) . '@ihya.id' : null);
+
+        if ($email && !$dataInduk->user_id) {
+            $user = User::where('email', $email)->first();
 
             if (!$user) {
                 $user = User::create([
                     'name' => $nama,
-                    'email' => $row['email'],
-                    'password' => Hash::make('password123'), // Default password
+                    'email' => $email,
+                    'password' => Hash::make('password'), // Default password changed to 'password'
                 ]);
                 $user->assignRole('staff');
-                Log::info("Import DataInduk: Akun baru dibuat untuk {$nama} ({$row['email']})");
+                Log::info("Import DataInduk: Akun baru dibuat untuk {$nama} ({$email})");
             }
 
             $dataInduk->update(['user_id' => $user->id]);

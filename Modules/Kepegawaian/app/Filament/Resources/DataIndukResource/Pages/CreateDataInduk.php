@@ -19,33 +19,38 @@ class CreateDataInduk extends CreateRecord
         $data = $this->form->getRawState();
         $record = $this->record;
 
-        if (!empty($data['email']) && !empty($data['password'])) {
-            $user = User::create([
-                'name' => $record->nama,
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]);
+        // Use NPA (NIP) as email if not provided, or if email is provided use it.
+        // Default password is 'password' if not provided.
+        $email = !empty($data['email']) ? $data['email'] : ($record->nip ? $record->nip . '@ihya.id' : null);
+        $password = !empty($data['password']) ? $data['password'] : 'password';
 
-            // Assign role
-            if (!empty($data['roles'])) {
-                $user->assignRole($data['roles']);
-            } else {
-                // Fallback: Assign role based on who is creating the account
-                /** @var \App\Models\User $creator */
-                $creator = Auth::user();
-                if ($creator && $creator->hasRole('admin_unit')) {
-                    $user->assignRole('admin_unit');
+        if ($email) {
+            // Check if user already exists
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'name' => $record->nama,
+                    'email' => $email,
+                    'password' => Hash::make($password),
+                ]);
+
+                // Assign role
+                if (!empty($data['roles'])) {
+                    $user->assignRole($data['roles']);
                 } else {
+                    // Fallback to staff
                     $user->assignRole('staff');
                 }
+
+                Notification::make()
+                    ->title('Akun Login Berhasil Dibuat')
+                    ->body("Email: {$email} | Password: " . (!empty($data['password']) ? 'Sesuai input' : 'password'))
+                    ->success()
+                    ->send();
             }
 
             $record->update(['user_id' => $user->id]);
-
-            Notification::make()
-                ->title('Akun Login Berhasil Dibuat')
-                ->success()
-                ->send();
         }
     }
     protected function getRedirectUrl(): string
