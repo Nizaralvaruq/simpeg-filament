@@ -32,7 +32,7 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
         return [
             'nik' => 'required',
             'nama' => 'required|string',
-            'nip' => 'nullable',
+            'nip' => 'required',
             'email' => 'nullable|email',
         ];
     }
@@ -42,8 +42,9 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
         $row = $row->toArray();
         $nik  = trim((string) ($row['nik'] ?? ''));
         $nama = trim((string) ($row['nama'] ?? ''));
+        $nip  = trim((string) ($row['nip'] ?? ''));
 
-        if ($nik === '' || $nama === '') {
+        if ($nik === '' || $nama === '' || $nip === '') {
             return null;
         }
 

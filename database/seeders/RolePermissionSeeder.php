@@ -38,7 +38,7 @@ class RolePermissionSeeder extends Seeder
             'Golongan'
         ];
 
-        $actions = ['ViewAny', 'View', 'Create', 'Update', 'Delete'];
+        $actions = ['ViewAny', 'View', 'Create', 'Update', 'Delete', 'Import'];
 
         foreach ($modules as $module) {
             foreach ($actions as $action) {
@@ -138,6 +138,7 @@ class RolePermissionSeeder extends Seeder
             'View:DaftarPegawaiUnit',
             'View:StatistikPegawaiTerlambat',
             'View:StatistikPenilaianKinerja',
+            'Import:DataInduk',
         ]);
 
         // Ketua PSDM: full CRUD (Global)
@@ -147,6 +148,7 @@ class RolePermissionSeeder extends Seeder
             'View:Absensi',
             'ViewAny:DataInduk',
             'View:DataInduk',
+            'Import:DataInduk',
             'ViewAny:PenugasanPenilaian',
             'View:PenugasanPenilaian',
             'Create:PenugasanPenilaian',

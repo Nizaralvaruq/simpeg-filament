@@ -15,9 +15,9 @@ class PegawaiImport implements ToModel, WithHeadingRow
         // Expected columns: nip, nama, jenjang, jabatan, email (optional)
 
         $nama = $row['nama'] ?? null;
-        if (!$nama) return null; // Skip empty rows
-
         $nip = $row['nip'] ?? null;
+
+        if (!$nama || !$nip) return null; // Skip empty rows or missing NIP
 
         // Find or create Unit/Jenjang
         $unitIds = [];
