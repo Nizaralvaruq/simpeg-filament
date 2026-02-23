@@ -88,6 +88,7 @@ class RolePermissionSeeder extends Seeder
             'View:StatistikAbsensiSaya',
             'View:HistoryAbsensiTable',
             'View:HistoryKegiatanTable',
+            'View:DataInduk', // Ditambahkan agar staff bisa melihat Biodata Saya
         ]);
 
         // Kepala Sekolah: view only

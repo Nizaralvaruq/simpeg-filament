@@ -783,7 +783,7 @@ class DataIndukResource extends Resource
                 ->visible(function (): bool {
                     /** @var \App\Models\User $user */
                     $user = Auth::user();
-                    return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'koor_jenjang', 'kepala_sekolah']);
+                    return $user?->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'koor_jenjang', 'kepala_sekolah', 'staff']);
                 })
                 ->schema([
                     Forms\Components\TextInput::make('email')
@@ -822,6 +822,11 @@ class DataIndukResource extends Resource
                             if ($record && $record->user) {
                                 $component->state($record->user->roles->pluck('name'));
                             }
+                        })
+                        ->hidden(function () {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            return $user?->hasRole('staff');
                         }),
 
                     Forms\Components\TextInput::make('password')

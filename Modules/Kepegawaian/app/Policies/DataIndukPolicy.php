@@ -14,22 +14,23 @@ class DataIndukPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:DataInduk');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('ViewAny:DataInduk') || $authUser->hasRole('staff');
     }
 
     public function view(AuthUser $authUser, DataInduk $dataInduk): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('staff')) {
+            return (int) $dataInduk->user_id === (int) $authUser->id;
+        }
+
         if (!$authUser->can('View:DataInduk')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return true;
-        }
-
-        if ($authUser->hasRole('staff')) {
-            return $dataInduk->user_id === $authUser->id;
         }
 
         // For Unit Admins, Koor Jenjang, Kepala Sekolah: Check Unit
@@ -48,18 +49,17 @@ class DataIndukPolicy
 
     public function update(AuthUser $authUser, DataInduk $dataInduk): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('staff')) {
+            return (int) $dataInduk->user_id === (int) $authUser->id;
+        }
+
         if (!$authUser->can('Update:DataInduk')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return true;
-        }
-
-        // Staff can only update themselves (if they have Update permission)
-        if ($authUser->hasRole('staff')) {
-            return $dataInduk->user_id === $authUser->id;
         }
 
         // For Unit Admins: Check Unit
