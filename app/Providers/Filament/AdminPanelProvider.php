@@ -19,6 +19,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\Facades\Blade;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -87,5 +90,34 @@ class AdminPanelProvider extends PanelProvider
                 'Data Master',
                 'Authorization',
             ]);
+    }
+
+    public function boot(): void
+    {
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::USER_MENU_BEFORE,
+            fn(): string => Blade::render('
+                @if(auth()->check())
+                    <div class="hidden md:flex items-center px-3 py-1 text-[10px] font-black uppercase rounded-lg mr-2 border {{ 
+                            match(true) {
+                                auth()->user()->hasRole(\'super_admin\') => \'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-800\',
+                                auth()->user()->hasRole(\'ketua_psdm\') => \'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-800\',
+                                auth()->user()->hasAnyRole([\'kepala_sekolah\', \'koor_jenjang\', \'admin_unit\']) => \'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-800\',
+                                default => \'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-800\',
+                            }
+                        }}">
+                        <span class="mr-1.5 flex h-2 w-2 rounded-full animate-pulse {{ 
+                            match(true) {
+                                auth()->user()->hasRole(\'super_admin\') => \'bg-rose-500\',
+                                auth()->user()->hasRole(\'ketua_psdm\') => \'bg-emerald-500\',
+                                auth()->user()->hasAnyRole([\'kepala_sekolah\', \'koor_jenjang\', \'admin_unit\']) => \'bg-sky-500\',
+                                default => \'bg-slate-400\',
+                            }
+                        }}"></span>
+                        {{ str_replace(\'_\', \' \', auth()->user()->roles->first()?->name ?? \'Staff\') }}
+                    </div>
+                @endif
+            '),
+        );
     }
 }

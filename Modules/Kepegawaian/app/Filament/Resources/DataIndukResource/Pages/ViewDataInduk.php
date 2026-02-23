@@ -120,6 +120,17 @@ class ViewDataInduk extends ViewRecord
                                                     ? $latest->tanggal->translatedFormat('d F Y')
                                                     : '-';
                                             }),
+                                        TextEntry::make('user.roles.name')
+                                            ->label('Role Akses')
+                                            ->badge()
+                                            ->formatStateUsing(fn($state) => str_replace('_', ' ', $state))
+                                            ->color(fn($state) => match ($state) {
+                                                'super_admin' => 'danger',
+                                                'ketua_psdm' => 'success',
+                                                'kepala_sekolah', 'koor_jenjang', 'admin_unit' => 'info',
+                                                default => 'gray',
+                                            })
+                                            ->inlineLabel(),
                                         TextEntry::make('status')->label('Status')
                                             ->badge()
                                             ->color(fn($state) => match ($state) {

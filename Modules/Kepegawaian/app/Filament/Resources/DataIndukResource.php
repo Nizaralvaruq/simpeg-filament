@@ -6,6 +6,7 @@ use Modules\Kepegawaian\Filament\Resources\DataIndukResource\Pages;
 use Modules\Kepegawaian\Models\DataInduk;
 
 use Filament\Resources\Resource;
+use Filament\Navigation\NavigationItem;
 use Filament\Schemas\Schema;
 use Filament\Forms;
 use Filament\Tables;
@@ -97,6 +98,41 @@ class DataIndukResource extends Resource
     public static function getNavigationBadgeColor(): ?string
     {
         return 'success';
+    }
+
+    public static function getNavigationItems(): array
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) return [];
+
+        $items = [];
+
+        // 1. Menu "Biodata Saya" (Tampil untuk semua yang memiliki data pegawai)
+        if ($user->employee) {
+            $items[] = NavigationItem::make('Biodata Saya')
+                ->group('Menu Saya')
+                ->icon('heroicon-o-user-circle')
+                ->url(static::getUrl('view', ['record' => $user->employee]))
+                ->isActiveWhen(fn() => request()->fullUrlIs(static::getUrl('view', ['record' => $user->employee])))
+                ->sort(1);
+        }
+
+        // 2. Menu "Data Pegawai" (Hanya untuk Admin/Pimpinan)
+        if ($user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+            $items[] = NavigationItem::make('Data Pegawai')
+                ->group('Kepegawaian')
+                ->icon('heroicon-o-user-group')
+                ->url(static::getUrl())
+                ->isActiveWhen(
+                    fn() =>
+                    request()->fullUrlIs(static::getUrl()) ||
+                        (str_contains(request()->url(), 'kepegawaian/data-pegawai') && !str_contains(request()->url(), '/view'))
+                )
+                ->sort(10);
+        }
+
+        return $items;
     }
 
     /**
@@ -820,6 +856,17 @@ class DataIndukResource extends Resource
                     ->label('Nama')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('user.roles.name')
+                    ->label('Role Akses')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => str_replace('_', ' ', $state))
+                    ->color(fn($state) => match ($state) {
+                        'super_admin' => 'danger',
+                        'ketua_psdm' => 'success',
+                        'kepala_sekolah', 'koor_jenjang', 'admin_unit' => 'info',
+                        default => 'gray',
+                    })
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('jenis_kelamin')
                     ->label('JK')
                     ->toggleable(isToggledHiddenByDefault: true),
