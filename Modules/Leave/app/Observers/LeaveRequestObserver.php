@@ -37,7 +37,7 @@ class LeaveRequestObserver
                     'tanggal' => $date->format('Y-m-d'),
                 ],
                 [
-                    'status' => 'izin', // Or 'cuti' if you add it to the status options
+                    'status' => $leaveRequest->leave_type, // lowercase: hadir, izin, sakit, etc.
                     'jam_masuk' => null,
                     'jam_keluar' => null,
                     'keterangan' => 'Cuti: ' . $leaveRequest->reason,

@@ -63,15 +63,16 @@ class HistoryAbsensiTable extends BaseWidget
                     ->placeholder('Tidak ada catatan'),
                 ImageColumn::make('foto_verifikasi')
                     ->label('Bukti')
-                    ->circular()
-                    ->width(30)
-                    ->visibility(fn($record) => $record->status === 'dinas_luar'),
+                    ->disk('public')
+                    ->square()
+                    ->width(40)
+                    ->visible(fn($record) => $record?->status === 'dinas_luar'),
                 TextColumn::make('alamat_lokasi')
                     ->label('Lokasi')
                     ->limit(20)
                     ->tooltip(fn($state) => $state)
                     ->placeholder('-')
-                    ->url(fn($record) => $record->latitude ? "https://www.google.com/maps?q={$record->latitude},{$record->longitude}" : null)
+                    ->url(fn($record) => $record?->latitude ? "https://www.google.com/maps?q={$record->latitude},{$record->longitude}" : null)
                     ->openUrlInNewTab()
                     ->color('primary'),
             ])
@@ -101,6 +102,49 @@ class HistoryAbsensiTable extends BaseWidget
                                 fn(Builder $query, $date): Builder => $query->whereDate('tanggal', '<=', $date),
                             );
                     })
+            ])
+            ->recordActions([
+                \Filament\Actions\ViewAction::make()
+                    ->label('Lihat Detail')
+                    ->modalHeading('Detail Kehadiran')
+                    ->schema([
+                        \Filament\Schemas\Components\Section::make()
+                            ->columns(2)
+                            ->schema([
+                                \Filament\Forms\Components\TextInput::make('tanggal')
+                                    ->label('Tanggal')
+                                    ->disabled()
+                                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d F Y')),
+                                \Filament\Forms\Components\TextInput::make('status')
+                                    ->label('Status')
+                                    ->disabled()
+                                    ->formatStateUsing(fn($state) => str($state)->replace('_', ' ')->title()),
+                                \Filament\Forms\Components\TextInput::make('jam_masuk')
+                                    ->label('Jam Masuk')
+                                    ->disabled()
+                                    ->placeholder('--:--'),
+                                \Filament\Forms\Components\TextInput::make('jam_keluar')
+                                    ->label('Jam Keluar')
+                                    ->disabled()
+                                    ->placeholder('--:--'),
+                                \Filament\Forms\Components\TextInput::make('late_minutes')
+                                    ->label('Keterlambatan (Menit)')
+                                    ->disabled()
+                                    ->formatStateUsing(fn($state) => $state > 0 ? "{$state} Menit" : 'Tepat Waktu'),
+                                \Filament\Forms\Components\Textarea::make('keterangan')
+                                    ->label('Keterangan / Alasan')
+                                    ->disabled()
+                                    ->columnSpanFull()
+                                    ->placeholder('Tidak ada catatan'),
+                                \Filament\Forms\Components\FileUpload::make('foto_verifikasi')
+                                    ->label('Foto Bukti (Dinas Luar)')
+                                    ->disk('public')
+                                    ->image()
+                                    ->disabled()
+                                    ->columnSpanFull()
+                                    ->visible(fn($record) => $record?->status === 'dinas_luar' && $record?->foto_verifikasi),
+                            ])
+                    ]),
             ]);
     }
 }

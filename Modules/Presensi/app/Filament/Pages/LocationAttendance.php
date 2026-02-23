@@ -68,6 +68,7 @@ class LocationAttendance extends Page implements HasForms
                         ->label('Foto Selfie / Lokasi')
                         ->image()
                         ->required()
+                        ->disk('public')
                         ->directory('absensi-verifikasi'),
                     Textarea::make('keterangan')
                         ->label('Tujuan / Alasan Dinas Luar')
@@ -82,7 +83,7 @@ class LocationAttendance extends Page implements HasForms
 
     public function submit()
     {
-        $formData = $this->data;
+        $formData = $this->form->getState();
         $lat = $this->latitude;
         $lng = $this->longitude;
         $foto = $formData['foto_verifikasi'] ?? null;
@@ -120,6 +121,21 @@ class LocationAttendance extends Page implements HasForms
             return;
         }
 
+        // Process File Storage manually for custom page form
+        $fotoPath = null;
+        if (is_array($foto)) {
+            $foto = reset($foto);
+        }
+
+        if ($foto) {
+            if (is_string($foto)) {
+                $fotoPath = $foto;
+            } else {
+                // If it's a TemporaryUploadedFile or UploadedFile object
+                $fotoPath = $foto->store('absensi-verifikasi', 'public');
+            }
+        }
+
         Absensi::create([
             'user_id' => $user->id,
             'tanggal' => $today,
@@ -127,7 +143,7 @@ class LocationAttendance extends Page implements HasForms
             'jam_masuk' => now(),
             'latitude' => $lat,
             'longitude' => $lng,
-            'foto_verifikasi' => is_array($foto) ? reset($foto) : $foto,
+            'foto_verifikasi' => $fotoPath,
             'keterangan' => $keterangan,
             'alamat_lokasi' => $this->alamat_lokasi,
         ]);

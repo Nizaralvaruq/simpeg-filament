@@ -493,6 +493,8 @@ class DataIndukResource extends Resource
                                 ->options([
                                     'Aktif'  => 'Aktif',
                                     'Cuti'   => 'Cuti',
+                                    'Izin'   => 'Izin',
+                                    'Sakit'  => 'Sakit',
                                     'Resign' => 'Resign',
                                 ])
                                 ->native(false)
@@ -838,8 +840,11 @@ class DataIndukResource extends Resource
                     ->badge()
                     ->color(fn($state) => match ($state) {
                         'Aktif' => 'success',
-                        'Cuti' => 'warning',
-                        'Resign' => 'danger',
+                        'Cuti'  => 'warning',
+                        'Izin'  => 'info',
+                        'Sakit' => 'danger',
+                        'Resign' => 'gray',
+                        default => 'gray',
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('keterangan')
@@ -868,6 +873,8 @@ class DataIndukResource extends Resource
                     ->options([
                         'Aktif' => 'Aktif',
                         'Cuti' => 'Cuti',
+                        'Izin' => 'Izin',
+                        'Sakit' => 'Sakit',
                         'Resign' => 'Resign',
                     ]),
 

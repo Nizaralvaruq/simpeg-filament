@@ -34,6 +34,7 @@
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Status</th>
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Masuk</th>
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Pulang</th>
+                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Foto</th>
                     <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">Ket.</th>
                 </tr>
             </thead>
@@ -76,6 +77,19 @@
                         </td>
                         <td class="px-4 py-3 text-sm text-center tabular-nums">
                             {{ $absensi->jam_keluar ? \Carbon\Carbon::parse($absensi->jam_keluar)->format('H:i') : '--:--' }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-center italic">
+                            @if ($absensi->foto_verifikasi)
+                                @php
+                                    $photoUrl = '/storage/' . $absensi->foto_verifikasi;
+                                @endphp
+                                <a href="{{ $photoUrl }}" target="_blank" class="inline-block relative group">
+                                    <img src="{{ $photoUrl }}"
+                                        class="h-10 w-10 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm group-hover:scale-110 transition-transform" />
+                                </a>
+                            @else
+                                <span class="text-gray-300">-</span>
+                            @endif
                         </td>
                         <td class="px-4 py-3 text-sm text-center tabular-nums">
                             @if ($absensi->status === 'dinas_luar')

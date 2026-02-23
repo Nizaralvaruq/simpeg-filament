@@ -321,7 +321,7 @@ class LeaveRequestResource extends Resource
                             if ($record->employee) {
                                 // Update status "live" pegawai
                                 $record->employee->update([
-                                    'status' => $record->leave_type, // cuti/sakit/izin
+                                    'status' => ucfirst($record->leave_type), // Cuti/Sakit/Izin
                                     'keterangan' => $record->reason,
                                 ]);
 
@@ -405,7 +405,7 @@ class LeaveRequestResource extends Resource
                             // 2. UPDATE DATA INDUK → AKTIF
                             if ($record->employee) {
                                 $record->employee->update([
-                                    'status' => 'aktif',
+                                    'status' => 'Aktif',
                                     'keterangan' => null,
                                 ]);
                             }

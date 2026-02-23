@@ -125,7 +125,10 @@ class ViewDataInduk extends ViewRecord
                                             ->color(fn($state) => match ($state) {
                                                 'Aktif' => 'success',
                                                 'Cuti' => 'warning',
-                                                'Resign' => 'danger',
+                                                'Izin' => 'info',
+                                                'Sakit' => 'danger',
+                                                'Resign' => 'gray',
+                                                default => 'gray',
                                             })
                                             ->inlineLabel(),
                                         TextEntry::make('keterangan')->label('Keterangan')->inlineLabel(),

@@ -171,6 +171,30 @@ class AbsensiResource extends Resource
                             ->columnSpanFull(),
 
                     ])->columns(3),
+
+                Section::make('Validasi & Lokasi')
+                    ->schema([
+                        Forms\Components\FileUpload::make('foto_verifikasi')
+                            ->label('Foto Selfie / Lokasi')
+                            ->image()
+                            ->disk('public')
+                            ->directory('absensi-verifikasi')
+                            ->disabled()
+                            ->columnSpan(1),
+
+                        Forms\Components\Textarea::make('alamat_lokasi')
+                            ->label('Alamat Terdeteksi')
+                            ->disabled()
+                            ->columnSpan(2),
+
+                        Forms\Components\TextInput::make('latitude')
+                            ->disabled(),
+
+                        Forms\Components\TextInput::make('longitude')
+                            ->disabled(),
+                    ])
+                    ->columns(3)
+                    ->visible(fn($record) => $record?->status === 'dinas_luar'),
             ]);
     }
 
@@ -216,8 +240,8 @@ class AbsensiResource extends Resource
 
                 Tables\Columns\TextColumn::make('late_minutes')
                     ->label('Keterangan Terlambat')
-                    ->state(function (Absensi $record) {
-                        $late = $record->late_minutes;
+                    ->state(function ($record) {
+                        $late = $record?->late_minutes ?? 0;
                         return $late > 0 ? "Terlambat $late menit" : 'Tepat Waktu';
                     })
                     ->badge()
@@ -244,7 +268,7 @@ class AbsensiResource extends Resource
                     ->label('Foto')
                     ->square()
                     ->imageSize(40)
-                    ->visibility('public'),
+                    ->disk('public'),
             ])
             ->defaultSort('tanggal', 'desc')
             ->filters([
@@ -276,6 +300,9 @@ class AbsensiResource extends Resource
             ])
             ->recordActions([
                 ActionGroup::make([
+                    \Filament\Actions\ViewAction::make()
+                        ->label('Detail')
+                        ->modalHeading('Detail Kehadiran'),
                     EditAction::make()
                         ->label('Ubah')
                         ->visible(function (Absensi $record) {
