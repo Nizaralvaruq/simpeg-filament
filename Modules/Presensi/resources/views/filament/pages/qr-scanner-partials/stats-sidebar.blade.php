@@ -29,7 +29,7 @@
                                 </div>
                             </template>
 
-                            <template x-for="scan in $wire.recentScans" :key="scan.timestamp">
+                            <template x-for="scan in $wire.recentScans" :key="scan.id || scan.timestamp">
                                 <div class="qr-list-item">
                                     <img :src="scan.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(scan.name)}`"
                                         style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; object-fit: cover;">

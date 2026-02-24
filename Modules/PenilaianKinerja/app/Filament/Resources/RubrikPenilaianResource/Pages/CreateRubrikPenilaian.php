@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateRubrikPenilaian extends CreateRecord
 {
     protected static string $resource = RubrikPenilaianResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

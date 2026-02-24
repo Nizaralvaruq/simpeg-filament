@@ -125,7 +125,7 @@ class QrScanner extends Page
         $this->lastScannedToken = $token;
 
         // Cari user berdasarkan qr_token ATAU NIP
-        $user = User::where('qr_token', $token)
+        $user = User::with('employee')->where('qr_token', $token)
             ->orWhereHas('employee', function ($query) use ($token) {
                 $query->where('nip', $token);
             })->first();
@@ -141,6 +141,8 @@ class QrScanner extends Page
             }
             return;
         }
+
+        $userName = $user->employee->nama ?? $user->name;
 
         // --- BRANCH: EVENT MODE ---
         if ($this->scanMode === 'event') {
@@ -219,7 +221,7 @@ class QrScanner extends Page
         }
 
         $this->scannedUser = [
-            'name' => $user->name,
+            'name' => $userName,
             'email' => $user->email,
             'avatar' => $user->getFilamentAvatarUrl(),
         ];
@@ -245,13 +247,13 @@ class QrScanner extends Page
                     $this->dispatch(
                         'scan-success',
                         type: 'check-in',
-                        name: $user->name,
+                        name: $userName,
                         email: $user->email,
                         avatar: $user->getFilamentAvatarUrl()
                     );
                     Notification::make()
                         ->title('Check-in Berhasil')
-                        ->body("Staff: {$user->name} sudah masuk.")
+                        ->body("Staff: {$userName} sudah masuk.")
                         ->success()
                         ->send();
                 }
@@ -274,13 +276,13 @@ class QrScanner extends Page
                     $this->dispatch(
                         'scan-success',
                         type: 'check-out',
-                        name: $user->name,
+                        name: $userName,
                         email: $user->email,
                         avatar: $user->getFilamentAvatarUrl()
                     );
                     Notification::make()
                         ->title('Check-out Berhasil')
-                        ->body("Staff: {$user->name} sudah pulang.")
+                        ->body("Staff: {$userName} sudah pulang.")
                         ->info()
                         ->send();
                 }
@@ -293,7 +295,7 @@ class QrScanner extends Page
                     $this->dispatch('scan-error', message: 'Anda sudah absen hari ini.');
                     Notification::make()
                         ->title('Sudah Absen')
-                        ->body("Staff: {$user->name} sudah melakukan check-in dan check-out.")
+                        ->body("Staff: {$userName} sudah melakukan check-in dan check-out.")
                         ->warning()
                         ->send();
                 }
@@ -354,14 +356,15 @@ class QrScanner extends Page
     {
         $today = Carbon::today();
 
-        $scans = Absensi::with('user')
+        $scans = Absensi::with(['user.employee'])
             ->whereDate('tanggal', $today)
             ->latest('updated_at')
             ->limit(10)
             ->get()
             ->map(function ($absensi) {
                 return [
-                    'name' => $absensi->user->name ?? 'Unknown',
+                    'id' => $absensi->id,
+                    'name' => $absensi->user->employee->nama ?? $absensi->user->name ?? 'Unknown',
                     'email' => $absensi->user->email ?? '',
                     'avatar' => $absensi->user ? $absensi->user->getFilamentAvatarUrl() : null,
                     'type' => $absensi->jam_keluar ? 'check-out' : 'check-in',
@@ -413,6 +416,7 @@ class QrScanner extends Page
 
     protected function recordEventAttendance(User $user, ?float $lat, ?float $lng, bool $isSilent)
     {
+        $userName = $user->employee->nama ?? $user->name;
         if (!$this->selectedEventId) {
             if (!$isSilent) $this->dispatch('scan-error', message: 'Pilih Event terlebih dahulu!');
             return;
@@ -431,7 +435,7 @@ class QrScanner extends Page
                 $this->dispatch('scan-error', message: 'Sudah absen di event ini.');
                 Notification::make()
                     ->title('Sudah Hadir')
-                    ->body("{$user->name} sudah tercatat hadir di {$kegiatan->nama_kegiatan}.")
+                    ->body("{$userName} sudah tercatat hadir di {$kegiatan->nama_kegiatan}.")
                     ->warning()
                     ->send();
             }
@@ -445,7 +449,7 @@ class QrScanner extends Page
         ]);
 
         Log::info('QR Event Attendance', [
-            'user' => $user->name,
+            'user' => $userName,
             'kegiatan' => $kegiatan->nama_kegiatan,
             'admin' => Auth::user()->name ?? 'System',
         ]);
@@ -454,14 +458,14 @@ class QrScanner extends Page
             $this->dispatch(
                 'scan-success',
                 type: 'check-in',
-                name: $user->name,
+                name: $userName,
                 email: $user->email,
                 avatar: $user->getFilamentAvatarUrl()
             );
 
             Notification::make()
                 ->title('Hadir di Event')
-                ->body("{$user->name} berhasil check-in di {$kegiatan->nama_kegiatan}. Cek Laporan Kegiatan.")
+                ->body("{$userName} berhasil check-in di {$kegiatan->nama_kegiatan}. Cek Laporan Kegiatan.")
                 ->success()
                 ->send();
         }
