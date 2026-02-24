@@ -54,6 +54,12 @@ class AppraisalAssignmentPolicy
 
     public function update(AuthUser $authUser, AppraisalAssignment $appraisalAssignment): bool
     {
+        /** @var \App\Models\User $authUser */
+        // Rater can always update their assignment
+        if ($appraisalAssignment->rater_id === $authUser->id) {
+            return true;
+        }
+
         if (!$authUser->can('Update:AppraisalAssignment')) {
             return false;
         }
