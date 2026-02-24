@@ -14,22 +14,23 @@ class PerformanceScorePolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:PerformanceScore');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('ViewAny:PerformanceScore') || $authUser->hasRole('staff');
     }
 
     public function view(AuthUser $authUser, PerformanceScore $performanceScore): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('staff')) {
+            return $performanceScore->penilai_id === $authUser->id || $performanceScore->data_induk_id === $authUser->employee?->id;
+        }
+
         if (!$authUser->can('View:PerformanceScore')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return true;
-        }
-
-        if ($authUser->hasRole('staff')) {
-            return $performanceScore->penilai_id === $authUser->id || $performanceScore->data_induk_id === $authUser->employee?->id;
         }
 
         // For Unit Admins: Check if target employee belongs to my unit
@@ -52,18 +53,17 @@ class PerformanceScorePolicy
 
     public function update(AuthUser $authUser, PerformanceScore $performanceScore): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('staff')) {
+            return $performanceScore->penilai_id === $authUser->id;
+        }
+
         if (!$authUser->can('Update:PerformanceScore')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return true;
-        }
-
-        // Staff can only update their own assessments as rater
-        if ($authUser->hasRole('staff')) {
-            return $performanceScore->penilai_id === $authUser->id;
         }
 
         // For Unit Admins: Check Unit

@@ -14,22 +14,23 @@ class AppraisalAssignmentPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:AppraisalAssignment');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('ViewAny:AppraisalAssignment') || $authUser->hasRole('staff');
     }
 
     public function view(AuthUser $authUser, AppraisalAssignment $appraisalAssignment): bool
     {
+        /** @var \App\Models\User $authUser */
+        // Rater can always view their assignment
+        if ($appraisalAssignment->rater_id === $authUser->id) {
+            return true;
+        }
+
         if (!$authUser->can('View:AppraisalAssignment')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return true;
-        }
-
-        // Rater can always view their assignment
-        if ($appraisalAssignment->rater_id === $authUser->id) {
             return true;
         }
 

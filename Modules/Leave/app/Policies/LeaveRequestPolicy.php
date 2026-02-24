@@ -14,22 +14,23 @@ class LeaveRequestPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:LeaveRequest');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('ViewAny:LeaveRequest') || $authUser->hasRole('staff');
     }
 
     public function view(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('staff')) {
+            return $leaveRequest->user_id === $authUser->id;
+        }
+
         if (!$authUser->can('View:LeaveRequest')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return true;
-        }
-
-        if ($authUser->hasRole('staff')) {
-            return $leaveRequest->user_id === $authUser->id;
         }
 
         // For Unit Admins: Check if target employee belongs to my unit
@@ -52,18 +53,17 @@ class LeaveRequestPolicy
 
     public function update(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('staff')) {
+            return $leaveRequest->user_id === $authUser->id && $leaveRequest->status === 'pending';
+        }
+
         if (!$authUser->can('Update:LeaveRequest')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return true;
-        }
-
-        // Staff can only update their own records if pending
-        if ($authUser->hasRole('staff')) {
-            return $leaveRequest->user_id === $authUser->id && $leaveRequest->status === 'pending';
         }
 
         // For Unit Admins: Check Unit

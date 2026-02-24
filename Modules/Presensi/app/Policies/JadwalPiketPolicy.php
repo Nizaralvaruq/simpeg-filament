@@ -14,22 +14,23 @@ class JadwalPiketPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:JadwalPiket');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('ViewAny:JadwalPiket') || $authUser->hasRole('staff');
     }
 
     public function view(AuthUser $authUser, JadwalPiket $jadwalPiket): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('staff')) {
+            return $jadwalPiket->user_id === $authUser->id;
+        }
+
         if (!$authUser->can('View:JadwalPiket')) {
             return false;
         }
 
-        /** @var \App\Models\User $authUser */
         if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             return true;
-        }
-
-        if ($authUser->hasRole('staff')) {
-            return $jadwalPiket->user_id === $authUser->id;
         }
 
         // For Unit Admins: Check if target employee belongs to my unit

@@ -14,15 +14,12 @@ class UnitPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:Unit');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('ViewAny:Unit') || $authUser->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah', 'koor_jenjang']);
     }
 
     public function view(AuthUser $authUser, Unit $unit): bool
     {
-        if (!$authUser->can('View:Unit')) {
-            return false;
-        }
-
         /** @var \App\Models\User $authUser */
         if ($authUser->hasRole('super_admin')) {
             return true;
@@ -30,6 +27,10 @@ class UnitPolicy
 
         if ($authUser->hasRole('admin_unit') && $authUser->employee) {
             return $authUser->employee->units->contains('id', $unit->id);
+        }
+
+        if (!$authUser->can('View:Unit')) {
+            return false;
         }
 
         return false;
@@ -42,10 +43,6 @@ class UnitPolicy
 
     public function update(AuthUser $authUser, Unit $unit): bool
     {
-        if (!$authUser->can('Update:Unit')) {
-            return false;
-        }
-
         /** @var \App\Models\User $authUser */
         if ($authUser->hasRole('super_admin')) {
             return true;
@@ -53,6 +50,10 @@ class UnitPolicy
 
         if ($authUser->hasRole('admin_unit') && $authUser->employee) {
             return $authUser->employee->units->contains('id', $unit->id);
+        }
+
+        if (!$authUser->can('Update:Unit')) {
+            return false;
         }
 
         return false;

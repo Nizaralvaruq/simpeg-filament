@@ -38,6 +38,8 @@ use Maatwebsite\Excel\Facades\Excel as FacadesExcel;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Modules\Kepegawaian\Exports\DataIndukExport;
+use Modules\Kepegawaian\Exports\DataIndukBulkExport;
+use Illuminate\Database\Eloquent\Collection;
 
 class DataIndukResource extends Resource
 {
@@ -1016,10 +1018,10 @@ class DataIndukResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(
                             fn(
-                                mixed $records
+                                Collection $records
                             ) =>
                             FacadesExcel::download(
-                                new DataIndukExport($records),
+                                new DataIndukBulkExport($records),
                                 'pegawai-terpilih.xlsx'
                             )
                         ),

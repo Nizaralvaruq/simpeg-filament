@@ -11,15 +11,17 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class KegiatanPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:Kegiatan');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('ViewAny:Kegiatan') || $authUser->hasAnyRole(['staff', 'kepala_sekolah', 'koor_jenjang', 'admin_unit', 'ketua_psdm']);
     }
 
     public function view(AuthUser $authUser, Kegiatan $kegiatan): bool
     {
-        return $authUser->can('View:Kegiatan');
+        /** @var \App\Models\User $authUser */
+        return $authUser->can('View:Kegiatan') || $authUser->hasAnyRole(['staff', 'kepala_sekolah', 'koor_jenjang', 'admin_unit', 'ketua_psdm']);
     }
 
     public function create(AuthUser $authUser): bool
@@ -36,5 +38,4 @@ class KegiatanPolicy
     {
         return $authUser->can('Delete:Kegiatan');
     }
-
 }
