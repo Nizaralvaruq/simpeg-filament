@@ -31,6 +31,19 @@
         position: relative;
         background: #111827;
         aspect-ratio: 16/9;
+        overflow: hidden;
+    }
+
+    @media (max-width: 640px) {
+        .qr-camera {
+            aspect-ratio: 4/3;
+        }
+    }
+
+    #reader video {
+        object-fit: cover !important;
+        width: 100% !important;
+        height: 100% !important;
     }
 
     .qr-badge {

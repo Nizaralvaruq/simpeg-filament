@@ -83,7 +83,7 @@ class NilaiKinerjaResource extends Resource
                         ->options(function () use ($user, $isStaff) {
                             $query = DataInduk::query()->where('id', '!=', $user->employee?->id);
 
-                            if ($isStaff && $user->employee) {
+                            if ($user->hasAnyRole(['staff', 'kepala_sekolah', 'koor_jenjang', 'admin_unit']) && $user->employee) {
                                 $unitIds = $user->employee->units->pluck('id');
                                 $query->whereHas('units', function ($q) use ($unitIds) {
                                     $q->whereIn('units.id', $unitIds);
@@ -255,8 +255,18 @@ class NilaiKinerjaResource extends Resource
         $query = parent::getEloquentQuery()->with(['employee', 'penilai']);
 
         if ($user->hasRole('staff')) {
-            return $query->where('penilai_id', $user->id)
-                ->orWhere('data_induk_id', $user->employee?->id);
+            return $query->where(function ($q) use ($user) {
+                $q->where('penilai_id', $user->id)
+                    ->orWhere('data_induk_id', $user->employee?->id);
+            });
+        }
+
+        if ($user->hasAnyRole(['kepala_sekolah', 'koor_jenjang', 'admin_unit'])) {
+            if ($user->employee && $user->employee->units->isNotEmpty()) {
+                $unitIds = $user->employee->units->pluck('id');
+                return $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
+            }
+            return $query->whereRaw('1=0');
         }
 
         return $query;

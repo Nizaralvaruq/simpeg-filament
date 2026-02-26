@@ -231,9 +231,13 @@
                         facingMode: "environment"
                     }, {
                         fps: 24,
-                        qrbox: {
-                            width: 450,
-                            height: 450
+                        qrbox: function(viewfinderWidth, viewfinderHeight) {
+                            let minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                            let size = Math.floor(minEdge * 0.75); // 75% of the smallest edge
+                            return {
+                                width: size,
+                                height: size
+                            };
                         }
                     },
                     (decodedText) => {

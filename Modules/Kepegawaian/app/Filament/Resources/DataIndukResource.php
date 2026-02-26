@@ -131,6 +131,7 @@ class DataIndukResource extends Resource
                     request()->fullUrlIs(static::getUrl()) ||
                         (str_contains(request()->url(), 'kepegawaian/data-pegawai') && !str_contains(request()->url(), '/view'))
                 )
+                ->badge((string) static::getNavigationBadge(), static::getNavigationBadgeColor())
                 ->sort(10);
         }
 

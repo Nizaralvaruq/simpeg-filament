@@ -18,6 +18,11 @@ class Unit extends Model
         'radius' => 'integer',
     ];
 
+    public function unitType()
+    {
+        return $this->belongsTo(UnitType::class, 'unit_type_id');
+    }
+
     public function employees()
     {
         return $this->belongsToMany(DataInduk::class, 'employee_unit', 'unit_id', 'employee_id');

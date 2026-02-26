@@ -76,29 +76,16 @@ class UnitResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('type')
-                    ->options([
-                        'LPI' => 'LPI',
-                        'TK TAKFIZ' => 'TK TAKFIZ',
-                        'RUBAT' => 'RUBAT',
-                        'PAUD' => 'PAUD',
-                        'TK' => 'TK',
-                        'TAKFIZ TK' => 'TAKFIZ TK',
-                        'SDI' => 'SDI',
-                        'SMP' => 'SMP',
-                        'TAKFIZ SMP' => 'TAKFIZ SMP',
-                        'SMA' => 'SMA',
-                        'TAKFIZ SMA' => 'TAKFIZ SMA',
-                        'SMK' => 'SMK',
-                        'TAKFIZ SMK' => 'TAKFIZ SMK',
-                        'TK PG' => 'TK PG',
-                        'MI' => 'MI',
-                        'Mts PG' => 'Mts PG',
-                        'GIZI LPI' => 'GIZI LPI',
-                        'AEC' => 'AEC',
-                        'PENGEMBANGAN' => 'PENGEMBANGAN',
+                Forms\Components\Select::make('unit_type_id')
+                    ->relationship('unitType', 'name')
+                    ->required()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
                     ])
-                    ->required(),
+                    ->searchable()
+                    ->preload(),
 
                 Section::make('Pengaturan Lokasi (Geofencing)')
                     ->description('Tentukan koordinat dan radius untuk pembatasan absensi di unit ini. Kosongkan jika ingin mengikuti pengaturan global.')
@@ -148,7 +135,9 @@ class UnitResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable(),
-                Tables\Columns\TextColumn::make('type')->sortable(),
+                Tables\Columns\TextColumn::make('unitType.name')
+                    ->label('Tipe')
+                    ->sortable(),
             ])
             ->filters([
                 //
