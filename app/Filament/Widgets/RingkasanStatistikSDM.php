@@ -36,7 +36,7 @@ class RingkasanStatistikSDM extends BaseWidget
         $leaveQuery = LeaveRequest::where('status', 'pending');
         $resignQuery = Resign::where('status', 'diajukan');
 
-        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah'])) {
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
             $unitIds = $user->employee?->units->pluck('id')->toArray() ?? [];
             if (!empty($unitIds)) {
                 $employeeQuery->whereHas('units', fn($q) => $q->whereIn('units.id', $unitIds));

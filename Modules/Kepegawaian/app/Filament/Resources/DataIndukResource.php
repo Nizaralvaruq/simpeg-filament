@@ -792,6 +792,7 @@ class DataIndukResource extends Resource
                     Forms\Components\TextInput::make('email')
                         ->label('Email Login')
                         ->email()
+                        ->live()
                         ->dehydrated(false)
                         ->placeholder('contoh: budi.santoso@domain.com')
                         ->autocomplete('off')
@@ -835,6 +836,7 @@ class DataIndukResource extends Resource
                     Forms\Components\TextInput::make('password')
                         ->label('Password Baru')
                         ->password()
+                        ->revealable()
                         ->dehydrated(false)
                         ->autocomplete('new-password')
                         ->placeholder('Min. 8 karakter (Kosongkan jika tidak ingin mengubah)')
@@ -842,7 +844,7 @@ class DataIndukResource extends Resource
                         ->validationMessages([
                             'min' => 'Password harus minimal 8 karakter.',
                         ])
-                        ->requiredWith('email'),
+                        ->required(fn(string $operation, Get $get): bool => $operation === 'create' && filled($get('email'))),
                 ])
                 ->columns(2),
         ];
