@@ -67,7 +67,7 @@ class ManageSettings extends Page implements HasForms
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('app_name')
                             ->label('Nama Aplikasi')
-                            ->placeholder('Contoh: SIMPEG IHYA')
+                            ->placeholder('Contoh: SIMPEG INSAN')
                             ->required(),
                         \Filament\Forms\Components\CheckboxList::make('working_days')
                             ->label('Hari Kerja Aktif')

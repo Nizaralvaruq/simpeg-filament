@@ -32,26 +32,23 @@ class DataIndukPolicy
             return true;
         }
 
-        if (!$authUser->can('View:DataInduk')) {
-            return false;
-        }
-
-        // For Unit Admins, Koor Jenjang, Kepala Sekolah: Check Unit
-        if ($authUser->employee) {
-            // Load units if not already loaded
+        // For Unit Admins, Koor Jenjang, Kepala Sekolah: Check Unit first before Spatie permission
+        if ($authUser->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah']) && $authUser->employee) {
             if (!$authUser->employee->relationLoaded('units')) {
                 $authUser->employee->load('units');
             }
 
             if ($authUser->employee->units->isNotEmpty()) {
                 $myUnitIds = $authUser->employee->units->pluck('id')->toArray();
-
-                // Ensure dataInduk's units are checked properly
-                return $dataInduk->units()->whereIn('units.id', $myUnitIds)->exists();
+                // If the employee they are trying to view is in one of their units, allow it
+                if ($dataInduk->units()->whereIn('units.id', $myUnitIds)->exists()) {
+                    return true;
+                }
             }
         }
 
-        return false;
+        // Fallback to Spatie permission for other custom roles
+        return $authUser->can('View:DataInduk');
     }
 
     public function create(AuthUser $authUser): bool
@@ -72,23 +69,13 @@ class DataIndukPolicy
             return true;
         }
 
-        if (!$authUser->can('Update:DataInduk')) {
+        // For Admin Unit, they can only edit their OWN biodata (handled above).
+        // They CANNOT edit other people's biodata within their unit.
+        if ($authUser->hasRole('admin_unit')) {
             return false;
         }
 
-        // For Unit Admins: Check Unit
-        if ($authUser->employee) {
-            if (!$authUser->employee->relationLoaded('units')) {
-                $authUser->employee->load('units');
-            }
-
-            if ($authUser->employee->units->isNotEmpty()) {
-                $myUnitIds = $authUser->employee->units->pluck('id')->toArray();
-                return $dataInduk->units()->whereIn('units.id', $myUnitIds)->exists();
-            }
-        }
-
-        return false;
+        return $authUser->can('Update:DataInduk');
     }
 
     public function delete(AuthUser $authUser, DataInduk $dataInduk): bool

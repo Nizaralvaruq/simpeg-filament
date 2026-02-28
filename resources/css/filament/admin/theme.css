@@ -70,3 +70,51 @@
     background: rgba(17, 24, 39, 0.6) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
+
+/* ============================================================
+   Login Page Global Overrides
+   Force the outer body/layout wrapper to be transparent so
+   our blade insan-login-wrapper colors show correctly.
+   ============================================================ */
+.fi-simple-layout {
+    background-color: transparent !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+}
+
+.fi-simple-main-ctn {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: stretch !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+main.fi-simple-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Force dark body background only on large screens where left panel is visible */
+@media (min-width: 1024px) {
+    body:has(.insan-login-wrapper) {
+        background-color: #060b19 !important;
+        overflow-x: hidden !important;
+    }
+}
+
+/* On mobile, ensure login page body is light */
+@media (max-width: 1023px) {
+    body:has(.insan-login-wrapper) {
+        background-color: #f8fafc !important;
+    }
+}

@@ -33,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(\App\Filament\Pages\Auth\Login::class)
-            ->brandName('IHYA')
+            ->brandName('INSAN')
             ->brandLogo(asset('images/logo1.png'))
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/logo1.png'))
