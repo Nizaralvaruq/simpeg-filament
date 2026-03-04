@@ -54,6 +54,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: base_path('Modules/Resign/app/Filament/Resources'), for: 'Modules\\Resign\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/Leave/app/Filament/Resources'), for: 'Modules\\Leave\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/PenilaianKinerja/app/Filament/Resources'), for: 'Modules\\PenilaianKinerja\\Filament\\Resources')
+            ->discoverResources(in: base_path('Modules/Retirement/app/Filament/Resources'), for: 'Modules\\Retirement\\Filament\\Resources')
 
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->discoverPages(in: base_path('Modules/Presensi/app/Filament/Pages'), for: 'Modules\\Presensi\\Filament\\Pages')

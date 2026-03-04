@@ -196,8 +196,8 @@ class DataIndukResource extends Resource
             if ($operation === 'create') {
                 return [
                     Wizard::make([
-                        Step::make('Biodata')->schema($sections['Data Diri']),
-                        Step::make('Pekerjaan')->schema($sections['Data Induk']),
+                        Step::make('Data Diri')->schema($sections['Data Diri']),
+                        Step::make('Data Induk')->schema($sections['Data Induk']),
                         Step::make('Riwayat')->schema($sections['Riwayat']),
                         Step::make('BPJS & Akun')->schema(array_merge($sections['BPJS'], $sections['Akun'])),
                     ])->columnSpanFull()
@@ -478,19 +478,13 @@ class DataIndukResource extends Resource
             Section::make('Informasi Kepegawaian')
                 ->collapsible()
                 ->schema([
+                    // Baris 1: Identitas & Peran
                     Group::make()
                         ->schema([
                             Forms\Components\TextInput::make('nip')
                                 ->label('NPA (Nomor Pokok Anggota)')
                                 ->unique(ignoreRecord: true)
                                 ->maxLength(255),
-                            Forms\Components\DatePicker::make('tmt_awal')
-                                ->label('Tanggal Mulai Bertugas')
-                                ->displayFormat('d/m/Y'),
-                        ])->columns(2),
-
-                    Group::make()
-                        ->schema([
                             Forms\Components\TextInput::make('jabatan')
                                 ->label('Amanah/Jabatan Saat Ini')
                                 ->required()
@@ -502,10 +496,34 @@ class DataIndukResource extends Resource
                                 ->preload()
                                 ->native(false)
                                 ->required(),
-                        ])->columns(2),
+                        ])->columns(3),
 
+                    // Baris 2: Status & Lokasi
                     Group::make()
                         ->schema([
+                            Forms\Components\Select::make('status_kepegawaian')
+                                ->label('Status Kepegawaian')
+                                ->options([
+                                    'Tetap'   => 'Tetap',
+                                    'Kontrak' => 'Kontrak',
+                                    'Magang'  => 'Magang',
+                                    'Purna Tugas (Khidmah)' => 'Purna Tugas (Khidmah)',
+                                ])
+                                ->native(false)
+                                ->live(),
+                            Forms\Components\Select::make('status')
+                                ->label('Status Aktif')
+                                ->options([
+                                    'Aktif'  => 'Aktif',
+                                    'Cuti'   => 'Cuti',
+                                    'Izin'   => 'Izin',
+                                    'Sakit'  => 'Sakit',
+                                    'Resign' => 'Resign',
+                                    'Pensiun' => 'Pensiun',
+                                ])
+                                ->native(false)
+                                ->required()
+                                ->live(),
                             Forms\Components\Select::make('units')
                                 ->label('Unit Kerja')
                                 ->relationship('units', 'name', modifyQueryUsing: function (Builder $query) {
@@ -519,27 +537,23 @@ class DataIndukResource extends Resource
                                 })
                                 ->multiple()
                                 ->preload(),
-                            Forms\Components\Select::make('status_kepegawaian')
-                                ->label('Status Kepegawaian')
-                                ->options([
-                                    'Tetap'   => 'Tetap',
-                                    'Kontrak' => 'Kontrak',
-                                    'Magang'  => 'Magang',
-                                ])
-                                ->native(false),
-                            Forms\Components\Select::make('status')
-                                ->label('Status Aktif')
-                                ->options([
-                                    'Aktif'  => 'Aktif',
-                                    'Cuti'   => 'Cuti',
-                                    'Izin'   => 'Izin',
-                                    'Sakit'  => 'Sakit',
-                                    'Resign' => 'Resign',
-                                ])
-                                ->native(false)
-                                ->required()
-                                ->live(),
-                        ])->columns(2),
+                        ])->columns(3),
+
+                    // Baris 3: Riwayat Tanggal (TMT)
+                    Group::make()
+                        ->schema([
+                            Forms\Components\DatePicker::make('tmt_awal')
+                                ->label('Tanggal Mulai Bertugas (Awal)')
+                                ->displayFormat('d/m/Y'),
+                            Forms\Components\DatePicker::make('tmt_tetap')
+                                ->label('Tanggal Pengangkatan Tetap')
+                                ->displayFormat('d/m/Y')
+                                ->visible(fn($get) => $get('status_kepegawaian') === 'Tetap'),
+                            Forms\Components\DatePicker::make('tmt_penyesuaian_ijazah')
+                                ->label('TMT Penyesuaian Ijazah')
+                                ->displayFormat('d/m/Y')
+                                ->visible(fn($get) => $get('status_kepegawaian') === 'Tetap'),
+                        ])->columns(3),
                 ]),
         ];
     }
@@ -893,6 +907,28 @@ class DataIndukResource extends Resource
                     ->label('Golongan')
                     ->badge()
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('status_kepegawaian')
+                    ->label('Status Pegawai')
+                    ->badge()
+                    ->color(fn($state) => match ($state) {
+                        'Purna Tugas (Khidmah)' => 'violet',
+                        'Tetap' => 'success',
+                        'Kontrak' => 'warning',
+                        default => 'gray',
+                    })
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('tmt_awal')
+                    ->label('TMT Awal')
+                    ->date()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('tmt_tetap')
+                    ->label('TMT Tetap')
+                    ->date()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('tmt_penyesuaian_ijazah')
+                    ->label('TMT Penyesuaian Ijazah')
+                    ->date()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn($state) => match ($state) {
@@ -901,6 +937,7 @@ class DataIndukResource extends Resource
                         'Izin'  => 'info',
                         'Sakit' => 'danger',
                         'Resign' => 'gray',
+                        'Pensiun' => 'warning',
                         default => 'gray',
                     })
                     ->sortable(),
@@ -933,6 +970,7 @@ class DataIndukResource extends Resource
                         'Izin' => 'Izin',
                         'Sakit' => 'Sakit',
                         'Resign' => 'Resign',
+                        'Pensiun' => 'Pensiun',
                     ]),
 
                 Tables\Filters\SelectFilter::make('jenis_kelamin')

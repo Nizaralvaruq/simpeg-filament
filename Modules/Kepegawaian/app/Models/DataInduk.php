@@ -33,6 +33,8 @@ class DataInduk extends Model
     protected $casts = [
         'tanggal_lahir' => 'date',
         'tmt_awal' => 'date',
+        'tmt_tetap' => 'date',
+        'tmt_penyesuaian_ijazah' => 'date',
         'tmt_akhir' => 'date',
     ];
 
@@ -108,5 +110,11 @@ class DataInduk extends Model
     public function resignation()
     {
         return $this->hasOne(Resign::class, 'data_induk_id')->where('status', 'disetujui');
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasOne */
+    public function retirement()
+    {
+        return $this->hasOne(\Modules\Retirement\Models\Retirement::class, 'data_induk_id')->where('status', 'disetujui');
     }
 }

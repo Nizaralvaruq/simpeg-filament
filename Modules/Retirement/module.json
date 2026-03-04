@@ -1,0 +1,11 @@
+{
+    "name": "Retirement",
+    "alias": "retirement",
+    "description": "Retirement Management",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Retirement\\Providers\\RetirementServiceProvider"
+    ],
+    "files": []
+}

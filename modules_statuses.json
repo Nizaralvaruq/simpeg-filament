@@ -5,5 +5,6 @@
     "Akademik": true,
     "Leave": true,
     "Resign": true,
-    "PenilaianKinerja": true
+    "PenilaianKinerja": true,
+    "Retirement": true
 }

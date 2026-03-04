@@ -40,7 +40,8 @@
             "Modules\\Akademik\\": "Modules/Akademik/app/",
             "Modules\\PenilaianKinerja\\": "Modules/PenilaianKinerja/app/",
             "Modules\\Resign\\": "Modules/Resign/app/",
-            "Modules\\Leave\\": "Modules/Leave/app/"
+            "Modules\\Leave\\": "Modules/Leave/app/",
+            "Modules\\Retirement\\": "Modules/Retirement/app/"
         }
     },
     "autoload-dev": {

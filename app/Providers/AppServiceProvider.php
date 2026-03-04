@@ -81,6 +81,11 @@ class AppServiceProvider extends ServiceProvider
         );
 
         \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Retirement\Models\Retirement::class,
+            \Modules\Retirement\Policies\RetirementPolicy::class
+        );
+
+        \Illuminate\Support\Facades\Gate::policy(
             \Modules\MasterData\Models\Unit::class,
             \Modules\MasterData\Policies\UnitPolicy::class
         );
