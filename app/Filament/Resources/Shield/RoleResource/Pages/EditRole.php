@@ -13,4 +13,9 @@ class EditRole extends ShieldEditRole
     {
         return $this->getResource()::getUrl('index');
     }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Tersimpan';
+    }
 }
