@@ -9,14 +9,27 @@ use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithDatabaseTransactions;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use Maatwebsite\Excel\Concerns\WithValidation;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 
-class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithValidation
+class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithValidation, WithChunkReading, WithDatabaseTransactions
 {
+    protected Collection $golongans;
+    protected Collection $units;
+
+    public function __construct()
+    {
+        // Pre-cache all Golongans and Units to avoid repeated DB queries
+        $this->golongans = Golongan::all()->keyBy('name');
+        $this->units = Unit::all()->keyBy('name');
+    }
+
     public function map($row): array
     {
         // Parse dates from Excel
@@ -48,16 +61,12 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
             return null;
         }
 
-        // Lookup Golongan ID by Name - EXACT MATCH
-        $golonganId = null;
-        if (!empty($row['golongan'])) {
-            $golonganName = trim($row['golongan']);
-            $golongan = Golongan::where('name', $golonganName)->first();
-            $golonganId = $golongan?->id;
+        // Lookup Golongan from Cache
+        $golonganName = trim($row['golongan'] ?? '');
+        $golonganId = $this->golongans->get($golonganName)?->id;
 
-            if (!$golongan) {
-                Log::warning("Import DataInduk: Golongan '{$golonganName}' tidak ditemukan untuk NIK {$nik}");
-            }
+        if (!empty($golonganName) && !$golonganId) {
+            Log::warning("Import DataInduk: Golongan '{$golonganName}' tidak ditemukan untuk NIK {$nik}");
         }
 
         /** @var DataInduk $dataInduk */
@@ -91,18 +100,19 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
             ]
         );
 
-        // Create User if doesn't exist. Use NIP@ihya.id if email is empty.
+        // Handle User separately to minimize queries
         $email = !empty($row['email']) ? trim($row['email']) : ($dataInduk->nip ? trim($dataInduk->nip) . '@ihya.id' : null);
 
         if ($email && !$dataInduk->user_id) {
-            $user = User::where('email', $email)->first();
-
-            if (!$user) {
-                $user = User::create([
+            $user = User::firstOrCreate(
+                ['email' => $email],
+                [
                     'name' => $nama,
-                    'email' => $email,
-                    'password' => Hash::make('password'), // Default password changed to 'password'
-                ]);
+                    'password' => Hash::make('password'),
+                ]
+            );
+
+            if ($user->wasRecentlyCreated) {
                 $user->assignRole('staff');
                 Log::info("Import DataInduk: Akun baru dibuat untuk {$nama} ({$email})");
             }
@@ -110,14 +120,13 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
             $dataInduk->update(['user_id' => $user->id]);
         }
 
-        // Sync Units if provided - EXACT MATCH
+        // Sync Units from Cache
         if (!empty($row['unit_kerja'])) {
             $unitNames = explode(',', $row['unit_kerja']);
             $unitIds = [];
-            foreach ($unitNames as $name) {
-                $trimmedName = trim($name);
-                $unit = Unit::where('name', $trimmedName)->first();
-                if ($unit) {
+            foreach ($unitNames as $uName) {
+                $trimmedName = trim($uName);
+                if ($unit = $this->units->get($trimmedName)) {
                     $unitIds[] = $unit->id;
                 } else {
                     Log::warning("Import DataInduk: Unit '{$trimmedName}' tidak ditemukan untuk NIK {$nik}");
@@ -129,6 +138,11 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
         }
 
         Log::info("Import DataInduk: Berhasil memproses {$nama} (NIK: {$nik})");
+    }
+
+    public function chunkSize(): int
+    {
+        return 100;
     }
 
     private function transformDate($value)
