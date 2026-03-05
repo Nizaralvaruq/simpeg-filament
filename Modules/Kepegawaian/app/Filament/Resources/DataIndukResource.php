@@ -48,7 +48,12 @@ class DataIndukResource extends Resource
 
     public static function getNavigationIcon(): string|\BackedEnum|null
     {
-        return 'heroicon-o-user';
+        return 'heroicon-o-users';
+    }
+
+    public static function getActiveNavigationIcon(): string|\BackedEnum|null
+    {
+        return 'heroicon-s-users';
     }
 
     public static function getNavigationGroup(): ?string

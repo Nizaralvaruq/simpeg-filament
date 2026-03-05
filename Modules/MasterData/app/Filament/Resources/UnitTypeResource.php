@@ -15,15 +15,14 @@ class UnitTypeResource extends Resource
 {
     protected static ?string $model = UnitType::class;
     protected static ?int $navigationSort = 11;
-
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
-        return 'heroicon-o-tag';
+        return 'heroicon-o-squares-2x2';
     }
 
-    public static function getNavigationGroup(): ?string
+    public static function getActiveNavigationIcon(): string | \BackedEnum | null
     {
-        return 'Data Master';
+        return 'heroicon-s-squares-2x2';
     }
 
     public static function getModelLabel(): string

@@ -17,12 +17,12 @@ class GolonganResource extends Resource
     protected static ?int $navigationSort = 10;
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
-        return 'heroicon-o-list-bullet';
+        return 'heroicon-o-academic-cap';
     }
 
-    public static function getNavigationGroup(): ?string
+    public static function getActiveNavigationIcon(): string | \BackedEnum | null
     {
-        return 'Data Master';
+        return 'heroicon-s-academic-cap';
     }
 
     public static function getModelLabel(): string

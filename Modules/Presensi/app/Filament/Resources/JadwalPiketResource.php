@@ -52,6 +52,16 @@ class JadwalPiketResource extends Resource
         return 'success';
     }
 
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return 'heroicon-o-calendar-days';
+    }
+
+    public static function getActiveNavigationIcon(): string | \BackedEnum | null
+    {
+        return 'heroicon-s-calendar-days';
+    }
+
 
 
     public static function form(Schema $schema): Schema

@@ -1,4 +1,4 @@
-@import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import "../../../../vendor/filament/filament/resources/css/theme.css";
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
@@ -22,12 +22,16 @@
 
 .bg-premium-gradient {
     background-color: #1e2a4a;
-    background-image: 
-        radial-gradient(at 0% 0%, hsla(199,100%,35%,1) 0, transparent 50%), 
-        radial-gradient(at 50% 0%, hsla(201,100%,25%,1) 0, transparent 50%), 
-        radial-gradient(at 100% 0%, hsla(197,100%,30%,1) 0, transparent 50%),
-        radial-gradient(at 0% 100%, hsla(205,100%,15%,1) 0, transparent 50%),
-        radial-gradient(at 100% 100%, hsla(202,100%,20%,1) 0, transparent 50%);
+    background-image:
+        radial-gradient(at 0% 0%, hsla(199, 100%, 35%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(201, 100%, 25%, 1) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(197, 100%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 0% 100%, hsla(205, 100%, 15%, 1) 0, transparent 50%),
+        radial-gradient(
+            at 100% 100%,
+            hsla(202, 100%, 20%, 1) 0,
+            transparent 50%
+        );
 }
 
 /* Global Filament Overrides for Glassmorphism */
@@ -117,4 +121,27 @@ main.fi-simple-main {
     body:has(.insan-login-wrapper) {
         background-color: #f8fafc !important;
     }
+}
+
+/* ============================================================
+   Navigation Group Custom Colors
+   ============================================================ */
+.fi-sidebar-group[data-group-label="Menu Saya"] .fi-sidebar-group-label {
+    color: rgb(14 165 233) !important; /* Sky 500 */
+}
+.fi-sidebar-group[data-group-label="Kepegawaian"] .fi-sidebar-group-label {
+    color: rgb(245 158 11) !important; /* Amber 500 */
+}
+.fi-sidebar-group[data-group-label="Presensi"] .fi-sidebar-group-label {
+    color: rgb(16 185 129) !important; /* Emerald 500 */
+}
+.fi-sidebar-group[data-group-label="Penilaian Kinerja"]
+    .fi-sidebar-group-label {
+    color: rgb(139 92 246) !important; /* Violet 500 */
+}
+.fi-sidebar-group[data-group-label="Data Master"] .fi-sidebar-group-label {
+    color: rgb(99 102 241) !important; /* Indigo 500 */
+}
+.fi-sidebar-group[data-group-label="Authorization"] .fi-sidebar-group-label {
+    color: rgb(244 63 94) !important; /* Rose 500 */
 }

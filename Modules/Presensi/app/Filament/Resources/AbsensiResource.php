@@ -28,6 +28,11 @@ class AbsensiResource extends Resource
         return 'heroicon-o-clock';
     }
 
+    public static function getActiveNavigationIcon(): string | \BackedEnum | null
+    {
+        return 'heroicon-s-clock';
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return 'Presensi';

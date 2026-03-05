@@ -21,7 +21,12 @@ class UnitResource extends Resource
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
-        return 'heroicon-o-rectangle-stack';
+        return 'heroicon-o-building-office';
+    }
+
+    public static function getActiveNavigationIcon(): string | \BackedEnum | null
+    {
+        return 'heroicon-s-building-office';
     }
 
     public static function getNavigationGroup(): ?string

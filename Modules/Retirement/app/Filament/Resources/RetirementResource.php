@@ -26,6 +26,11 @@ class RetirementResource extends Resource
         return 'heroicon-o-document-check';
     }
 
+    public static function getActiveNavigationIcon(): string | \BackedEnum | null
+    {
+        return 'heroicon-s-document-check';
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return 'Kepegawaian';

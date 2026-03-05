@@ -84,12 +84,24 @@ class AdminPanelProvider extends PanelProvider
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ])
             ->navigationGroups([
-                'Menu Saya',
-                'Kepegawaian',
-                'Presensi',
-                'Penilaian Kinerja',
-                'Data Master',
-                'Authorization',
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('Menu Saya')
+                    ->icon('heroicon-o-user-circle'),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('Kepegawaian')
+                    ->icon('heroicon-o-briefcase'),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('Presensi')
+                    ->icon('heroicon-o-finger-print'),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('Penilaian Kinerja')
+                    ->icon('heroicon-o-star'),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('Data Master')
+                    ->icon('heroicon-o-server'),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('Authorization')
+                    ->icon('heroicon-o-shield-check'),
             ]);
     }
 
