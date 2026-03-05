@@ -21,7 +21,7 @@ class CreateDataInduk extends CreateRecord
 
         // Use NPA (NIP) as email if not provided, or if email is provided use it.
         // Default password is 'password' if not provided.
-        $email = !empty($data['email']) ? $data['email'] : ($record->nip ? $record->nip . '@ihya.com' : null);
+        $email = !empty($data['email']) ? $data['email'] : ($record->nip ? $record->nip . '@insan.id' : null);
         $password = !empty($data['password']) ? $data['password'] : 'password';
 
         if ($email) {

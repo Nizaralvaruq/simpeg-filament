@@ -101,7 +101,7 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
         );
 
         // Handle User separately to minimize queries
-        $email = !empty($row['email']) ? trim($row['email']) : ($dataInduk->nip ? trim($dataInduk->nip) . '@ihya.com' : null);
+        $email = !empty($row['email']) ? trim($row['email']) : ($dataInduk->nip ? trim($dataInduk->nip) . '@insan.id' : null);
 
         if ($email && !$dataInduk->user_id) {
             $user = User::firstOrCreate(
