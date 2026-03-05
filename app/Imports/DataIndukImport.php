@@ -11,14 +11,13 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Concerns\WithDatabaseTransactions;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Collection;
 
-class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithValidation, WithChunkReading, WithDatabaseTransactions
+class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithValidation, WithChunkReading
 {
     protected Collection $golongans;
     protected Collection $units;
@@ -34,8 +33,8 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
     {
         // Parse dates from Excel
         $row['tanggal_lahir'] = $this->transformDate($row['tanggal_lahir'] ?? null);
-        $row['tmt_awal']      = $this->transformDate($row['tmt_awal'] ?? null);
-        $row['tmt_akhir']     = $this->transformDate($row['tmt_akhir'] ?? null);
+        $row['tmt_awal'] = $this->transformDate($row['tmt_awal'] ?? null);
+        $row['tmt_akhir'] = $this->transformDate($row['tmt_akhir'] ?? null);
 
         return $row;
     }
@@ -53,9 +52,9 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
     public function onRow(Row $row)
     {
         $row = $row->toArray();
-        $nik  = trim((string) ($row['nik'] ?? ''));
+        $nik = trim((string) ($row['nik'] ?? ''));
         $nama = trim((string) ($row['nama'] ?? ''));
-        $nip  = trim((string) ($row['nip'] ?? ''));
+        $nip = trim((string) ($row['nip'] ?? ''));
 
         if ($nik === '' || $nama === '' || $nip === '') {
             return null;
@@ -73,30 +72,30 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
         $dataInduk = DataInduk::updateOrCreate(
             ['nik' => $nik],
             [
-                'nama'              => $nama,
-                'jenis_kelamin'     => $row['jenis_kelamin'] ?? null,
-                'nip'               => $row['nip'] ?? null,
-                'no_hp'             => $row['no_hp'] ?? null,
-                'tempat_lahir'      => $row['tempat_lahir'] ?? null,
-                'tanggal_lahir'     => $row['tanggal_lahir'] ?? null,
-                'pendidikan'        => $row['pendidikan'] ?? null,
-                'instansi'          => $row['instansi'] ?? null,
+                'nama' => $nama,
+                'jenis_kelamin' => $row['jenis_kelamin'] ?? null,
+                'nip' => $row['nip'] ?? null,
+                'no_hp' => $row['no_hp'] ?? null,
+                'tempat_lahir' => $row['tempat_lahir'] ?? null,
+                'tanggal_lahir' => $row['tanggal_lahir'] ?? null,
+                'pendidikan' => $row['pendidikan'] ?? null,
+                'instansi' => $row['instansi'] ?? null,
                 'status_perkawinan' => $row['status_perkawinan'] ?? null,
-                'suami_istri'       => $row['suami_istri'] ?? null,
-                'agama'             => $row['agama'] ?? null,
-                'golongan_darah'    => $row['golongan_darah'] ?? null,
-                'alamat'            => $row['alamat'] ?? null,
-                'alamat_domisili'   => $row['alamat_domisili'] ?? null,
-                'jarak_ke_kantor'   => $row['jarak_ke_kantor'] ?? null,
-                'jabatan'           => $row['jabatan'] ?? null,
-                'golongan_id'       => $golonganId,
-                'tmt_awal'          => $row['tmt_awal'] ?? null,
+                'suami_istri' => $row['suami_istri'] ?? null,
+                'agama' => $row['agama'] ?? null,
+                'golongan_darah' => $row['golongan_darah'] ?? null,
+                'alamat' => $row['alamat'] ?? null,
+                'alamat_domisili' => $row['alamat_domisili'] ?? null,
+                'jarak_ke_kantor' => $row['jarak_ke_kantor'] ?? null,
+                'jabatan' => $row['jabatan'] ?? null,
+                'golongan_id' => $golonganId,
+                'tmt_awal' => $row['tmt_awal'] ?? null,
                 'status_kepegawaian' => $row['status_kepegawaian'] ?? null,
-                'no_bpjs'           => $row['no_bpjs'] ?? null,
-                'no_kjp_2p'         => $row['no_kjp_2p'] ?? null,
-                'no_kjp_3p'         => $row['no_kjp_3p'] ?? null,
-                'status'            => 'Aktif',
-                'pindah_tugas'      => 'tetap',
+                'no_bpjs' => $row['no_bpjs'] ?? null,
+                'no_kjp_2p' => $row['no_kjp_2p'] ?? null,
+                'no_kjp_3p' => $row['no_kjp_3p'] ?? null,
+                'status' => 'Aktif',
+                'pindah_tugas' => 'tetap',
             ]
         );
 
