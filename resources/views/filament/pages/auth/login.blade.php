@@ -112,18 +112,60 @@
             align-items: center;
             justify-content: center;
             width: 55%;
-            background: linear-gradient(145deg, #0a1628 0%, #060c1a 40%, #071020 70%, #0c1a30 100%);
+            background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
             overflow: hidden;
         }
 
-        /* Plus grid background */
+        /* Dynamic Animated Mesh Gradient Background */
         .insan-grid-bg {
             position: absolute;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M22 18v8M18 22h8' stroke='%23334155' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-size: 44px 44px;
-            background-repeat: repeat;
-            opacity: 0.25;
+            inset: -50%;
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(2, 132, 199, 0.15) 0%, transparent 50%);
+            animation: mesh-rotate 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes mesh-rotate {
+            0% {
+                transform: rotate(0deg) scale(1.2);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.5);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1.2);
+            }
+        }
+
+        /* Floating decoration elements */
+        .insan-left::before,
+        .insan-left::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            z-index: 1;
+        }
+
+        .insan-left::before {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .insan-left::after {
+            width: 500px;
+            height: 500px;
+            bottom: -200px;
+            right: -150px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
         }
 
         .insan-left-content {
@@ -134,8 +176,21 @@
             align-items: center;
             text-align: center;
             padding: 3rem 2rem;
-            gap: 1.25rem;
-            max-width: 480px;
+            gap: 1.5rem;
+            max-width: 500px;
+            animation: fade-in-up 1s ease-out;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Logo in a rounded dark box */
@@ -243,6 +298,10 @@
         .insan-form-wrap {
             width: 100%;
             max-width: 380px;
+            animation: fade-in-up 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(15px);
+            animation-fill-mode: both;
         }
 
         .insan-form-title {
@@ -250,12 +309,14 @@
             font-weight: 700;
             color: #0f172a;
             margin: 0 0 0.5rem;
+            letter-spacing: -0.02em;
         }
 
         .insan-form-subtitle {
-            font-size: 14px;
+            font-size: 14.5px;
             color: #64748b;
-            margin: 0 0 2rem;
+            margin: 0 0 2.5rem;
+            line-height: 1.5;
         }
 
         .insan-filament-wrap {
@@ -270,14 +331,20 @@
         }
 
         .insan-register-link a {
-            color: #0f172a;
-            font-weight: 700;
+            color: #0ea5e9;
+            font-weight: 600;
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         .insan-register-link a:hover {
+            color: #0284c7;
             text-decoration: underline;
         }
+
+        /* =====================================================
+           FILAMENT FORM OVERRIDES
+           ===================================================== */
 
         /* =====================================================
            FILAMENT FORM OVERRIDES
@@ -304,71 +371,82 @@
 
         /* Labels */
         .fi-fo-field-wrp-label {
-            font-size: 13.5px !important;
+            font-size: 14px !important;
             font-weight: 600 !important;
             color: #1e293b !important;
-            margin-bottom: 6px !important;
+            margin-bottom: 8px !important;
+            letter-spacing: -0.01em !important;
         }
 
-        /* Input wrappers - pale blue/gray */
+        /* Input wrappers - Modern Light Theme */
         .fi-input-wrp {
-            background-color: #f1f5f9 !important;
-            border: 1.5px solid #e2e8f0 !important;
-            border-radius: 10px !important;
-            box-shadow: none !important;
-            transition: border-color 0.2s, box-shadow 0.2s !important;
-            height: 48px !important;
-            padding: 0 0.5rem !important;
+            background-color: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            height: 52px !important;
+            padding: 0 1rem !important;
         }
 
         .fi-input-wrp:focus-within {
             border-color: #0ea5e9 !important;
             background-color: #ffffff !important;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, .15) !important;
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1) !important;
         }
 
         /* Input text */
         .fi-input-wrp input {
             background: transparent !important;
             color: #0f172a !important;
-            font-size: 14px !important;
+            font-size: 15px !important;
             font-weight: 500 !important;
             border: none !important;
             box-shadow: none !important;
-            padding-left: 0.5rem !important;
+            padding-left: 0.25rem !important;
         }
 
         .fi-input-wrp input::placeholder {
             color: #94a3b8 !important;
+            font-weight: 400 !important;
         }
 
         /* Helper text */
         .fi-fo-field-wrp-helper-text {
-            font-size: 12px !important;
-            color: #94a3b8 !important;
+            font-size: 12.5px !important;
+            color: #64748b !important;
+            margin-top: 6px !important;
         }
 
         /* Submit / Masuk button */
         .fi-btn[type="submit"],
         button[type="submit"] {
             width: 100% !important;
-            height: 50px !important;
-            background-color: #0ea5e9 !important;
+            height: 54px !important;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
             color: #ffffff !important;
-            font-size: 15px !important;
+            font-size: 16px !important;
             font-weight: 700 !important;
-            border-radius: 10px !important;
+            letter-spacing: 0.02em !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 12px !important;
             border: none !important;
-            box-shadow: 0 4px 14px rgba(14, 165, 233, .35) !important;
-            margin-top: 1.25rem !important;
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4), 0 8px 10px -6px rgba(14, 165, 233, 0.2) !important;
+            margin-top: 1.5rem !important;
             cursor: pointer !important;
-            transition: background-color 0.2s, transform 0.15s !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             justify-content: center !important;
         }
 
         .fi-btn[type="submit"]:hover {
-            background-color: #0284c7 !important;
-            transform: translateY(-1px) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 14px 28px -5px rgba(14, 165, 233, 0.5), 0 10px 10px -6px rgba(14, 165, 233, 0.3) !important;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+        }
+
+        .fi-btn[type="submit"]:active {
+            transform: translateY(1px) !important;
+            box-shadow: 0 4px 10px -4px rgba(14, 165, 233, 0.4) !important;
         }
 
         .fi-btn[type="submit"] span,
@@ -378,31 +456,35 @@
 
         /* Checkbox */
         .fi-checkbox {
-            border-radius: 5px !important;
+            border-radius: 6px !important;
             border-color: #cbd5e1 !important;
-            width: 16px !important;
-            height: 16px !important;
+            width: 18px !important;
+            height: 18px !important;
+            transition: all 0.2s !important;
         }
 
         .fi-checkbox:checked {
             background-color: #0ea5e9 !important;
             border-color: #0ea5e9 !important;
+            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2) !important;
         }
 
         .fi-fo-checkbox label,
         .fi-fo-checkbox span {
-            font-size: 13px !important;
+            font-size: 14px !important;
             color: #475569 !important;
+            font-weight: 500 !important;
         }
 
         /* Password reveal */
         .fi-input-wrp button {
             background: transparent !important;
             color: #94a3b8 !important;
+            transition: color 0.2s !important;
         }
 
         .fi-input-wrp button:hover {
-            color: #475569 !important;
+            color: #0ea5e9 !important;
         }
 
         /* =====================================================
@@ -413,7 +495,7 @@
         }
 
         .dark .insan-form-title {
-            color: #f1f5f9;
+            color: #f8fafc;
         }
 
         .dark .insan-form-subtitle {
@@ -423,10 +505,12 @@
         .dark .insan-theme-btn {
             background-color: #1e293b;
             color: #94a3b8;
+            border: 1px solid #334155;
         }
 
         .dark .insan-theme-btn:hover {
             background-color: #334155;
+            color: #f1f5f9;
         }
 
         .dark .insan-register-link {
@@ -434,29 +518,31 @@
         }
 
         .dark .insan-register-link a {
-            color: #f1f5f9;
+            color: #38bdf8;
         }
 
         .dark .fi-fo-field-wrp-label {
-            color: #e2e8f0 !important;
+            color: #f1f5f9 !important;
         }
 
         .dark .fi-input-wrp {
             background-color: #1e293b !important;
             border-color: #334155 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
         }
 
         .dark .fi-input-wrp:focus-within {
             background-color: #0f172a !important;
             border-color: #0ea5e9 !important;
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15) !important;
         }
 
         .dark .fi-input-wrp input {
-            color: #f1f5f9 !important;
+            color: #f8fafc !important;
         }
 
         .dark .fi-fo-checkbox span {
-            color: #94a3b8 !important;
+            color: #cbd5e1 !important;
         }
 
         /* =====================================================
