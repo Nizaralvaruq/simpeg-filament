@@ -1,0 +1,9 @@
+{
+    "Presensi": true,
+    "Kepegawaian": true,
+    "MasterData": true,
+    "Leave": true,
+    "PenilaianKinerja": true,
+    "Resign": true,
+    "Retirement": true
+}

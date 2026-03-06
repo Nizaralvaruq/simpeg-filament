@@ -25,6 +25,11 @@ class UnitTypeResource extends Resource
         return 'heroicon-s-squares-2x2';
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Data Master';
+    }
+
     public static function getModelLabel(): string
     {
         return 'Tipe Jenjang';

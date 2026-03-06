@@ -1,5 +1,5 @@
 {
-    "name": "nwidart/kepegawaian",
+    "name": "nwidart/masterdata",
     "description": "",
     "authors": [
         {
@@ -17,14 +17,14 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\Kepegawaian\\": "app/",
-            "Modules\\Kepegawaian\\Database\\Factories\\": "database/factories/",
-            "Modules\\Kepegawaian\\Database\\Seeders\\": "database/seeders/"
+            "Modules\\MasterData\\": "app/",
+            "Modules\\MasterData\\Database\\Factories\\": "database/factories/",
+            "Modules\\MasterData\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Modules\\Kepegawaian\\Tests\\": "tests/"
+            "Modules\\MasterData\\Tests\\": "tests/"
         }
     }
 }

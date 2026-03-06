@@ -25,6 +25,11 @@ class GolonganResource extends Resource
         return 'heroicon-s-academic-cap';
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Data Master';
+    }
+
     public static function getModelLabel(): string
     {
         return 'Golongan';
