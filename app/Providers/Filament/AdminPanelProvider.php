@@ -132,5 +132,43 @@ class AdminPanelProvider extends PanelProvider
                 @endif
             '),
         );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::SCRIPTS_AFTER,
+            fn(): string => Blade::render('
+                <script>
+                    (function() {
+                        const STORAGE_KEY = "sidebar-scroll-pos";
+                        
+                        function saveScroll(target) {
+                            if (target && target.classList.contains("fi-sidebar-nav")) {
+                                sessionStorage.setItem(STORAGE_KEY, target.scrollTop);
+                            }
+                        }
+
+                        function restoreScroll() {
+                            const nav = document.querySelector(".fi-sidebar-nav");
+                            if (nav) {
+                                const pos = sessionStorage.getItem(STORAGE_KEY);
+                                if (pos) {
+                                    requestAnimationFrame(() => {
+                                        nav.scrollTop = pos;
+                                    });
+                                }
+                            }
+                        }
+
+                        // Listen for scroll using delegation
+                        document.addEventListener("scroll", (e) => {
+                            saveScroll(e.target);
+                        }, true);
+
+                        // Restore on initial load and Livewire navigation
+                        window.addEventListener("load", restoreScroll);
+                        document.addEventListener("livewire:navigated", restoreScroll);
+                    })();
+                </script>
+            '),
+        );
     }
 }
