@@ -156,7 +156,7 @@ class LeaveRequestResource extends Resource
                             Forms\Components\DatePicker::make('start_date')
                                 ->label('Mulai Tanggal')
                                 ->required()
-                                ->minDate(now()),
+                                ->minDate(today()),
                             Forms\Components\DatePicker::make('end_date')
                                 ->label('Sampai Tanggal')
                                 ->required()
