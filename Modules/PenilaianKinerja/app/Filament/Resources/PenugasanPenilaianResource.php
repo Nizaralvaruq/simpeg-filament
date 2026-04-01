@@ -230,8 +230,8 @@ class PenugasanPenilaianResource extends Resource
 
         if (!$user) return false;
 
-        // Sembunyikan dari staff DAN kepala_sekolah
-        if ($user->hasRole('staff') || $user->hasRole('kepala_sekolah')) {
+        // Sembunyikan dari staff, kepala_sekolah, dan siswa
+        if ($user->hasAnyRole(['staff', 'kepala_sekolah', 'siswa'])) {
             return false;
         }
 

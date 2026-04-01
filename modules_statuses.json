@@ -5,5 +5,7 @@
     "Leave": true,
     "PenilaianKinerja": true,
     "Resign": true,
-    "Retirement": true
+    "Retirement": true,
+    "Inventory": true,
+    "CBT": true
 }

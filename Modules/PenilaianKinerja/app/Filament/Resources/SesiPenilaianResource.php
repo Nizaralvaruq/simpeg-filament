@@ -25,12 +25,20 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Illuminate\Support\Facades\Auth;
 
 class SesiPenilaianResource extends Resource
 {
     protected static ?string $model = AppraisalSession::class;
 
     protected static ?int $navigationSort = 40;
+
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user && !$user->hasRole('siswa');
+    }
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {

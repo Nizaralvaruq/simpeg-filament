@@ -68,7 +68,7 @@ class DataIndukResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        /** @var User $user */
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if ($user && $user->hasRole('staff')) {
@@ -115,8 +115,8 @@ class DataIndukResource extends Resource
 
         $items = [];
 
-        // 1. Menu "Biodata Saya" (Tampil untuk semua yang memiliki data pegawai)
-        if ($user->employee) {
+        // 1. Menu "Biodata Saya" (Tampil untuk semua yang memiliki data pegawai, kecuali siswa)
+        if ($user->employee && !$user->hasRole('siswa')) {
             $items[] = NavigationItem::make('Biodata Saya')
                 ->group('Menu Saya')
                 ->icon('heroicon-o-user-circle')
@@ -226,255 +226,268 @@ class DataIndukResource extends Resource
     protected static function getBiodataSchema(): array
     {
         return [
-            Section::make('Identitas Diri')
-                ->schema([
-                    Forms\Components\FileUpload::make('foto_profil')
-                        ->label('Foto Profil (Pas Foto)')
-                        ->image()
-                        ->avatar()
-                        ->imageEditor()
-                        ->circleCropper()
-                        ->disk('public')
-                        ->directory('foto-profil')
-                        ->maxSize(100)
-                        ->getUploadedFileNameForStorageUsing(
-                            fn(TemporaryUploadedFile $file): string =>
-                            'Foto_Profil_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
-                        )
-                        ->columnSpanFull()
-                        ->extraAttributes(['class' => 'justify-center']),
-
-                    Group::make()
-                        ->schema([
-                            Forms\Components\TextInput::make('nama')
-                                ->label('Nama Lengkap')
-                                ->required()
-                                ->maxLength(255)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(function ($state, Set $set, Get $get, $record) {
-                                    if (!$record) {
-                                        if (empty($get('email')) && !empty($state)) {
-                                            $set('email', str($state)->lower()->replace(' ', '.')->append('@domain.com')->toString());
-                                        }
-                                        if (empty($get('password'))) {
-                                            $set('password', 'password123');
-                                        }
-                                    }
-                                }),
-                            Forms\Components\TextInput::make('nik')
-                                ->label('NIK')
-                                ->mask('9999999999999999')
-                                ->rules(fn($record) => [
-                                    Rule::unique('data_induks', 'nik')->ignore($record?->id),
-                                    Rule::unique('riwayat_keluargas', 'nik'),
-                                ])
-                                ->live(onBlur: true)
-                                ->helperText('Harus 16 digit angka')
-                                ->validationMessages([
-                                    'unique' => 'NIK sudah terdaftar di sistem (Pegawai/Keluarga).',
-                                ]),
-                        ])->columns(2),
-
-                    Group::make()
-                        ->schema([
-                            Forms\Components\TextInput::make('tempat_lahir')->label('Tempat Lahir'),
-                            Forms\Components\DatePicker::make('tanggal_lahir')
-                                ->label('Tanggal Lahir')
-                                ->displayFormat('d/m/Y'),
-                            Forms\Components\Select::make('jenis_kelamin')
-                                ->label('Jenis Kelamin')
-                                ->options([
-                                    'Laki-laki' => 'Laki-laki',
-                                    'Perempuan' => 'Perempuan',
-                                ])
-                                ->native(false),
-                        ])->columns(3),
-
-                    Group::make()
-                        ->schema([
-                            Forms\Components\Select::make('agama')
-                                ->label('Agama')
-                                ->options([
-                                    'Islam' => 'Islam',
-                                    'Kristen' => 'Kristen',
-                                    'Katolik' => 'Katolik',
-                                    'Hindu' => 'Hindu',
-                                    'Buddha' => 'Buddha',
-                                    'Konghucu' => 'Konghucu',
-                                ])
-                                ->native(false),
-                            Forms\Components\Select::make('golongan_darah')
-                                ->label('Golongan Darah')
-                                ->options([
-                                    'A' => 'A',
-                                    'B' => 'B',
-                                    'AB' => 'AB',
-                                    'O' => 'O',
-                                ])
-                                ->native(false),
-                            Forms\Components\TextInput::make('no_hp')
-                                ->label('No HP / WhatsApp')
-                                ->tel()
-                                ->numeric(),
-                        ])->columns(3),
-                ]),
-
-            Section::make('Pendidikan & Keluarga')
-                ->collapsible()
-                ->schema([
-                    Group::make()
-                        ->schema([
-                            Forms\Components\Select::make('pendidikan')
-                                ->label('Pendidikan Terakhir')
-                                ->options([
-                                    'SMA' => 'SMA',
-                                    'D1'  => 'D1',
-                                    'D3'  => 'D3',
-                                    'D4'  => 'D4',
-                                    'S1'  => 'S1',
-                                    'S2'  => 'S2',
-                                    'S3'  => 'S3',
-                                ])
-                                ->searchable()
-                                ->native(false),
-                            Forms\Components\TextInput::make('instansi')
-                                ->label('Nama Sekolah / Universitas'),
-                        ])->columns(2),
-
-                    Group::make()
-                        ->schema([
-                            Forms\Components\Select::make('status_perkawinan')
-                                ->label('Status Perkawinan')
-                                ->options([
-                                    'Belum Menikah' => 'Belum Menikah',
-                                    'Menikah'       => 'Menikah',
-                                    'Cerai Hidup'   => 'Cerai Hidup',
-                                    'Cerai Mati'    => 'Cerai Mati',
-                                ])
-                                ->native(false)
-                                ->live(),
-                        ])->columns(1),
-
-                    Forms\Components\Repeater::make('riwayatPasangan')
-                        ->relationship()
-                        ->label('Data Pasangan (Suami/Istri)')
-                        ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
-                        ->schema([
-                            Forms\Components\TextInput::make('nama')
-                                ->required()
-                                ->columnSpan(2),
-                            Forms\Components\Select::make('hubungan')
-                                ->options([
-                                    'Suami' => 'Suami',
-                                    'Istri' => 'Istri',
-                                ])
-                                ->required(),
-                            Forms\Components\TextInput::make('nik')
-                                ->label('NIK')
-                                ->mask('9999999999999999')
-                                ->distinct()
-                                ->rules(fn($record) => [
-                                    Rule::unique('riwayat_keluargas', 'nik')->ignore($record?->id),
-                                    Rule::unique('data_induks', 'nik'),
-                                ])
-                                ->helperText('16 digit')
-                                ->validationMessages([
-                                    'unique' => 'NIK sudah terdaftar (Pegawai/Keluarga).',
-                                ]),
-                            Forms\Components\TextInput::make('tempat_lahir')
-                                ->label('Tempat Lahir'),
-                            Forms\Components\DatePicker::make('tanggal_lahir')
-                                ->label('Tanggal Lahir')
-                                ->displayFormat('d/m/Y'),
-                            Forms\Components\TextInput::make('pekerjaan')
-                                ->label('Pekerjaan'),
-                            Forms\Components\TextInput::make('no_hp')
-                                ->label('No HP / WA')
-                                ->tel()
-                                ->placeholder('Kontak Darurat'),
-                            Forms\Components\FileUpload::make('file_kk')
-                                ->label('Upload KK/Akte')
-                                ->disk('public')
-                                ->directory('dokumen-keluarga')
-                                ->columnSpanFull(),
-                        ])
-                        ->columns(3)
-                        ->collapsible()
-                        ->itemLabel(fn(array $state): ?string => ($state['nama'] ?? '') . ' (' . ($state['hubungan'] ?? '') . ')')
-                        ->defaultItems(0),
-
-                    Forms\Components\Repeater::make('riwayatAnaks')
-                        ->relationship()
-                        ->label('Data Anak')
-                        ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
-                        ->schema([
-                            Forms\Components\TextInput::make('nama')
-                                ->required()
-                                ->columnSpan(2),
-                            Forms\Components\Hidden::make('hubungan')
-                                ->default('Anak'),
-                            Forms\Components\TextInput::make('nik')
-                                ->label('NIK')
-                                ->mask('9999999999999999')
-                                ->distinct()
-                                ->rules(fn($record) => [
-                                    Rule::unique('riwayat_keluargas', 'nik')->ignore($record?->id),
-                                    Rule::unique('data_induks', 'nik'),
-                                ])
-                                ->helperText('16 digit')
-                                ->validationMessages([
-                                    'unique' => 'NIK sudah terdaftar (Pegawai/Keluarga).',
-                                ]),
-                            Forms\Components\TextInput::make('tempat_lahir')
-                                ->label('Tempat Lahir'),
-                            Forms\Components\DatePicker::make('tanggal_lahir')
-                                ->label('Tanggal Lahir')
-                                ->displayFormat('d/m/Y'),
-                            Forms\Components\TextInput::make('pekerjaan')
-                                ->label('Pekerjaan'),
-                            Forms\Components\Select::make('pendidikan')
-                                ->label('Pendidikan')
-                                ->options([
-                                    'Belum Sekolah' => 'Belum Sekolah',
-                                    'TK'            => 'TK',
-                                    'SD'            => 'SD',
-                                    'SMP'           => 'SMP',
-                                    'SMA'           => 'SMA',
-                                    'Kuliah'        => 'Kuliah',
-                                ])
-                                ->native(false),
-                            Forms\Components\FileUpload::make('file_kk')
-                                ->label('Upload KK/Akte')
-                                ->disk('public')
-                                ->directory('dokumen-keluarga')
-                                ->columnSpanFull(),
-                        ])
-                        ->columns(3)
-                        ->collapsible()
-                        ->itemLabel(fn(array $state): ?string => $state['nama'] ?? null)
-                        ->defaultItems(0),
-                ]),
-
-            Section::make('Alamat & Domisili')
-                ->collapsible()
-                ->collapsed()
-                ->schema([
-                    Group::make()
-                        ->schema([
-                            Forms\Components\Textarea::make('alamat')
-                                ->label('Alamat Sesuai KTP')
-                                ->rows(3),
-                            Forms\Components\Textarea::make('alamat_domisili')
-                                ->label('Alamat Domisili (jika beda)')
-                                ->rows(3),
-                        ])->columns(2),
-                    Forms\Components\TextInput::make('jarak_ke_kantor')
-                        ->label('Jarak Rumah dari Kantor')
-                        ->numeric()
-                        ->suffix('KM')
-                        ->minValue(0),
-                ]),
+            static::getIdentitasDiriSchema(),
+            static::getPendidikanKeluargaSchema(),
+            static::getAlamatDomisiliSchema(),
         ];
+    }
+
+    protected static function getIdentitasDiriSchema(): Section
+    {
+        return Section::make('Identitas Diri')
+            ->schema([
+                Forms\Components\FileUpload::make('foto_profil')
+                    ->label('Foto Profil (Pas Foto)')
+                    ->image()
+                    ->avatar()
+                    ->imageEditor()
+                    ->circleCropper()
+                    ->disk('public')
+                    ->directory('foto-profil')
+                    ->maxSize(100)
+                    ->getUploadedFileNameForStorageUsing(
+                        fn(TemporaryUploadedFile $file): string =>
+                        'Foto_Profil_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
+                    )
+                    ->columnSpanFull()
+                    ->extraAttributes(['class' => 'justify-center']),
+
+                Group::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('nama')
+                            ->label('Nama Lengkap')
+                            ->required()
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function ($state, Set $set, Get $get, $record) {
+                                if (!$record) {
+                                    if (empty($get('email')) && !empty($state)) {
+                                        $set('email', str($state)->lower()->replace(' ', '.')->append('@domain.com')->toString());
+                                    }
+                                    if (empty($get('password'))) {
+                                        $set('password', 'password123');
+                                    }
+                                }
+                            }),
+                        Forms\Components\TextInput::make('nik')
+                            ->label('NIK')
+                            ->mask('9999999999999999')
+                            ->rules(fn($record) => [
+                                Rule::unique('data_induks', 'nik')->ignore($record?->id),
+                                Rule::unique('riwayat_keluargas', 'nik'),
+                            ])
+                            ->live(onBlur: true)
+                            ->helperText('Harus 16 digit angka')
+                            ->validationMessages([
+                                'unique' => 'NIK sudah terdaftar di sistem (Pegawai/Keluarga).',
+                            ]),
+                    ])->columns(2),
+
+                Group::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('tempat_lahir')->label('Tempat Lahir'),
+                        Forms\Components\DatePicker::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->displayFormat('d/m/Y'),
+                        Forms\Components\Select::make('jenis_kelamin')
+                            ->label('Jenis Kelamin')
+                            ->options([
+                                'Laki-laki' => 'Laki-laki',
+                                'Perempuan' => 'Perempuan',
+                            ])
+                            ->native(false),
+                    ])->columns(3),
+
+                Group::make()
+                    ->schema([
+                        Forms\Components\Select::make('agama')
+                            ->label('Agama')
+                            ->options([
+                                'Islam' => 'Islam',
+                                'Kristen' => 'Kristen',
+                                'Katolik' => 'Katolik',
+                                'Hindu' => 'Hindu',
+                                'Buddha' => 'Buddha',
+                                'Konghucu' => 'Konghucu',
+                            ])
+                            ->native(false),
+                        Forms\Components\Select::make('golongan_darah')
+                            ->label('Golongan Darah')
+                            ->options([
+                                'A' => 'A',
+                                'B' => 'B',
+                                'AB' => 'AB',
+                                'O' => 'O',
+                            ])
+                            ->native(false),
+                        Forms\Components\TextInput::make('no_hp')
+                            ->label('No HP / WhatsApp')
+                            ->tel()
+                            ->numeric(),
+                    ])->columns(3),
+            ]);
+    }
+
+    protected static function getPendidikanKeluargaSchema(): Section
+    {
+        return Section::make('Pendidikan & Keluarga')
+            ->collapsible()
+            ->schema([
+                Group::make()
+                    ->schema([
+                        Forms\Components\Select::make('pendidikan')
+                            ->label('Pendidikan Terakhir')
+                            ->options([
+                                'SMA' => 'SMA',
+                                'D1'  => 'D1',
+                                'D3'  => 'D3',
+                                'D4'  => 'D4',
+                                'S1'  => 'S1',
+                                'S2'  => 'S2',
+                                'S3'  => 'S3',
+                            ])
+                            ->searchable()
+                            ->native(false),
+                        Forms\Components\TextInput::make('instansi')
+                            ->label('Nama Sekolah / Universitas'),
+                    ])->columns(2),
+
+                Group::make()
+                    ->schema([
+                        Forms\Components\Select::make('status_perkawinan')
+                            ->label('Status Perkawinan')
+                            ->options([
+                                'Belum Menikah' => 'Belum Menikah',
+                                'Menikah'       => 'Menikah',
+                                'Cerai Hidup'   => 'Cerai Hidup',
+                                'Cerai Mati'    => 'Cerai Mati',
+                            ])
+                            ->native(false)
+                            ->live(),
+                    ])->columns(1),
+
+                Forms\Components\Repeater::make('riwayatPasangan')
+                    ->relationship()
+                    ->label('Data Pasangan (Suami/Istri)')
+                    ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
+                    ->schema([
+                        Forms\Components\TextInput::make('nama')
+                            ->required()
+                            ->columnSpan(2),
+                        Forms\Components\Select::make('hubungan')
+                            ->options([
+                                'Suami' => 'Suami',
+                                'Istri' => 'Istri',
+                            ])
+                            ->required(),
+                        Forms\Components\TextInput::make('nik')
+                            ->label('NIK')
+                            ->mask('9999999999999999')
+                            ->distinct()
+                            ->rules(fn($record) => [
+                                Rule::unique('riwayat_keluargas', 'nik')->ignore($record?->id),
+                                Rule::unique('data_induks', 'nik'),
+                            ])
+                            ->helperText('16 digit')
+                            ->validationMessages([
+                                'unique' => 'NIK sudah terdaftar (Pegawai/Keluarga).',
+                            ]),
+                        Forms\Components\TextInput::make('tempat_lahir')
+                            ->label('Tempat Lahir'),
+                        Forms\Components\DatePicker::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->displayFormat('d/m/Y'),
+                        Forms\Components\TextInput::make('pekerjaan')
+                            ->label('Pekerjaan'),
+                        Forms\Components\TextInput::make('no_hp')
+                            ->label('No HP / WA')
+                            ->tel()
+                            ->placeholder('Kontak Darurat'),
+                        Forms\Components\FileUpload::make('file_kk')
+                            ->label('Upload KK/Akte')
+                            ->disk('public')
+                            ->directory('dokumen-keluarga')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(3)
+                    ->collapsible()
+                    ->itemLabel(fn(array $state): ?string => ($state['nama'] ?? '') . ' (' . ($state['hubungan'] ?? '') . ')')
+                    ->defaultItems(0),
+
+                Forms\Components\Repeater::make('riwayatAnaks')
+                    ->relationship()
+                    ->label('Data Anak')
+                    ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
+                    ->schema([
+                        Forms\Components\TextInput::make('nama')
+                            ->required()
+                            ->columnSpan(2),
+                        Forms\Components\Hidden::make('hubungan')
+                            ->default('Anak'),
+                        Forms\Components\TextInput::make('nik')
+                            ->label('NIK')
+                            ->mask('9999999999999999')
+                            ->distinct()
+                            ->rules(fn($record) => [
+                                Rule::unique('riwayat_keluargas', 'nik')->ignore($record?->id),
+                                Rule::unique('data_induks', 'nik'),
+                            ])
+                            ->helperText('16 digit')
+                            ->validationMessages([
+                                'unique' => 'NIK sudah terdaftar (Pegawai/Keluarga).',
+                            ]),
+                        Forms\Components\TextInput::make('tempat_lahir')
+                            ->label('Tempat Lahir'),
+                        Forms\Components\DatePicker::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->displayFormat('d/m/Y'),
+                        Forms\Components\TextInput::make('pekerjaan')
+                            ->label('Pekerjaan'),
+                        Forms\Components\Select::make('pendidikan')
+                            ->label('Pendidikan')
+                            ->options([
+                                'Belum Sekolah' => 'Belum Sekolah',
+                                'TK'            => 'TK',
+                                'SD'            => 'SD',
+                                'SMP'           => 'SMP',
+                                'SMA'           => 'SMA',
+                                'Kuliah'        => 'Kuliah',
+                            ])
+                            ->native(false),
+                        Forms\Components\FileUpload::make('file_kk')
+                            ->label('Upload KK/Akte')
+                            ->disk('public')
+                            ->directory('dokumen-keluarga')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(3)
+                    ->collapsible()
+                    ->itemLabel(fn(array $state): ?string => $state['nama'] ?? null)
+                    ->defaultItems(0),
+            ]);
+    }
+
+    protected static function getAlamatDomisiliSchema(): Section
+    {
+        return Section::make('Alamat & Domisili')
+            ->collapsible()
+            ->collapsed()
+            ->schema([
+                Group::make()
+                    ->schema([
+                        Forms\Components\Textarea::make('alamat')
+                            ->label('Alamat Sesuai KTP')
+                            ->rows(3),
+                        Forms\Components\Textarea::make('alamat_domisili')
+                            ->label('Alamat Domisili (jika beda)')
+                            ->rows(3),
+                    ])->columns(2),
+                Forms\Components\TextInput::make('jarak_ke_kantor')
+                    ->label('Jarak Rumah dari Kantor')
+                    ->numeric()
+                    ->suffix('KM')
+                    ->minValue(0),
+            ]);
     }
 
     protected static function getKepegawaianSchema(): array
@@ -821,7 +834,7 @@ class DataIndukResource extends Resource
                             }
                         })
                         ->rules([
-                            fn($record) => \Illuminate\Validation\Rule::unique('users', 'email')->ignore($record?->user_id),
+                            fn($record) => Rule::unique('users', 'email')->ignore($record?->user_id),
                         ]),
 
                     Forms\Components\Select::make('roles')

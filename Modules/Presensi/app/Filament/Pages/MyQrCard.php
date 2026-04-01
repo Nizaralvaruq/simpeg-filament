@@ -16,9 +16,9 @@ class MyQrCard extends Page
 
     protected static string | \UnitEnum | null $navigationGroup = 'Menu Saya';
 
-    protected static ?string $navigationLabel = 'Kartu QR Saya';
+    protected static ?string $navigationLabel = 'Kartu QR';
 
-    protected static ?string $title = 'Kartu QR Saya';
+    protected static ?string $title = 'Kartu QR';
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -73,6 +73,11 @@ class MyQrCard extends Page
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        
+        if ($user->hasRole('siswa')) {
+            return $user->student?->nisn ?? '-';
+        }
+        
         return $user->employee?->nip ?? '-';
     }
 
@@ -80,6 +85,11 @@ class MyQrCard extends Page
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        
+        if ($user->hasRole('siswa')) {
+            return 'Siswa ' . ($user->student?->class_name ?? '');
+        }
+        
         return $user->employee?->jabatan ?? 'Pegawai';
     }
 

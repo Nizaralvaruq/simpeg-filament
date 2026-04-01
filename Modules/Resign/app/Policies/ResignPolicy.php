@@ -11,39 +11,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class ResignPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
-        /** @var \App\Models\User $authUser */
-        return $authUser->can('ViewAny:Resign') || $authUser->hasRole('staff');
+        return $authUser->can('ViewAny:Resign');
     }
 
     public function view(AuthUser $authUser, Resign $resign): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasRole('staff')) {
-            return $resign->employee && (int) $resign->employee->user_id === (int) $authUser->id;
-        }
-
-        if (!$authUser->can('View:Resign')) {
-            return false;
-        }
-
-        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return true;
-        }
-
-        // For Unit Admins: Check if target employee belongs to my unit
-        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
-            $myUnitIds = $authUser->employee->units->pluck('id')->all();
-
-            $targetEmployee = $resign->employee;
-            if (!$targetEmployee) return false;
-
-            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
-        }
-
-        return false;
+        return $authUser->can('View:Resign');
     }
 
     public function create(AuthUser $authUser): bool
@@ -53,53 +29,12 @@ class ResignPolicy
 
     public function update(AuthUser $authUser, Resign $resign): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasRole('staff')) {
-            return $resign->employee && (int) $resign->employee->user_id === (int) $authUser->id && $resign->status === 'diajukan';
-        }
-
-        if (!$authUser->can('Update:Resign')) {
-            return false;
-        }
-
-        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return true;
-        }
-
-        // For Unit Admins: Check Unit
-        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
-            $myUnitIds = $authUser->employee->units->pluck('id')->all();
-
-            $targetEmployee = $resign->employee;
-            if (!$targetEmployee) return false;
-
-            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
-        }
-
-        return false;
+        return $authUser->can('Update:Resign');
     }
 
     public function delete(AuthUser $authUser, Resign $resign): bool
     {
-        if (!$authUser->can('Delete:Resign')) {
-            return false;
-        }
-
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return true;
-        }
-
-        // Unit Admins check
-        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
-            $myUnitIds = $authUser->employee->units->pluck('id')->all();
-
-            $targetEmployee = $resign->employee;
-            if (!$targetEmployee) return false;
-
-            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
-        }
-
-        return false;
+        return $authUser->can('Delete:Resign');
     }
+
 }

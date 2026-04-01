@@ -18,12 +18,20 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Illuminate\Support\Facades\Auth;
 
 class RubrikPenilaianResource extends Resource
 {
     protected static ?string $model = AppraisalCategory::class;
 
     protected static ?int $navigationSort = 50;
+
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user && !$user->hasRole('siswa');
+    }
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {

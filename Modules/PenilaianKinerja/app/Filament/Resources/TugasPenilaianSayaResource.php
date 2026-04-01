@@ -28,6 +28,13 @@ class TugasPenilaianSayaResource extends Resource
 
     protected static ?int $navigationSort = 70;
 
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user && !$user->hasRole('siswa');
+    }
+
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
         return 'heroicon-o-pencil-square';

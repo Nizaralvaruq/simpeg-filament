@@ -11,17 +11,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class AppraisalCategoryPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
-        /** @var \App\Models\User $authUser */
-        return $authUser->can('ViewAny:AppraisalCategory') || $authUser->hasRole('staff');
+        return $authUser->can('ViewAny:AppraisalCategory');
     }
 
     public function view(AuthUser $authUser, AppraisalCategory $appraisalCategory): bool
     {
-        /** @var \App\Models\User $authUser */
-        return $authUser->can('View:AppraisalCategory') || $authUser->hasRole('staff');
+        return $authUser->can('View:AppraisalCategory');
     }
 
     public function create(AuthUser $authUser): bool
@@ -38,4 +36,5 @@ class AppraisalCategoryPolicy
     {
         return $authUser->can('Delete:AppraisalCategory');
     }
+
 }

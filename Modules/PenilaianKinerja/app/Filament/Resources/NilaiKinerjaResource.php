@@ -30,6 +30,13 @@ class NilaiKinerjaResource extends Resource
     protected static ?string $model = PerformanceScore::class;
     protected static ?int $navigationSort = 20;
 
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user && !$user->hasRole('siswa');
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return false;

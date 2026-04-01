@@ -24,7 +24,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasAnyRole(['super_admin', 'kepala_sekolah', 'koor_jenjang', 'admin_unit', 'staff', 'ketua_psdm']);
+            return $this->hasAnyRole(['super_admin', 'kepala_sekolah', 'koor_jenjang', 'admin_unit', 'staff', 'ketua_psdm', 'siswa']);
         }
 
 
@@ -77,13 +77,13 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
      */
     public function getQrTokenAttribute(): ?string
     {
-        return $this->attributes['qr_token'] ?? $this->employee?->nip;
+        return $this->attributes['qr_token'] ?? $this->employee?->nip ?? $this->student?->nisn;
     }
 
     public function generateQrToken(): void
     {
         $this->update([
-            'qr_token' => \Illuminate\Support\Str::random(32),
+            'qr_token' => Str::random(32),
             'qr_token_generated_at' => now(),
         ]);
     }
@@ -104,6 +104,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function employee()
     {
         return $this->hasOne(DataInduk::class, 'user_id');
+    }
+
+    public function student()
+    {
+        return $this->hasOne(\Modules\CBT\Models\Student::class, 'user_id');
     }
 
     public function getFilamentAvatarUrl(): ?string

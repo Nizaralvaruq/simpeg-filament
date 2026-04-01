@@ -1,0 +1,11 @@
+{
+    "name": "CBT",
+    "alias": "cbt",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CBT\\Providers\\CBTServiceProvider"
+    ],
+    "files": []
+}

@@ -11,39 +11,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class LeaveRequestPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
-        /** @var \App\Models\User $authUser */
-        return $authUser->can('ViewAny:LeaveRequest') || $authUser->hasRole('staff');
+        return $authUser->can('ViewAny:LeaveRequest');
     }
 
     public function view(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasRole('staff')) {
-            return $leaveRequest->user_id === $authUser->id;
-        }
-
-        if (!$authUser->can('View:LeaveRequest')) {
-            return false;
-        }
-
-        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return true;
-        }
-
-        // For Unit Admins: Check if target employee belongs to my unit
-        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
-            $myUnitIds = $authUser->employee->units->pluck('id')->all();
-
-            $targetEmployee = $leaveRequest->user?->employee;
-            if (!$targetEmployee) return false;
-
-            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
-        }
-
-        return false;
+        return $authUser->can('View:LeaveRequest');
     }
 
     public function create(AuthUser $authUser): bool
@@ -53,53 +29,12 @@ class LeaveRequestPolicy
 
     public function update(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasRole('staff')) {
-            return $leaveRequest->user_id === $authUser->id && $leaveRequest->status === 'pending';
-        }
-
-        if (!$authUser->can('Update:LeaveRequest')) {
-            return false;
-        }
-
-        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return true;
-        }
-
-        // For Unit Admins: Check Unit
-        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
-            $myUnitIds = $authUser->employee->units->pluck('id')->all();
-
-            $targetEmployee = $leaveRequest->user?->employee;
-            if (!$targetEmployee) return false;
-
-            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
-        }
-
-        return false;
+        return $authUser->can('Update:LeaveRequest');
     }
 
     public function delete(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        if (!$authUser->can('Delete:LeaveRequest')) {
-            return false;
-        }
-
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return true;
-        }
-
-        // Unit Admins check
-        if ($authUser->employee && $authUser->employee->units->isNotEmpty()) {
-            $myUnitIds = $authUser->employee->units->pluck('id')->all();
-
-            $targetEmployee = $leaveRequest->user?->employee;
-            if (!$targetEmployee) return false;
-
-            return $targetEmployee->units()->whereIn('units.id', $myUnitIds)->exists();
-        }
-
-        return false;
+        return $authUser->can('Delete:LeaveRequest');
     }
+
 }

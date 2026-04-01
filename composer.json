@@ -41,7 +41,11 @@
             "Modules\\PenilaianKinerja\\": "Modules/PenilaianKinerja/app/",
             "Modules\\Resign\\": "Modules/Resign/app/",
             "Modules\\Leave\\": "Modules/Leave/app/",
-            "Modules\\Retirement\\": "Modules/Retirement/app/"
+            "Modules\\Retirement\\": "Modules/Retirement/app/",
+            "Modules\\Inventory\\": "Modules/Inventory/app/",
+            "Modules\\CBT\\": "Modules/CBT/app/",
+            "Modules\\CBT\\Database\\Seeders\\": "Modules/CBT/database/seeders/",
+            "Modules\\CBT\\Database\\Factories\\": "Modules/CBT/database/factories/"
         }
     },
     "autoload-dev": {
@@ -92,7 +96,7 @@
         }
     },
     "config": {
-        "optimize-autoloader": true,
+        "optimize-autoloader": false,
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {

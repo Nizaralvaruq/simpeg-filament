@@ -21,6 +21,7 @@ class RolePermissionSeeder extends Seeder
         $koorJenjang = Role::firstOrCreate(['name' => 'koor_jenjang']);
         $adminUnit = Role::firstOrCreate(['name' => 'admin_unit']);
         $ketuaPsdm = Role::firstOrCreate(['name' => 'ketua_psdm']);
+        $siswa = Role::firstOrCreate(['name' => 'siswa']);
 
         // Permissions categories
         $modules = [
@@ -35,7 +36,14 @@ class RolePermissionSeeder extends Seeder
             'LaporanPenilaian',
             'TugasPenilaianSaya',
             'Unit',
-            'Golongan'
+            'Golongan',
+            // CBT Permissions
+            'Exam',
+            'ExamSession',
+            'Subject',
+            'QuestionBank',
+            'Question',
+            'Student',
         ];
 
         $actions = ['ViewAny', 'View', 'Create', 'Update', 'Delete', 'Import'];
@@ -143,6 +151,18 @@ class RolePermissionSeeder extends Seeder
             'View:StatistikPegawaiTerlambat',
             'View:StatistikPenilaianKinerja',
             'Import:DataInduk',
+            'ViewAny:QuestionBank',
+            'Create:QuestionBank',
+            'Update:QuestionBank',
+            'Delete:QuestionBank',
+            'ViewAny:Question',
+            'Create:Question',
+            'Update:Question',
+            'Delete:Question',
+            'ViewAny:Student',
+            'Create:Student',
+            'Update:Student',
+            'Delete:Student',
         ]);
 
         // Ketua PSDM: full CRUD (Global)
@@ -181,6 +201,34 @@ class RolePermissionSeeder extends Seeder
             'View:JadwalPiketHariIni',
             'View:RingkasanPerformaUnit',
             'View:GrafikProgresPenilaian',
+            'ViewAny:QuestionBank',
+            'Create:QuestionBank',
+            'Update:QuestionBank',
+            'Delete:QuestionBank',
+            'ViewAny:Question',
+            'Create:Question',
+            'Update:Question',
+            'Delete:Question',
+            'ViewAny:Exam',
+            'Create:Exam',
+            'Update:Exam',
+            'Delete:Exam',
+            'ViewAny:Subject',
+            'Create:Subject',
+            'Update:Subject',
+            'Delete:Subject',
+            'ViewAny:Student',
+            'Create:Student',
+            'Update:Student',
+            'Delete:Student',
+        ]);
+
+        // Siswa: hanya melihat daftar ujian & riwayat nilai miliknya
+        $siswa->syncPermissions([
+            'ViewAny:Exam',
+            'View:Exam',
+            'ViewAny:ExamSession',
+            'View:ExamSession',
         ]);
 
         $this->command->info('Roles and permissions created successfully!');

@@ -11,17 +11,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class AppraisalSessionPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
-        /** @var \App\Models\User $authUser */
-        return $authUser->can('ViewAny:AppraisalSession') || $authUser->hasRole('staff');
+        return $authUser->can('ViewAny:AppraisalSession');
     }
 
     public function view(AuthUser $authUser, AppraisalSession $appraisalSession): bool
     {
-        /** @var \App\Models\User $authUser */
-        return $authUser->can('View:AppraisalSession') || $authUser->hasRole('staff');
+        return $authUser->can('View:AppraisalSession');
     }
 
     public function create(AuthUser $authUser): bool
@@ -38,4 +36,5 @@ class AppraisalSessionPolicy
     {
         return $authUser->can('Delete:AppraisalSession');
     }
+
 }

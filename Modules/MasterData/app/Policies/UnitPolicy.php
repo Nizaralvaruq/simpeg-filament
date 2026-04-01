@@ -11,29 +11,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class UnitPolicy
 {
     use HandlesAuthorization;
-
+    
     public function viewAny(AuthUser $authUser): bool
     {
-        /** @var \App\Models\User $authUser */
-        return $authUser->can('ViewAny:Unit') || $authUser->hasAnyRole(['super_admin', 'admin_unit', 'ketua_psdm', 'kepala_sekolah', 'koor_jenjang']);
+        return $authUser->can('ViewAny:Unit');
     }
 
     public function view(AuthUser $authUser, Unit $unit): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasRole('super_admin')) {
-            return true;
-        }
-
-        if ($authUser->hasRole('admin_unit') && $authUser->employee) {
-            return $authUser->employee->units->contains('id', $unit->id);
-        }
-
-        if (!$authUser->can('View:Unit')) {
-            return false;
-        }
-
-        return false;
+        return $authUser->can('View:Unit');
     }
 
     public function create(AuthUser $authUser): bool
@@ -43,37 +29,12 @@ class UnitPolicy
 
     public function update(AuthUser $authUser, Unit $unit): bool
     {
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasRole('super_admin')) {
-            return true;
-        }
-
-        if ($authUser->hasRole('admin_unit') && $authUser->employee) {
-            return $authUser->employee->units->contains('id', $unit->id);
-        }
-
-        if (!$authUser->can('Update:Unit')) {
-            return false;
-        }
-
-        return false;
+        return $authUser->can('Update:Unit');
     }
 
     public function delete(AuthUser $authUser, Unit $unit): bool
     {
-        if (!$authUser->can('Delete:Unit')) {
-            return false;
-        }
-
-        /** @var \App\Models\User $authUser */
-        if ($authUser->hasRole('super_admin')) {
-            return true;
-        }
-
-        if ($authUser->hasRole('admin_unit') && $authUser->employee) {
-            return $authUser->employee->units->contains('id', $unit->id);
-        }
-
-        return false;
+        return $authUser->can('Delete:Unit');
     }
+
 }
