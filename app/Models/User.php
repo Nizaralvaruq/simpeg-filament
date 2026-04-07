@@ -106,11 +106,6 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->hasOne(DataInduk::class, 'user_id');
     }
 
-    public function student()
-    {
-        return $this->hasOne(\Modules\CBT\Models\Student::class, 'user_id');
-    }
-
     public function getFilamentAvatarUrl(): ?string
     {
         if (!$this->avatar_url) {

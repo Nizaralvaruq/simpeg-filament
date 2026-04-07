@@ -56,12 +56,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: base_path('Modules/PenilaianKinerja/app/Filament/Resources'), for: 'Modules\\PenilaianKinerja\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/Retirement/app/Filament/Resources'), for: 'Modules\\Retirement\\Filament\\Resources')
             ->discoverResources(in: base_path('Modules/Inventory/app/Filament/Resources'), for: 'Modules\\Inventory\\Filament\\Resources')
-            ->discoverResources(in: base_path('Modules/CBT/app/Filament/Resources'), for: 'Modules\\CBT\\Filament\\Resources')
 
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->discoverPages(in: base_path('Modules/Presensi/app/Filament/Pages'), for: 'Modules\\Presensi\\Filament\\Pages')
             ->discoverPages(in: base_path('Modules/MasterData/app/Filament/Pages'), for: 'Modules\\MasterData\\Filament\\Pages')
-            ->discoverPages(in: base_path('Modules/CBT/app/Filament/Pages'), for: 'Modules\\CBT\\Filament\\Pages')
             ->pages([
                 \App\Filament\Pages\Dashboard::class,
             ])
@@ -108,9 +106,6 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\Navigation\NavigationGroup::make()
                     ->label('Inventaris')
                     ->icon('heroicon-o-archive-box'),
-                \Filament\Navigation\NavigationGroup::make()
-                    ->label('CBT / Ujian')
-                    ->icon('heroicon-o-academic-cap'),
                 \Filament\Navigation\NavigationGroup::make()
                     ->label('Authorization')
                     ->icon('heroicon-o-shield-check'),
