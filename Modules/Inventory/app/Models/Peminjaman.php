@@ -7,14 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
 use Modules\MasterData\Models\Unit;
 
-class PermintaanBarang extends Model
+class Peminjaman extends Model
 {
     use HasFactory;
 
+    protected $table = 'peminjamans';
     protected $guarded = [];
 
     protected $casts = [
-        'tanggal_permintaan' => 'date',
+        'tanggal_pinjam'     => 'date',
+        'rencana_kembali'    => 'date',
+        'tanggal_kembali'    => 'datetime',
         'approved_at'        => 'datetime',
     ];
 
@@ -23,30 +26,27 @@ class PermintaanBarang extends Model
         parent::boot();
 
         static::creating(function (self $model) {
-            if (empty($model->nomor_permintaan)) {
-                $model->nomor_permintaan = self::generateNomor();
+            if (empty($model->nomor_peminjaman)) {
+                $model->nomor_peminjaman = self::generateNomor();
             }
         });
     }
 
-    /**
-     * Generate nomor permintaan otomatis: INV/APR/2026/001
-     */
     public static function generateNomor(): string
     {
-        $bulan = strtoupper(now()->locale('id')->isoFormat('MMM')); // APR, MEI, dst.
+        $bulan = strtoupper(now()->locale('id')->isoFormat('MMM'));
         $tahun = now()->year;
 
-        $prefix = "INV/{$bulan}/{$tahun}/";
+        $prefix = "PIN/{$bulan}/{$tahun}/";
 
-        $last = self::where('nomor_permintaan', 'like', $prefix . '%')
+        $last = self::where('nomor_peminjaman', 'like', $prefix . '%')
             ->lockForUpdate()
-            ->orderByDesc('nomor_permintaan')
+            ->orderByDesc('nomor_peminjaman')
             ->first();
 
         $urut = 1;
         if ($last) {
-            $lastUrut = (int) substr($last->nomor_permintaan, strrpos($last->nomor_permintaan, '/') + 1);
+            $lastUrut = (int) substr($last->nomor_peminjaman, strrpos($last->nomor_peminjaman, '/') + 1);
             $urut = $lastUrut + 1;
         }
 
@@ -70,6 +70,6 @@ class PermintaanBarang extends Model
 
     public function details()
     {
-        return $this->hasMany(PermintaanBarangDetail::class, 'permintaan_barang_id');
+        return $this->hasMany(PeminjamanDetail::class, 'peminjaman_id');
     }
 }

@@ -8,7 +8,6 @@ use Modules\MasterData\Models\Unit;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +17,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Collection;
 
-class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithValidation, WithChunkReading
+class DataIndukImport implements OnEachRow, WithHeadingRow, WithValidation, WithChunkReading
 {
     protected Collection $golongans;
     protected Collection $units;
@@ -30,15 +29,7 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
         $this->units = Unit::all()->keyBy('name');
     }
 
-    public function map($row): array
-    {
-        // Parse dates from Excel
-        $row['tanggal_lahir'] = $this->transformDate($row['tanggal_lahir'] ?? null);
-        $row['tmt_awal'] = $this->transformDate($row['tmt_awal'] ?? null);
-        $row['tmt_akhir'] = $this->transformDate($row['tmt_akhir'] ?? null);
-
-        return $row;
-    }
+    // map method removed since WithMapping is not used with OnEachRow
 
     public function rules(): array
     {
@@ -54,6 +45,12 @@ class DataIndukImport implements OnEachRow, WithHeadingRow, WithMapping, WithVal
     {
         DB::transaction(function () use ($row) {
             $row = $row->toArray();
+            
+            // Transform Dates Here
+            $row['tanggal_lahir'] = $this->transformDate($row['tanggal_lahir'] ?? null);
+            $row['tmt_awal'] = $this->transformDate($row['tmt_awal'] ?? null);
+            $row['tmt_akhir'] = $this->transformDate($row['tmt_akhir'] ?? null);
+
             $nik = trim((string) ($row['nik'] ?? ''));
             $nama = trim((string) ($row['nama'] ?? ''));
             $nip = trim((string) ($row['nip'] ?? ''));

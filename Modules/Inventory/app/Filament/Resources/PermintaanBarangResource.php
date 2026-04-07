@@ -3,14 +3,19 @@
 namespace Modules\Inventory\Filament\Resources;
 
 use Modules\Inventory\Models\PermintaanBarang;
+use Modules\Inventory\Models\PermintaanBarangDetail;
 use Modules\Inventory\Models\Barang;
+use Modules\Inventory\Models\StockTransaction;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Forms;
 use Filament\Tables;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Modules\Inventory\Filament\Resources\PermintaanBarangResource\Pages;
 
 class PermintaanBarangResource extends Resource
@@ -71,14 +76,24 @@ class PermintaanBarangResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $isAdmin = $user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah']);
+
         return $schema->components([
             \Filament\Schemas\Components\Section::make('Informasi Permintaan')
                 ->schema([
+                    Forms\Components\TextInput::make('nomor_permintaan')
+                        ->label('Nomor Permintaan')
+                        ->disabled()
+                        ->placeholder('Otomatis dibuat saat disimpan')
+                        ->columnSpan(2),
+
                     Forms\Components\Hidden::make('user_id')
                         ->default(fn() => Auth::id()),
 
                     Forms\Components\Select::make('unit_id')
-                        ->label('Unit / Satuan Kerja')
+                        ->label('Unit / Jenjang')
                         ->relationship('unit', 'name')
                         ->searchable()
                         ->preload()
@@ -100,11 +115,18 @@ class PermintaanBarangResource extends Resource
                         ])
                         ->default('draft')
                         ->required()
-                        ->native(false),
+                        ->native(false)
+                        ->disabled(!$isAdmin),
 
                     Forms\Components\Textarea::make('catatan')
-                        ->label('Catatan')
+                        ->label('Catatan / Keperluan')
                         ->columnSpanFull(),
+
+                    Forms\Components\Textarea::make('alasan_penolakan')
+                        ->label('Alasan Penolakan')
+                        ->columnSpanFull()
+                        ->visible(fn($record) => $record?->status === 'ditolak')
+                        ->disabled(!$isAdmin),
                 ])->columns(2),
 
             \Filament\Schemas\Components\Section::make('Detail Barang yang Diminta')
@@ -129,13 +151,14 @@ class PermintaanBarangResource extends Resource
                                 ->label('Jumlah Disetujui')
                                 ->numeric()
                                 ->default(0)
-                                ->minValue(0),
+                                ->minValue(0)
+                                ->visible($isAdmin),
 
                             Forms\Components\Textarea::make('keterangan')
                                 ->label('Keterangan')
                                 ->columnSpanFull(),
                         ])
-                        ->columns(3)
+                        ->columns($isAdmin ? 3 : 2)
                         ->defaultItems(1)
                         ->addActionLabel('Tambah Barang')
                         ->columnSpanFull(),
@@ -147,18 +170,31 @@ class PermintaanBarangResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('nomor_permintaan')
+                    ->label('Nomor')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable(),
+
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Pemohon')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('unit.name')
-                    ->label('Unit')
-                    ->sortable(),
+                    ->label('Unit / Jenjang')
+                    ->sortable()
+                    ->badge()
+                    ->color('info'),
 
                 Tables\Columns\TextColumn::make('tanggal_permintaan')
                     ->label('Tanggal')
                     ->date('d M Y')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('details_count')
+                    ->label('Jml Item')
+                    ->counts('details')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('status')
@@ -170,6 +206,14 @@ class PermintaanBarangResource extends Resource
                         'ditolak'   => 'danger',
                         'selesai'   => 'primary',
                         default     => 'gray',
+                    })
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'draft'     => 'Draft',
+                        'diajukan'  => 'Diajukan',
+                        'disetujui' => 'Disetujui',
+                        'ditolak'   => 'Ditolak',
+                        'selesai'   => 'Selesai',
+                        default     => $state,
                     }),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -188,10 +232,177 @@ class PermintaanBarangResource extends Resource
                         'selesai'    => 'Selesai',
                     ]),
                 Tables\Filters\SelectFilter::make('unit_id')
-                    ->label('Unit')
+                    ->label('Unit / Jenjang')
                     ->relationship('unit', 'name'),
             ])
             ->recordActions([
+                Action::make('ajukan')
+                    ->label('Ajukan')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Ajukan Permintaan?')
+                    ->modalDescription('Permintaan akan dikirim ke admin untuk diproses. Pastikan data sudah benar.')
+                    ->visible(fn($record) => $record->status === 'draft' && Auth::id() === $record->user_id)
+                    ->action(function ($record) {
+                        $record->update(['status' => 'diajukan']);
+
+                        // Notifikasi ke admin unit
+                        Notification::make()
+                            ->title('Permintaan Barang Baru')
+                            ->body("Permintaan {$record->nomor_permintaan} dari {$record->user->name} telah diajukan.")
+                            ->success()
+                            ->sendToDatabase(
+                                \App\Models\User::role(['super_admin', 'admin_unit'])->get()
+                            );
+
+                        Notification::make()
+                            ->title('Permintaan berhasil diajukan')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('setujui')
+                    ->label('Setujui')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Setujui Permintaan?')
+                    ->modalDescription('Barang belum langsung dikurangi. Admin perlu klik "Selesaikan" setelah barang diserahkan.')
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'diajukan'
+                            && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah']);
+                    })
+                    ->action(function ($record) {
+                        $record->update([
+                            'status'      => 'disetujui',
+                            'approved_by' => Auth::id(),
+                            'approved_at' => now(),
+                        ]);
+
+                        // Notifikasi ke pemohon
+                        Notification::make()
+                            ->title('Permintaan Disetujui')
+                            ->body("Permintaan {$record->nomor_permintaan} Anda telah disetujui.")
+                            ->success()
+                            ->sendToDatabase($record->user);
+
+                        Notification::make()
+                            ->title('Permintaan berhasil disetujui')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('tolak')
+                    ->label('Tolak')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Tolak Permintaan')
+                    ->schema([
+                        Forms\Components\Textarea::make('alasan_penolakan')
+                            ->label('Alasan Penolakan')
+                            ->required()
+                            ->rows(3),
+                    ])
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'diajukan'
+                            && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah']);
+                    })
+                    ->action(function ($record, array $data) {
+                        $record->update([
+                            'status'           => 'ditolak',
+                            'alasan_penolakan' => $data['alasan_penolakan'],
+                        ]);
+
+                        // Notifikasi ke pemohon
+                        Notification::make()
+                            ->title('Permintaan Ditolak')
+                            ->body("Permintaan {$record->nomor_permintaan} ditolak. Alasan: {$data['alasan_penolakan']}")
+                            ->danger()
+                            ->sendToDatabase($record->user);
+
+                        Notification::make()
+                            ->title('Permintaan berhasil ditolak')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('selesaikan')
+                    ->label('Selesaikan')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->modalHeading('Selesaikan Permintaan?')
+                    ->modalDescription('Stok barang akan dikurangi sesuai jumlah yang disetujui. Pastikan barang sudah diserahkan.')
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'disetujui'
+                            && $user->hasAnyRole(['super_admin', 'admin_unit']);
+                    })
+                    ->action(function ($record) {
+                        // Validasi stok mencukupi untuk semua item
+                        $errors = [];
+                        foreach ($record->details as $detail) {
+                            $barang = Barang::find($detail->barang_id);
+                            $jumlah = $detail->jumlah_disetujui ?? $detail->jumlah_diminta;
+                            if ($barang && $barang->stok_saat_ini < $jumlah) {
+                                $errors[] = "Stok {$barang->nama_barang} tidak mencukupi (tersedia: {$barang->stok_saat_ini}, dibutuhkan: {$jumlah})";
+                            }
+                        }
+
+                        if (!empty($errors)) {
+                            Notification::make()
+                                ->title('Stok tidak mencukupi')
+                                ->body(implode("\n", $errors))
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        DB::transaction(function () use ($record) {
+                            foreach ($record->details as $detail) {
+                                $barang = Barang::find($detail->barang_id);
+                                $jumlah = $detail->jumlah_disetujui ?? $detail->jumlah_diminta;
+
+                                if ($barang && $jumlah > 0) {
+                                    // Buat stock transaction
+                                    StockTransaction::create([
+                                        'barang_id'      => $barang->id,
+                                        'type'           => 'out',
+                                        'quantity'       => $jumlah,
+                                        'reference_type' => 'PermintaanBarang',
+                                        'reference_id'   => $record->id,
+                                        'remarks'        => "Pengeluaran untuk permintaan {$record->nomor_permintaan} — Unit: {$record->unit?->name}",
+                                        'created_by'     => Auth::id(),
+                                    ]);
+
+                                    // Kurangi stok
+                                    $barang->decrement('stok_saat_ini', $jumlah);
+                                }
+                            }
+
+                            $record->update(['status' => 'selesai']);
+                        });
+
+                        // Notifikasi ke pemohon
+                        Notification::make()
+                            ->title('Permintaan Selesai')
+                            ->body("Permintaan {$record->nomor_permintaan} telah diselesaikan. Barang siap diambil.")
+                            ->success()
+                            ->sendToDatabase($record->user);
+
+                        Notification::make()
+                            ->title('Permintaan berhasil diselesaikan')
+                            ->success()
+                            ->send();
+                    }),
+
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\ViewAction::make(),
             ])
@@ -211,9 +422,10 @@ class PermintaanBarangResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPermintaanBarangs::route('/'),
+            'index'  => Pages\ListPermintaanBarangs::route('/'),
             'create' => Pages\CreatePermintaanBarang::route('/create'),
-            'edit' => Pages\EditPermintaanBarang::route('/{record}/edit'),
+            'edit'   => Pages\EditPermintaanBarang::route('/{record}/edit'),
+            'view'   => Pages\ViewPermintaanBarang::route('/{record}'),
         ];
     }
 }

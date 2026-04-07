@@ -53,13 +53,35 @@ class ListDataInduks extends ListRecords
                 ->action(function (array $data) {
                     $path = storage_path('app/public/' . $data['file']);
 
-                    Excel::import(new DataIndukImport, $path);
+                    try {
+                        Excel::import(new DataIndukImport, $path);
 
-                    Notification::make()
-                        ->title('Import Berhasil')
-                        ->body('Data pegawai telah berhasil diimport ke sistem.')
-                        ->success()
-                        ->send();
+                        Notification::make()
+                            ->title('Import Berhasil')
+                            ->body('Data pegawai telah berhasil diimport ke sistem.')
+                            ->success()
+                            ->send();
+                    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                        $failures = $e->failures();
+                        $errors = collect($failures)->map(function ($failure) {
+                            return "Baris {$failure->row()}: " . implode(', ', $failure->errors());
+                        })->take(5)->implode('<br>');
+                        
+                        $count = count($failures);
+                        $more = $count > 5 ? "<br>...dan " . ($count - 5) . " error lainnya." : "";
+
+                        Notification::make()
+                            ->title('Gagal: Validasi Data')
+                            ->body("Terjadi kesalahan pada data Excel Anda:<br><br>{$errors}{$more}")
+                            ->danger()
+                            ->send();
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Gagal Import Data')
+                            ->body('Terjadi kesalahan sistem: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 }),
 
         ];

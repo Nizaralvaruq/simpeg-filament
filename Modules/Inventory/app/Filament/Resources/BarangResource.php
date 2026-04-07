@@ -43,7 +43,24 @@ class BarangResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        $query = parent::getEloquentQuery();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            return $query;
+        }
+
+        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+            $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+            return $query->where(function ($q) use ($unitIds) {
+                $q->whereIn('unit_id', $unitIds)
+                  ->orWhereNull('unit_id');
+            });
+        }
+
+        // Default: hanya tampilkan barang global jika role tidak spesifik
+        return $query->whereNull('unit_id');
     }
 
     public static function canCreate(): bool
@@ -78,6 +95,14 @@ class BarangResource extends Resource
                         ->required()
                         ->searchable()
                         ->preload(),
+
+                    Forms\Components\Select::make('unit_id')
+                        ->label('Pemilik / Pengelola Unit')
+                        ->relationship('unit', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->placeholder('Pusat / Global (Semua Unit)')
+                        ->helperText('Pilih unit jika barang khusus dimiliki sekolah/jenjang tertentu.'),
 
                     Forms\Components\TextInput::make('kode_barang')
                         ->label('Kode Barang')
@@ -154,6 +179,13 @@ class BarangResource extends Resource
                     ->label('Kategori')
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('unit.name')
+                    ->label('Kepemilikan Unit')
+                    ->sortable()
+                    ->badge()
+                    ->color('info')
+                    ->default('Global'),
+
                 Tables\Columns\TextColumn::make('jenis')
                     ->badge()
                     ->color(fn($state) => match ($state) {
@@ -181,6 +213,15 @@ class BarangResource extends Resource
                     ->label('Kategori')
                     ->relationship('kategori', 'nama_kategori'),
 
+                Tables\Filters\SelectFilter::make('unit_id')
+                    ->label('Filter Unit')
+                    ->relationship('unit', 'name')
+                    ->visible(function () {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $user?->hasAnyRole(['super_admin', 'ketua_psdm']);
+                    }),
+
                 Tables\Filters\SelectFilter::make('jenis')
                     ->options([
                         'Aset' => 'Aset',
@@ -206,9 +247,10 @@ class BarangResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListBarangs::route('/'),
+            'index'  => Pages\ListBarangs::route('/'),
             'create' => Pages\CreateBarang::route('/create'),
-            'edit' => Pages\EditBarang::route('/{record}/edit'),
+            'edit'   => Pages\EditBarang::route('/{record}/edit'),
+            'view'   => Pages\ViewBarang::route('/{record}'),
         ];
     }
 }

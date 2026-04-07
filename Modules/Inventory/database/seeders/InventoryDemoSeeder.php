@@ -10,12 +10,10 @@ use Modules\Inventory\Models\Peminjaman;
 use Modules\Inventory\Models\PeminjamanDetail;
 use Modules\MasterData\Models\Unit;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
-class InventoryDatabaseSeeder extends Seeder
+class InventoryDemoSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         // 1. Kategori
@@ -28,7 +26,7 @@ class InventoryDatabaseSeeder extends Seeder
         }
 
         // 2. Ambil User & Unit untuk relasi
-        $admin = User::whereHas('roles', function($q) { $q->where('name', 'super_admin'); })->first() ?? User::first();
+        $admin = User::role('super_admin')->first() ?? User::first();
         $smk = Unit::where('name', 'SMK')->first();
         $sma = Unit::where('name', 'SMA')->first();
 
@@ -119,16 +117,16 @@ class InventoryDatabaseSeeder extends Seeder
             }
         }
 
-        // 5. Contoh Peminjaman
-        $staff = User::whereHas('roles', function($q) { $q->where('name', 'staff'); })->first() ?? User::latest()->first();
-        if ($staff && $admin && $smk && Peminjaman::count() === 0) {
+        // 5. Contoh Peminjaman (Jika ada user lain)
+        $staff = User::role('staff')->first() ?? User::latest()->first();
+        if ($staff && $admin && $smk) {
             $peminjaman = Peminjaman::create([
                 'nomor_peminjaman' => Peminjaman::generateNomor(),
                 'user_id' => $staff->id,
                 'unit_id' => $smk->id,
                 'tanggal_pinjam' => now()->subDays(2),
                 'rencana_kembali' => now()->addDays(1),
-                'keperluan' => 'Demo: Peminjaman Laptop untuk presentasi rapat kurikulum.',
+                'keperluan' => 'Peminjaman Laptop untuk presentasi rapat kurikulum.',
                 'status' => 'dipinjam',
                 'approved_by' => $admin->id,
                 'approved_at' => now()->subDays(2),

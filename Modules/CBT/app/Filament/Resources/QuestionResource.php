@@ -89,6 +89,13 @@ class QuestionResource extends Resource
                                         ->required()
                                         ->columnSpanFull()
                                         ->extraInputAttributes(['style' => 'min-height: 400px;']),
+                                    
+                                    Forms\Components\FileUpload::make('media')
+                                        ->label('Gambar Pendukung')
+                                        ->image()
+                                        ->directory('cbt/questions')
+                                        ->columnSpanFull()
+                                        ->helperText('Unggah gambar di sini jika pertanyaan ini membutuhkan ilustrasi.'),
                                 ]),
                         ]),
 
@@ -168,6 +175,14 @@ class QuestionResource extends Resource
                     ->relationship('questionBank', 'name'),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('preview')
+                    ->label('Preview')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->modalContent(fn ($record) => view('cbt::admin.preview-question', ['record' => $record]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->slideOver(),
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\DeleteAction::make(),
             ])
