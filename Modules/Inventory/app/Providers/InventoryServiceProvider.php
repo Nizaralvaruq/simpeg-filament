@@ -4,6 +4,7 @@ namespace Modules\Inventory\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -27,6 +28,8 @@ class InventoryServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+
+        Livewire::component('inventory-stats', \Modules\Inventory\Livewire\InventoryStats::class);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Modules\PenilaianKinerja\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Nwidart\Modules\Traits\PathNamespace;
 
 class PenilaianKinerjaServiceProvider extends ServiceProvider
@@ -18,6 +19,8 @@ class PenilaianKinerjaServiceProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+
+        Livewire::component('penilaian-stats', \Modules\PenilaianKinerja\Livewire\PenilaianStats::class);
     }
 
     public function register(): void

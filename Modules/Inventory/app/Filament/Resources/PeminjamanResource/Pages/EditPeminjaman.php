@@ -14,8 +14,16 @@ class EditPeminjaman extends EditRecord
 {
     protected static string $resource = PeminjamanResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function getHeaderActions(): array
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         return [
             Actions\Action::make('ajukan')
                 ->label('Ajukan Peminjaman')
@@ -31,9 +39,9 @@ class EditPeminjaman extends EditRecord
                 ->label('Setujui & Pinjamkan')
                 ->color('info')
                 ->icon('heroicon-o-check-circle')
-                ->visible(fn () => $this->record->status === 'diajukan' && Auth::user()->hasAnyRole(['super_admin', 'admin_unit']))
+                ->visible(fn () => $this->record->status === 'diajukan' && $user->hasAnyRole(['super_admin', 'admin_unit']))
                 ->requiresConfirmation()
-                ->action(function () {
+                ->action(function () use ($user) {
                     // Validasi stok
                     foreach ($this->record->details as $detail) {
                         $barang = Barang::find($detail->barang_id);
@@ -54,7 +62,7 @@ class EditPeminjaman extends EditRecord
                             'stok_sebelum_transaksi' => $barang->stok_saat_ini,
                             'stok_setelah_transaksi' => $barang->stok_saat_ini - $detail->jumlah_pinjam,
                             'remarks' => "Dipinjam: " . $this->record->nomor_peminjaman,
-                            'created_by' => Auth::id(),
+                            'created_by' => $user->id,
                         ]);
 
                         $barang->decrement('stok_saat_ini', $detail->jumlah_pinjam);
@@ -62,7 +70,7 @@ class EditPeminjaman extends EditRecord
 
                     $this->record->update([
                         'status' => 'dipinjam',
-                        'approved_by' => Auth::id(),
+                        'approved_by' => $user->id,
                         'approved_at' => now(),
                     ]);
 
@@ -74,17 +82,17 @@ class EditPeminjaman extends EditRecord
                 ->label('Tolak')
                 ->color('danger')
                 ->icon('heroicon-o-x-circle')
-                ->visible(fn () => $this->record->status === 'diajukan' && Auth::user()->hasAnyRole(['super_admin', 'admin_unit']))
+                ->visible(fn () => $this->record->status === 'diajukan' && $user->hasAnyRole(['super_admin', 'admin_unit']))
                 ->form([
                     \Filament\Forms\Components\Textarea::make('alasan_penolakan')
                         ->label('Alasan Penolakan')
                         ->required(),
                 ])
-                ->action(function (array $data) {
+                ->action(function (array $data) use ($user) {
                     $this->record->update([
                         'status' => 'ditolak',
                         'alasan_penolakan' => $data['alasan_penolakan'],
-                        'approved_by' => Auth::id(),
+                        'approved_by' => $user->id,
                         'approved_at' => now(),
                     ]);
                     Notification::make()->title('Peminjaman ditolak')->success()->send();
@@ -113,10 +121,10 @@ class EditPeminjaman extends EditRecord
                 ->label('Terima & Kondisi Baik')
                 ->color('success')
                 ->icon('heroicon-o-check-badge')
-                ->visible(fn () => $this->record->status === 'menunggu_pengecekan' && Auth::user()->hasAnyRole(['super_admin', 'admin_unit']))
+                ->visible(fn () => $this->record->status === 'menunggu_pengecekan' && $user->hasAnyRole(['super_admin', 'admin_unit']))
                 ->requiresConfirmation()
                 ->modalDescription('Pastikan Anda telah memeriksa fisik barang. Stok ini akan dikembalikan ke dalam inventaris.')
-                ->action(function () {
+                ->action(function () use ($user) {
                     // Kembalikan stok
                     foreach ($this->record->details as $detail) {
                         $barang = Barang::find($detail->barang_id);
@@ -128,7 +136,7 @@ class EditPeminjaman extends EditRecord
                             'stok_sebelum_transaksi' => $barang->stok_saat_ini,
                             'stok_setelah_transaksi' => $barang->stok_saat_ini + $detail->jumlah_pinjam,
                             'remarks' => "Dikembalikan (Baik): " . $this->record->nomor_peminjaman,
-                            'created_by' => Auth::id(),
+                            'created_by' => $user->id,
                         ]);
 
                         $barang->increment('stok_saat_ini', $detail->jumlah_pinjam);
@@ -146,10 +154,10 @@ class EditPeminjaman extends EditRecord
                 ->label('Terima & Kondisi Rusak')
                 ->color('danger')
                 ->icon('heroicon-o-exclamation-circle')
-                ->visible(fn () => $this->record->status === 'menunggu_pengecekan' && Auth::user()->hasAnyRole(['super_admin', 'admin_unit']))
+                ->visible(fn () => $this->record->status === 'menunggu_pengecekan' && $user->hasAnyRole(['super_admin', 'admin_unit']))
                 ->requiresConfirmation()
                 ->modalDescription('PERINGATAN: Barang dinyatakan rusak. Stok TIDAK AKAN DIPULIHKAN (tidak bertambah kembali) agar tidak bisa dipinjam selanjutnya.')
-                ->action(function () {
+                ->action(function () use ($user) {
                     // Tidak mengembalikan stok. Catat bahwa ada kehilangan/kerusakan fisik.
                     foreach ($this->record->details as $detail) {
                         $barang = Barang::find($detail->barang_id);
@@ -161,7 +169,7 @@ class EditPeminjaman extends EditRecord
                             'stok_sebelum_transaksi' => $barang->stok_saat_ini,
                             'stok_setelah_transaksi' => $barang->stok_saat_ini,
                             'remarks' => "Insiden Pengembalian Rusak: " . $this->record->nomor_peminjaman,
-                            'created_by' => Auth::id(),
+                            'created_by' => $user->id,
                         ]);
                     }
 

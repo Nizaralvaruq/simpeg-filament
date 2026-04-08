@@ -43,24 +43,9 @@ class BarangResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            return $query;
-        }
-
-        if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
-            $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
-            return $query->where(function ($q) use ($unitIds) {
-                $q->whereIn('unit_id', $unitIds)
-                  ->orWhereNull('unit_id');
-            });
-        }
-
-        // Default: hanya tampilkan barang global jika role tidak spesifik
-        return $query->whereNull('unit_id');
+        // Barang berfungsi sebagai katalog global, semua user (termasuk Staff) 
+        // diizinkan melihat semua barang agar mudah saat ingin meminjam.
+        return parent::getEloquentQuery();
     }
 
     public static function canCreate(): bool
@@ -140,7 +125,17 @@ class BarangResource extends Resource
                         ->label('Minimum Stok')
                         ->numeric()
                         ->default(0)
+                        ->required()
                         ->minValue(0),
+
+                    Forms\Components\TextInput::make('stok_saat_ini')
+                        ->label('Stok Saat Ini (Awal)')
+                        ->numeric()
+                        ->default(0)
+                        ->required()
+                        ->minValue(0)
+                        ->hiddenOn('edit')
+                        ->helperText('Gunakan menu Mutasi Stok untuk menambah stok barang lama.'),
 
                     Forms\Components\FileUpload::make('foto')
                         ->label('Foto Barang')
@@ -160,6 +155,10 @@ class BarangResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('no')
+                    ->label('No')
+                    ->rowIndex(),
+
                 Tables\Columns\ImageColumn::make('foto')
                     ->label('Foto')
                     ->disk('public')

@@ -14,6 +14,17 @@ class CreateStockTransaction extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $barang = Barang::find($data['barang_id']);
+        if ($barang) {
+            $data['stok_sebelum_transaksi'] = $barang->stok_saat_ini;
+            if ($data['type'] === 'in') {
+                $data['stok_setelah_transaksi'] = $barang->stok_saat_ini + $data['quantity'];
+            } elseif ($data['type'] === 'out') {
+                $data['stok_setelah_transaksi'] = $barang->stok_saat_ini - $data['quantity'];
+            } elseif ($data['type'] === 'opname') {
+                $data['stok_setelah_transaksi'] = $data['quantity'];
+            }
+        }
         $data['created_by'] = Auth::id();
         return $data;
     }

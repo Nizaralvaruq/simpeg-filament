@@ -376,6 +376,8 @@ class PermintaanBarangResource extends Resource
                                         'barang_id'      => $barang->id,
                                         'type'           => 'out',
                                         'quantity'       => $jumlah,
+                                        'stok_sebelum_transaksi' => $barang->stok_saat_ini,
+                                        'stok_setelah_transaksi' => $barang->stok_saat_ini - $jumlah,
                                         'reference_type' => 'PermintaanBarang',
                                         'reference_id'   => $record->id,
                                         'remarks'        => "Pengeluaran untuk permintaan {$record->nomor_permintaan} — Unit: {$record->unit?->name}",

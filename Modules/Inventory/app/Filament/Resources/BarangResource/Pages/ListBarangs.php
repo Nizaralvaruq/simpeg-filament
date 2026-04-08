@@ -3,9 +3,9 @@
 namespace Modules\Inventory\Filament\Resources\BarangResource\Pages;
 
 use Modules\Inventory\Filament\Resources\BarangResource;
-use Modules\Inventory\Filament\Widgets\InventoryStatsWidget;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListBarangs extends ListRecords
 {
@@ -50,10 +50,8 @@ class ListBarangs extends ListRecords
         ];
     }
 
-    protected function getHeaderWidgets(): array
+    public function getHeader(): ?View
     {
-        return [
-            InventoryStatsWidget::class,
-        ];
+        return view('inventory::components.stats-header');
     }
 }

@@ -11,6 +11,11 @@ class CreatePermintaanBarang extends CreateRecord
 {
     protected static string $resource = PermintaanBarangResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['user_id'] = Auth::id();

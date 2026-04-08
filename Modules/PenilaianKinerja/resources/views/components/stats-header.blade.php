@@ -1,0 +1,1 @@
+@livewire('penilaian-stats')

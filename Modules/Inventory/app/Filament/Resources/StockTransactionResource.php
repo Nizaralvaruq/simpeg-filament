@@ -101,6 +101,10 @@ class StockTransactionResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('no')
+                    ->label('No')
+                    ->rowIndex(),
+
                 Tables\Columns\TextColumn::make('barang.nama_barang')
                     ->label('Barang')
                     ->searchable()
@@ -126,6 +130,18 @@ class StockTransactionResource extends Resource
                     ->label('Jumlah')
                     ->numeric()
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('stok_sebelum_transaksi')
+                    ->label('Stok Sblm')
+                    ->numeric()
+                    ->sortable()
+                    ->color('gray'),
+
+                Tables\Columns\TextColumn::make('stok_setelah_transaksi')
+                    ->label('Stok Ssdh')
+                    ->numeric()
+                    ->sortable()
+                    ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('createdBy.name')
                     ->label('Oleh')

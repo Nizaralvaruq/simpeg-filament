@@ -47,6 +47,7 @@ class PeminjamanResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Staff hanya lihat peminjamannya sendiri
@@ -114,7 +115,6 @@ class PeminjamanResource extends Resource
                                     ->label('Barang / Ruangan')
                                     ->options(function () {
                                         return Barang::where('is_active', true)
-                                            ->where('stok_saat_ini', '>', 0)
                                             ->get()
                                             ->mapWithKeys(function ($barang) {
                                                 $nama = $barang->nama_barang . ' (Stok: ' . $barang->stok_saat_ini . ')';
@@ -123,7 +123,8 @@ class PeminjamanResource extends Resource
                                     })
                                     ->required()
                                     ->searchable()
-                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                    ->disabled(fn ($get) => $get('../../status') && $get('../../status') !== 'draft'),
 
                                 Forms\Components\TextInput::make('jumlah_pinjam')
                                     ->label('Jumlah')
@@ -145,10 +146,23 @@ class PeminjamanResource extends Resource
                                                 $set('jumlah_pinjam', $barang->stok_saat_ini);
                                             }
                                         }
-                                    }),
+                                    })
+                                    ->disabled(fn ($get) => $get('../../status') && $get('../../status') !== 'draft'),
+
+                                Forms\Components\Textarea::make('kondisi_sesudah')
+                                    ->label('Kondisi Fisik Saat Dikembalikan')
+                                    ->visible(fn ($get) => in_array($get('../../status'), ['menunggu_pengecekan', 'dikembalikan_baik', 'dikembalikan_rusak']))
+                                    ->disabled(function ($get) {
+                                        /** @var \App\Models\User $user */
+                                        $user = Auth::user();
+                                        return $get('../../status') !== 'menunggu_pengecekan' || !$user->hasAnyRole(['super_admin', 'admin_unit']);
+                                    })
+                                    ->columnSpanFull(),
                             ])
                             ->columns(2)
-                            ->disabled(fn ($record) => $record && $record->status !== 'draft')
+                            ->addable(fn ($record) => !$record || $record->status === 'draft')
+                            ->deletable(fn ($record) => !$record || $record->status === 'draft')
+                            ->reorderable(fn ($record) => !$record || $record->status === 'draft')
                             ->minItems(1)
                             ->addActionLabel('Tambah Barang/Ruangan'),
                     ]),
@@ -160,26 +174,6 @@ class PeminjamanResource extends Resource
                             ->label('Catatan dari Peminjam')
                             ->disabled()
                             ->columnSpanFull(),
-                            
-                        Forms\Components\Repeater::make('details_kembali')
-                            ->relationship('details')
-                            ->label('Cek Fisik Pengembalian')
-                            ->schema([
-                                Forms\Components\Select::make('barang_id')
-                                    ->label('Barang')
-                                    ->options(fn() => Barang::pluck('nama_barang', 'id'))
-                                    ->disabled(),
-                                Forms\Components\TextInput::make('jumlah_pinjam')
-                                    ->label('Jumlah Dipinjam')
-                                    ->disabled(),
-                                Forms\Components\Textarea::make('kondisi_sesudah')
-                                    ->label('Kondisi Fisik Saat Dikembalikan')
-                                    ->visible(fn() => Auth::user()->hasAnyRole(['super_admin', 'admin_unit']))
-                                    ->disabled(fn ($record) => $record && $record->peminjaman->status !== 'menunggu_pengecekan'),
-                            ])
-                            ->columns(3)
-                            ->disableItemCreation()
-                            ->disableItemDeletion(),
                     ]),
             ]);
     }
@@ -191,6 +185,14 @@ class PeminjamanResource extends Resource
                 Tables\Columns\TextColumn::make('nomor_peminjaman')
                     ->searchable()
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('details.barang.nama_barang')
+                    ->label('Barang/Ruangan')
+                    ->badge()
+                    ->listWithLineBreaks()
+                    ->limitList(2)
+                    ->expandableLimitedList()
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Peminjam')
@@ -221,6 +223,164 @@ class PeminjamanResource extends Resource
                 //
             ])
             ->actions([
+                \Filament\Actions\Action::make('setujui')
+                    ->label('Setujui')
+                    ->color('info')
+                    ->icon('heroicon-o-check-circle')
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'diajukan' && $user->hasAnyRole(['super_admin', 'admin_unit']);
+                    })
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        foreach ($record->details as $detail) {
+                            $barang = Barang::find($detail->barang_id);
+                            if ($barang->stok_saat_ini < $detail->jumlah_pinjam) {
+                                Notification::make()->title("Stok {$barang->nama_barang} tidak mencukupi!")->danger()->send();
+                                return;
+                            }
+                        }
+
+                        foreach ($record->details as $detail) {
+                            $barang = Barang::find($detail->barang_id);
+                            
+                            StockTransaction::create([
+                                'barang_id' => $barang->id,
+                                'type' => 'out',
+                                'quantity' => $detail->jumlah_pinjam,
+                                'stok_sebelum_transaksi' => $barang->stok_saat_ini,
+                                'stok_setelah_transaksi' => $barang->stok_saat_ini - $detail->jumlah_pinjam,
+                                'remarks' => "Dipinjam: " . $record->nomor_peminjaman,
+                                'created_by' => Auth::id(),
+                            ]);
+
+                            $barang->decrement('stok_saat_ini', $detail->jumlah_pinjam);
+                        }
+
+                        $record->update([
+                            'status' => 'dipinjam',
+                            'approved_by' => Auth::id(),
+                            'approved_at' => now(),
+                        ]);
+
+                        Notification::make()->title('Pemesanan disetujui, Stok telah diperbarui.')->success()->send();
+                    }),
+
+                \Filament\Actions\Action::make('tolak')
+                    ->label('Tolak')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'diajukan' && $user->hasAnyRole(['super_admin', 'admin_unit']);
+                    })
+                    ->form([
+                        \Filament\Forms\Components\Textarea::make('alasan_penolakan')
+                            ->label('Alasan Penolakan')
+                            ->required(),
+                    ])
+                    ->action(function (array $data, $record) {
+                        $record->update([
+                            'status' => 'ditolak',
+                            'alasan_penolakan' => $data['alasan_penolakan'],
+                            'approved_by' => Auth::id(),
+                            'approved_at' => now(),
+                        ]);
+                        Notification::make()->title('Peminjaman ditolak')->success()->send();
+                    }),
+
+                \Filament\Actions\Action::make('ajukan_pengembalian')
+                    ->label('Ajukan Pengembalian')
+                    ->color('warning')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'dipinjam' && $record->user_id === $user->id;
+                    })
+                    ->form([
+                        \Filament\Forms\Components\Textarea::make('catatan_pengembalian')
+                            ->label('Catatan Kondisi Barang (Opsional)')
+                            ->placeholder('Misal: Baterai proyektor sudah lemah..')
+                    ])
+                    ->action(function (array $data, $record) {
+                        $record->update([
+                            'status' => 'menunggu_pengecekan',
+                            'catatan_pengembalian' => $data['catatan_pengembalian'] ?? null,
+                        ]);
+                        Notification::make()->title('Pengembalian diajukan, menunggu pengecekan Admin.')->success()->send();
+                    }),
+
+                \Filament\Actions\Action::make('terima_baik')
+                    ->label('Terima (Baik)')
+                    ->color('success')
+                    ->icon('heroicon-o-check-badge')
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'menunggu_pengecekan' && $user->hasAnyRole(['super_admin', 'admin_unit']);
+                    })
+                    ->requiresConfirmation()
+                    ->modalDescription('Stok ini akan dikembalikan ke inventaris.')
+                    ->action(function ($record) {
+                        foreach ($record->details as $detail) {
+                            $barang = Barang::find($detail->barang_id);
+                            
+                            StockTransaction::create([
+                                'barang_id' => $barang->id,
+                                'type' => 'in',
+                                'quantity' => $detail->jumlah_pinjam,
+                                'stok_sebelum_transaksi' => $barang->stok_saat_ini,
+                                'stok_setelah_transaksi' => $barang->stok_saat_ini + $detail->jumlah_pinjam,
+                                'remarks' => "Dikembalikan (Baik): " . $record->nomor_peminjaman,
+                                'created_by' => Auth::id(),
+                            ]);
+
+                            $barang->increment('stok_saat_ini', $detail->jumlah_pinjam);
+                        }
+
+                        $record->update([
+                            'status' => 'dikembalikan_baik',
+                            'tanggal_kembali' => now(),
+                        ]);
+                        Notification::make()->title('Pengembalian diterima. Stok dipulihkan.')->success()->send();
+                    }),
+
+                \Filament\Actions\Action::make('terima_rusak')
+                    ->label('Terima (Rusak)')
+                    ->color('danger')
+                    ->icon('heroicon-o-exclamation-circle')
+                    ->visible(function ($record) {
+                        /** @var \App\Models\User $user */
+                        $user = Auth::user();
+                        return $record->status === 'menunggu_pengecekan' && $user->hasAnyRole(['super_admin', 'admin_unit']);
+                    })
+                    ->requiresConfirmation()
+                    ->modalDescription('Barang dinyatakan rusak. Stok TIDAK AKAN dipulihkan.')
+                    ->action(function ($record) {
+                        foreach ($record->details as $detail) {
+                            $barang = Barang::find($detail->barang_id);
+                            
+                            StockTransaction::create([
+                                'barang_id' => $barang->id,
+                                'type' => 'opname',
+                                'quantity' => 0, 
+                                'stok_sebelum_transaksi' => $barang->stok_saat_ini,
+                                'stok_setelah_transaksi' => $barang->stok_saat_ini,
+                                'remarks' => "Insiden Pengembalian Rusak: " . $record->nomor_peminjaman,
+                                'created_by' => Auth::id(),
+                            ]);
+                        }
+
+                        $record->update([
+                            'status' => 'dikembalikan_rusak',
+                            'tanggal_kembali' => now(),
+                        ]);
+                        Notification::make()->title('Pengembalian diterima sebagai RUSAK.')->success()->send();
+                    }),
+
                 \Filament\Actions\ViewAction::make(),
                 \Filament\Actions\EditAction::make(),
             ]);

@@ -65,11 +65,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->discoverWidgets(in: base_path('Modules/Presensi/app/Filament/Widgets'), for: 'Modules\\Presensi\\Filament\\Widgets')
-            ->discoverWidgets(in: base_path('Modules/Inventory/app/Filament/Widgets'), for: 'Modules\\Inventory\\Filament\\Widgets')
-
-            ->widgets([
-                \Modules\Inventory\Filament\Widgets\InventoryStatsWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

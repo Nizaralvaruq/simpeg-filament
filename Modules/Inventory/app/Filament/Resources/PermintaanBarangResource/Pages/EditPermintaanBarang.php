@@ -17,6 +17,11 @@ class EditPermintaanBarang extends EditRecord
 {
     protected static string $resource = PermintaanBarangResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function getHeaderActions(): array
     {
         /** @var \App\Models\User $user */
