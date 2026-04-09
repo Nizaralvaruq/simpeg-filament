@@ -143,6 +143,15 @@ class ViewDataInduk extends ViewRecord
                                             })
                                             ->inlineLabel(),
                                         TextEntry::make('keterangan')->label('Keterangan')->inlineLabel(),
+                                        TextEntry::make('link_kinerja')
+                                            ->label('Dokumentasi Kinerja')
+                                            ->inlineLabel()
+                                            ->formatStateUsing(fn ($state) => filled($state) ? 'Buka Link' : '-')
+                                            ->url(fn ($record) => $record?->link_kinerja)
+                                            ->openUrlInNewTab()
+                                            ->color('primary')
+                                            ->icon(fn ($state) => filled($state) ? 'heroicon-o-link' : null),
+
 
                                         TextEntry::make('resignation.tanggal_resign')
                                             ->label('Tanggal Resign')

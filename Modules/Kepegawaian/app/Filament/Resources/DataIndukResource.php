@@ -572,6 +572,13 @@ class DataIndukResource extends Resource
                                 ->displayFormat('d/m/Y')
                                 ->visible(fn($get) => $get('status_kepegawaian') === 'Tetap'),
                         ])->columns(3),
+                    
+                    Forms\Components\TextInput::make('link_kinerja')
+                        ->label('Link Dokumentasi Kinerja')
+                        ->url()
+                        ->prefix('https://')
+                        ->helperText('Masukkan URL lengkap dokumentasi kinerja (misal: Google Drive/Folder)')
+                        ->columnSpanFull(),
                 ]),
         ];
     }
@@ -960,6 +967,14 @@ class DataIndukResource extends Resource
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('keterangan')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('link_kinerja')
+                    ->label('Dokumentasi')
+                    ->icon(fn ($state) => filled($state) ? 'heroicon-o-link' : null)
+                    ->color('primary')
+                    ->formatStateUsing(fn ($state) => filled($state) ? 'Buka Link' : '-')
+                    ->url(fn ($record) => $record?->link_kinerja)
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->striped()
