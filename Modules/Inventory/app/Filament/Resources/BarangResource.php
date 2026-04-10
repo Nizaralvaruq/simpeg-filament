@@ -83,7 +83,36 @@ class BarangResource extends Resource
 
                     Forms\Components\Select::make('unit_id')
                         ->label('Pemilik / Pengelola Unit')
-                        ->relationship('unit', 'name')
+                        ->relationship(
+                            name: 'unit',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: function (Builder $query) {
+                                /** @var \App\Models\User $user */
+                                $user = Auth::user();
+                                if ($user && !$user->hasRole('super_admin')) {
+                                    $unitIds = $user->employee?->units->pluck('id')->toArray() ?? [];
+                                    $query->whereIn('id', $unitIds);
+                                }
+                            }
+                        )
+                        ->default(function () {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            if ($user && !$user->hasRole('super_admin')) {
+                                $units = $user->employee?->units;
+                                return ($units && $units->count() === 1) ? $units->first()->id : null;
+                            }
+                            return null;
+                        })
+                        ->disabled(function () {
+                            /** @var \App\Models\User $user */
+                            $user = Auth::user();
+                            if ($user && $user->hasRole('super_admin')) return false;
+                            
+                            // Kunci jika hanya punya 1 unit pilihan
+                            return $user->employee?->units->count() === 1;
+                        })
+                        ->dehydrated() // Penting agar nilai tetap terkirim saat disave meskipun disabled
                         ->searchable()
                         ->preload()
                         ->placeholder('Pusat / Global (Semua Unit)')

@@ -1,0 +1,1 @@
+@livewire('inventory-stats')

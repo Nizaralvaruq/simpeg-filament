@@ -5,7 +5,6 @@ namespace Modules\PenilaianKinerja\Filament\Resources\SesiPenilaianResource\Page
 use Modules\PenilaianKinerja\Filament\Resources\SesiPenilaianResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Contracts\View\View;
 
 class ListSesiPenilaian extends ListRecords
 {
@@ -19,9 +18,11 @@ class ListSesiPenilaian extends ListRecords
         ];
     }
 
-    public function getHeader(): ?View
+    protected function getHeaderWidgets(): array
     {
-        return view('penilaiankinerja::components.stats-header');
+        return [
+            \Modules\PenilaianKinerja\Filament\Widgets\PenilaianStatsWidget::class,
+        ];
     }
 }
 

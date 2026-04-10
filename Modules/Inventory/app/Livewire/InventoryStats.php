@@ -53,4 +53,45 @@ class InventoryStats extends Component
     {
         return view('inventory::livewire.inventory-stats');
     }
+
+    public function exportExcel()
+    {
+        $query = Barang::query();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+                $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                $query->where(fn ($q) => $q->whereIn('unit_id', $unitIds)->orWhereNull('unit_id'));
+            } else {
+                $query->whereNull('unit_id');
+            }
+        }
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \Modules\Inventory\Exports\BarangExport($query), 
+            'data_barang_' . date('Ymd_His') . '.xlsx'
+        );
+    }
+
+    public function exportPdf()
+    {
+        $query = Barang::with(['kategori', 'unit']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+            if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+                $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                $query->where(fn ($q) => $q->whereIn('unit_id', $unitIds)->orWhereNull('unit_id'));
+            } else {
+                $query->whereNull('unit_id');
+            }
+        }
+        
+        $barangs = $query->get();
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('inventory::reports.barang_pdf', compact('barangs'));
+        return response()->streamDownload(fn () => print($pdf->output()), 'data_barang_' . date('Ymd_His') . '.pdf');
+    }
 }

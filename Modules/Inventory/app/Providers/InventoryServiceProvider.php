@@ -30,6 +30,7 @@ class InventoryServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 
         Livewire::component('inventory-stats', \Modules\Inventory\Livewire\InventoryStats::class);
+        Livewire::component('modules.inventory.filament.widgets.inventory-stats-overview', \Modules\Inventory\Filament\Widgets\InventoryStatsOverview::class);
     }
 
     /**

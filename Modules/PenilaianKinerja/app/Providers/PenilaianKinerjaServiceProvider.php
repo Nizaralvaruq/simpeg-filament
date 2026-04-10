@@ -21,6 +21,7 @@ class PenilaianKinerjaServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 
         Livewire::component('penilaian-stats', \Modules\PenilaianKinerja\Livewire\PenilaianStats::class);
+        Livewire::component('modules.penilaian-kinerja.filament.widgets.penilaian-stats-widget', \Modules\PenilaianKinerja\Filament\Widgets\PenilaianStatsWidget::class);
     }
 
     public function register(): void

@@ -1,8 +1,8 @@
 <div>
-    <div class="flex flex-row gap-4 mb-6 overflow-x-auto pb-4 custom-scrollbar">
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
 
         {{-- Total Barang Aktif --}}
-        <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 shrink-0 min-w-[240px] flex-1 translate-z-0 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
+        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
             <div class="flex items-center gap-x-4">
                 <div class="rounded-lg bg-primary-50 dark:bg-primary-400/10 p-3 shrink-0 ring-1 ring-primary-100 dark:ring-primary-400/20">
                     <svg class="h-6 w-6 text-primary-600 dark:text-primary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -18,7 +18,7 @@
         </div>
 
         {{-- Stok Kritis --}}
-        <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 shrink-0 min-w-[240px] flex-1 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
+        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
             <div class="flex items-center gap-x-4">
                 <div class="rounded-lg p-3 shrink-0 ring-1 {{ $stokKritis > 0 ? 'bg-danger-50 dark:bg-danger-400/10 ring-danger-100 dark:ring-danger-400/20' : 'bg-success-50 dark:bg-success-400/10 ring-success-100 dark:ring-success-400/20' }}">
                     <svg class="h-6 w-6 {{ $stokKritis > 0 ? 'text-danger-600 dark:text-danger-400' : 'text-success-600 dark:text-success-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -34,7 +34,7 @@
         </div>
 
         {{-- Permintaan Aktif --}}
-        <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 shrink-0 min-w-[240px] flex-1 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
+        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
             <div class="flex items-center gap-x-4">
                 <div class="rounded-lg bg-warning-50 dark:bg-warning-400/10 p-3 shrink-0 ring-1 ring-warning-100 dark:ring-warning-400/20">
                     <svg class="h-6 w-6 text-warning-600 dark:text-warning-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -50,7 +50,7 @@
         </div>
 
         {{-- Peminjaman Terlambat --}}
-        <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 shrink-0 min-w-[240px] flex-1 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
+        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
             <div class="flex items-center gap-x-4">
                 <div class="rounded-lg p-3 shrink-0 ring-1 {{ $terlambat > 0 ? 'bg-danger-50 dark:bg-danger-400/10 ring-danger-100 dark:ring-danger-400/20' : 'bg-success-50 dark:bg-success-400/10 ring-success-100 dark:ring-success-400/20' }}">
                     <svg class="h-6 w-6 {{ $terlambat > 0 ? 'text-danger-600 dark:text-danger-400' : 'text-success-600 dark:text-success-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -66,7 +66,7 @@
         </div>
 
         {{-- Mutasi Hari Ini --}}
-        <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 shrink-0 min-w-[240px] flex-1 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
+        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20 col-span-2 md:col-span-1">
             <div class="flex items-center gap-x-4">
                 <div class="rounded-lg bg-indigo-50 dark:bg-indigo-400/10 p-3 shrink-0 ring-1 ring-indigo-100 dark:ring-indigo-400/20">
                     <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -83,20 +83,31 @@
 
     </div>
 
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.05);
-            border-radius: 10px;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-        }
-    </style>
-</div>
+    @php
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $canManage = $user?->hasAnyRole(['super_admin', 'admin_unit']);
+    @endphp
 
+    @if($canManage)
+    <div class="flex flex-wrap w-full justify-end items-center gap-3 mb-2">
+
+        {{-- Buat Barang --}}
+        <x-filament::button tag="a" href="{{ \Modules\Inventory\Filament\Resources\BarangResource::getUrl('create') }}" icon="heroicon-o-plus">
+            Buat Barang
+        </x-filament::button>
+
+        {{-- Export Excel --}}
+        <x-filament::button wire:click="exportExcel" color="success" icon="heroicon-o-document-arrow-down">
+            Export Excel
+        </x-filament::button>
+
+        {{-- Cetak PDF --}}
+        <x-filament::button wire:click="exportPdf" color="danger" icon="heroicon-o-printer">
+            Cetak PDF
+        </x-filament::button>
+
+    </div>
+    @endif
+
+</div>
