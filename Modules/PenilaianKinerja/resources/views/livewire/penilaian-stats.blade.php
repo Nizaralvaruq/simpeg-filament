@@ -1,5 +1,5 @@
 <div>
-    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+    <div class="grid grid-cols-1 gap-4 mb-6">
 
         {{-- Sesi Aktif --}}
         <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
@@ -68,7 +68,7 @@
         </div>
 
         {{-- Tugas Expired --}}
-        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20 col-span-2 md:col-span-1">
+        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
             <div class="flex items-center gap-x-4">
                 <div class="rounded-lg p-3 shrink-0 ring-1 {{ $tugasExpired > 0 ? 'bg-danger-50 dark:bg-danger-400/10 ring-danger-100 dark:ring-danger-400/20' : 'bg-gray-100 dark:bg-gray-800 ring-gray-200 dark:ring-white/5' }}">
                     <svg class="h-6 w-6 {{ $tugasExpired > 0 ? 'text-danger-600 dark:text-danger-400' : 'text-gray-400 dark:text-gray-500' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -85,6 +85,15 @@
 
     </div>
 
+    @php
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        // Biasanya sesi penilaian dikelola oleh super_admin atau ketua_psdm
+        $canManage = $user?->hasAnyRole(['super_admin', 'ketua_psdm']);
+    @endphp
 
+    @if($canManage)
+        <!-- Actions removed, now handled by native Header Actions in Filament -->
+    @endif
 </div>
 

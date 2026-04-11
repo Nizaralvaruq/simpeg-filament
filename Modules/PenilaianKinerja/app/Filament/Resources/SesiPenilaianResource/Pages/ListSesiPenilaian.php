@@ -13,8 +13,7 @@ class ListSesiPenilaian extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->label('Tambah Sesi Penilaian'),
+            CreateAction::make(),
         ];
     }
 
@@ -23,6 +22,11 @@ class ListSesiPenilaian extends ListRecords
         return [
             \Modules\PenilaianKinerja\Filament\Widgets\PenilaianStatsWidget::class,
         ];
+    }
+
+    public function getHeaderWidgetsColumns(): int | array
+    {
+        return 1;
     }
 }
 

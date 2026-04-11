@@ -1,5 +1,5 @@
 <div>
-    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+    <div class="grid grid-cols-1 gap-4 mb-6">
 
         {{-- Total Barang Aktif --}}
         <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
@@ -66,7 +66,7 @@
         </div>
 
         {{-- Mutasi Hari Ini --}}
-        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20 col-span-2 md:col-span-1">
+        <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
             <div class="flex items-center gap-x-4">
                 <div class="rounded-lg bg-indigo-50 dark:bg-indigo-400/10 p-3 shrink-0 ring-1 ring-indigo-100 dark:ring-indigo-400/20">
                     <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -89,25 +89,6 @@
         $canManage = $user?->hasAnyRole(['super_admin', 'admin_unit']);
     @endphp
 
-    @if($canManage)
-    <div class="flex flex-wrap w-full justify-end items-center gap-3 mb-2">
-
-        {{-- Buat Barang --}}
-        <x-filament::button tag="a" href="{{ \Modules\Inventory\Filament\Resources\BarangResource::getUrl('create') }}" icon="heroicon-o-plus">
-            Buat Barang
-        </x-filament::button>
-
-        {{-- Export Excel --}}
-        <x-filament::button wire:click="exportExcel" color="success" icon="heroicon-o-document-arrow-down">
-            Export Excel
-        </x-filament::button>
-
-        {{-- Cetak PDF --}}
-        <x-filament::button wire:click="exportPdf" color="danger" icon="heroicon-o-printer">
-            Cetak PDF
-        </x-filament::button>
-
-    </div>
-    @endif
+        <!-- Actions have been moved to standard Filament header actions in ListBarangs -->
 
 </div>
