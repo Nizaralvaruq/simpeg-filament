@@ -17,6 +17,7 @@ class RiwayatJabatan extends Model
         'unit_id',
         'nomor_sk',
         'file_sk',
+        'link_dokumen',
     ];
 
     protected $casts = [

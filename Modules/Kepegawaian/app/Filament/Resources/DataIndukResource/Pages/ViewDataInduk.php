@@ -245,6 +245,13 @@ class ViewDataInduk extends ViewRecord
                                                 TextEntry::make('nama_jabatan')->label('Amanah/Jabatan'),
                                                 TextEntry::make('unit.name')->label('Unit'),
                                                 TextEntry::make('nomor_sk')->label('Nomor SK'),
+                                                TextEntry::make('link_dokumen')
+                                                    ->label('Tautan')
+                                                    ->formatStateUsing(fn ($state) => filled($state) ? 'Buka Link' : '-')
+                                                    ->url(fn ($state) => filled($state) ? $state : null)
+                                                    ->openUrlInNewTab()
+                                                    ->color(fn ($state) => filled($state) ? 'primary' : 'gray')
+                                                    ->icon(fn ($state) => filled($state) ? 'heroicon-o-link' : null),
                                                 TextEntry::make('file_sk')
                                                     ->label('Download SK')
                                                     ->formatStateUsing(fn() => 'Download')
@@ -255,7 +262,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(4),
+                                            ->columns(5),
                                     ]),
 
                                 Section::make('Riwayat Golongan')
@@ -266,6 +273,13 @@ class ViewDataInduk extends ViewRecord
                                                 TextEntry::make('tanggal')->label('TMT')->date('d M Y'),
                                                 TextEntry::make('golongan.name')->label('Golongan'),
                                                 TextEntry::make('nomor_sk')->label('Nomor SK'),
+                                                TextEntry::make('link_dokumen')
+                                                    ->label('Tautan')
+                                                    ->formatStateUsing(fn ($state) => filled($state) ? 'Buka Link' : '-')
+                                                    ->url(fn ($state) => filled($state) ? $state : null)
+                                                    ->openUrlInNewTab()
+                                                    ->color(fn ($state) => filled($state) ? 'primary' : 'gray')
+                                                    ->icon(fn ($state) => filled($state) ? 'heroicon-o-link' : null),
                                                 TextEntry::make('file_sk')
                                                     ->label('Download SK')
                                                     ->formatStateUsing(fn() => 'Download')
@@ -276,7 +290,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(4),
+                                            ->columns(5),
                                     ]),
 
                                 Section::make('Riwayat Pendidikan')
@@ -289,6 +303,13 @@ class ViewDataInduk extends ViewRecord
                                                 TextEntry::make('institusi'),
                                                 TextEntry::make('jurusan')->placeholder('-'),
                                                 TextEntry::make('tahun_lulus'),
+                                                TextEntry::make('link_dokumen')
+                                                    ->label('Tautan')
+                                                    ->formatStateUsing(fn ($state) => filled($state) ? 'Buka Link' : '-')
+                                                    ->url(fn ($state) => filled($state) ? $state : null)
+                                                    ->openUrlInNewTab()
+                                                    ->color(fn ($state) => filled($state) ? 'primary' : 'gray')
+                                                    ->icon(fn ($state) => filled($state) ? 'heroicon-o-link' : null),
                                                 TextEntry::make('file_ijazah')
                                                     ->label('Ijazah')
                                                     ->formatStateUsing(fn() => 'Download')
@@ -299,7 +320,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(6),
+                                            ->columns(7),
                                     ]),
 
                                 Section::make('Riwayat Diklat/Pelatihan')
@@ -311,6 +332,13 @@ class ViewDataInduk extends ViewRecord
                                                 TextEntry::make('nama_diklat'),
                                                 TextEntry::make('nomor_sertifikat')->label('No. Sertifikat'),
                                                 TextEntry::make('penyelenggara'),
+                                                TextEntry::make('link_dokumen')
+                                                    ->label('Tautan')
+                                                    ->formatStateUsing(fn ($state) => filled($state) ? 'Buka Link' : '-')
+                                                    ->url(fn ($state) => filled($state) ? $state : null)
+                                                    ->openUrlInNewTab()
+                                                    ->color(fn ($state) => filled($state) ? 'primary' : 'gray')
+                                                    ->icon(fn ($state) => filled($state) ? 'heroicon-o-link' : null),
                                                 TextEntry::make('file_sertifikat')
                                                     ->label('Sertifikat')
                                                     ->formatStateUsing(fn() => 'Download')
@@ -321,7 +349,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(5),
+                                            ->columns(6),
                                     ]),
 
                                 Section::make('Riwayat Penghargaan')
@@ -333,6 +361,13 @@ class ViewDataInduk extends ViewRecord
                                                 TextEntry::make('nama_penghargaan'),
                                                 TextEntry::make('nomor_sertifikat')->label('No. Piagam'),
                                                 TextEntry::make('pemberi'),
+                                                TextEntry::make('link_dokumen')
+                                                    ->label('Tautan')
+                                                    ->formatStateUsing(fn ($state) => filled($state) ? 'Buka Link' : '-')
+                                                    ->url(fn ($state) => filled($state) ? $state : null)
+                                                    ->openUrlInNewTab()
+                                                    ->color(fn ($state) => filled($state) ? 'primary' : 'gray')
+                                                    ->icon(fn ($state) => filled($state) ? 'heroicon-o-link' : null),
                                                 TextEntry::make('file_sertifikat')
                                                     ->label('Sertifikat')
                                                     ->formatStateUsing(fn() => 'Download')
@@ -343,7 +378,7 @@ class ViewDataInduk extends ViewRecord
                                                     ->color('success')
                                                     ->visible(fn($state) => !empty($state)),
                                             ])
-                                            ->columns(5),
+                                            ->columns(6),
                                     ]),
                             ]),
 

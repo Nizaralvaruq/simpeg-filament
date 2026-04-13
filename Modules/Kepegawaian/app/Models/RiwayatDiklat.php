@@ -20,6 +20,7 @@ class RiwayatDiklat extends Model
         'tanggal_selesai',
         'durasi_jam',
         'file_sertifikat',
+        'link_dokumen',
     ];
 
     protected $casts = [

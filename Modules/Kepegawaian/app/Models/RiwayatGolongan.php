@@ -17,6 +17,7 @@ class RiwayatGolongan extends Model
         'tanggal',
         'golongan_id',
         'file_sk',
+        'link_dokumen',
     ];
 
     protected $casts = [

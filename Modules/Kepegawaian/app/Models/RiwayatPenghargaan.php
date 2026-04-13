@@ -18,6 +18,7 @@ class RiwayatPenghargaan extends Model
         'pemberi',
         'tanggal',
         'file_sertifikat',
+        'link_dokumen',
     ];
 
     protected $casts = [

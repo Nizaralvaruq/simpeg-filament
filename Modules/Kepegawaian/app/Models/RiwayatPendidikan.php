@@ -19,6 +19,7 @@ class RiwayatPendidikan extends Model
         'jurusan',
         'tahun_lulus',
         'file_ijazah',
+        'link_dokumen',
     ];
 
     public function dataInduk()

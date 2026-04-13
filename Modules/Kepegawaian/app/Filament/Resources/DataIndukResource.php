@@ -622,6 +622,10 @@ class DataIndukResource extends Resource
                                 ->preload(),
                             Forms\Components\TextInput::make('nomor_sk')
                                 ->label('Nomor SK'),
+                            Forms\Components\TextInput::make('link_dokumen')
+                                ->label('Link Dokumen (Opsional)')
+                                ->url()
+                                ->prefix('https://'),
                             Forms\Components\FileUpload::make('file_sk')
                                 ->label('File SK (PDF/Image)')
                                 ->disk('public')
@@ -667,6 +671,10 @@ class DataIndukResource extends Resource
                                 ->preload(),
                             Forms\Components\TextInput::make('nomor_sk')
                                 ->label('Nomor SK'),
+                            Forms\Components\TextInput::make('link_dokumen')
+                                ->label('Link Dokumen (Opsional)')
+                                ->url()
+                                ->prefix('https://'),
                             Forms\Components\FileUpload::make('file_sk')
                                 ->label('File SK (PDF/Image)')
                                 ->disk('public')
@@ -718,6 +726,10 @@ class DataIndukResource extends Resource
                                 ->label('Tahun Lulus')
                                 ->numeric()
                                 ->required(),
+                            Forms\Components\TextInput::make('link_dokumen')
+                                ->label('Link Dokumen (Opsional)')
+                                ->url()
+                                ->prefix('https://'),
                             Forms\Components\FileUpload::make('file_ijazah')
                                 ->label('File Ijazah (PDF/Image)')
                                 ->disk('public')
@@ -756,6 +768,10 @@ class DataIndukResource extends Resource
                             Forms\Components\TextInput::make('durasi_jam')
                                 ->label('Durasi (Jam)')
                                 ->numeric(),
+                            Forms\Components\TextInput::make('link_dokumen')
+                                ->label('Link Dokumen (Opsional)')
+                                ->url()
+                                ->prefix('https://'),
                             Forms\Components\FileUpload::make('file_sertifikat')
                                 ->label('Sertifikat (PDF/Image)')
                                 ->disk('public')
@@ -784,6 +800,10 @@ class DataIndukResource extends Resource
                                 ->required(),
                             Forms\Components\DatePicker::make('tanggal')
                                 ->required(),
+                            Forms\Components\TextInput::make('link_dokumen')
+                                ->label('Link Dokumen (Opsional)')
+                                ->url()
+                                ->prefix('https://'),
                             Forms\Components\FileUpload::make('file_sertifikat')
                                 ->label('Sertifikat (PDF/Image)')
                                 ->disk('public')
