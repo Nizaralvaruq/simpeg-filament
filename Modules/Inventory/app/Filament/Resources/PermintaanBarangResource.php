@@ -23,6 +23,28 @@ class PermintaanBarangResource extends Resource
     protected static ?string $model = PermintaanBarang::class;
     protected static ?int $navigationSort = 3;
 
+    public static function getNavigationBadge(): ?string
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        // Hanya tampilkan badge untuk admin yang memang bertugas menyetujui
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+            return null;
+        }
+
+        $count = static::getEloquentQuery()
+            ->where('status', 'diajukan')
+            ->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
     public static function getNavigationIcon(): string|\BackedEnum|null
     {
         return 'heroicon-o-clipboard-document-list';

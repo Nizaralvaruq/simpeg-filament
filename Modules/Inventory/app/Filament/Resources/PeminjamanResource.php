@@ -34,6 +34,28 @@ class PeminjamanResource extends Resource
         return 4;
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        // Hanya tampilkan badge untuk admin yang memang bertugas menyetujui
+        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+            return null;
+        }
+
+        $count = static::getEloquentQuery()
+            ->whereIn('status', ['diajukan', 'menunggu_pengecekan'])
+            ->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
     public static function getModelLabel(): string
     {
         return 'Peminjaman';
@@ -298,7 +320,7 @@ class PeminjamanResource extends Resource
                     ->visible(function ($record) {
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
-                        return $record->status === 'dipinjam' && $record->user_id === $user->id;
+                        return $record->status === 'dipinjam' && $record->user_id == $user->id;
                     })
                     ->form([
                         \Filament\Forms\Components\Textarea::make('catatan_pengembalian')
