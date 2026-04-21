@@ -19,6 +19,10 @@ class DataIndukPolicy
 
     public function view(AuthUser $authUser, DataInduk $dataInduk): bool
     {
+        if ($authUser->hasRole('staff') && $dataInduk->user_id === $authUser->id) {
+            return true;
+        }
+
         return $authUser->can('View:DataInduk');
     }
 
@@ -29,6 +33,10 @@ class DataIndukPolicy
 
     public function update(AuthUser $authUser, DataInduk $dataInduk): bool
     {
+        if ($authUser->hasRole('staff') && $dataInduk->user_id === $authUser->id) {
+            return true;
+        }
+
         return $authUser->can('Update:DataInduk');
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Kepegawaian\Providers;
+namespace Modules\Akademik\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -8,13 +8,13 @@ use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
-class KepegawaianServiceProvider extends ServiceProvider
+class AkademikServiceProvider extends ServiceProvider
 {
     use PathNamespace;
 
-    protected string $name = 'Kepegawaian';
+    protected string $name = 'Akademik';
 
-    protected string $nameLower = 'kepegawaian';
+    protected string $nameLower = 'akademik';
 
     /**
      * Boot the application events.
@@ -27,8 +27,6 @@ class KepegawaianServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
-        
-        \Livewire\Livewire::component('modules.kepegawaian.filament.widgets.kepegawaian-stats-overview', \Modules\Kepegawaian\Filament\Widgets\KepegawaianStatsOverview::class);
     }
 
     /**
@@ -36,8 +34,8 @@ class KepegawaianServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->register(EventServiceProvider::class);
-        $this->app->register(RouteServiceProvider::class);
+        // $this->app->register(EventServiceProvider::class);
+        // $this->app->register(RouteServiceProvider::class);
     }
 
     /**

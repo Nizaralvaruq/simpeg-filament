@@ -86,4 +86,16 @@ class ListDataInduks extends ListRecords
 
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \Modules\Kepegawaian\Filament\Widgets\KepegawaianStatsOverview::class,
+        ];
+    }
+
+    public function getHeaderWidgetsColumns(): int | array
+    {
+        return 1; // 1 column karena desain horizontal ditentukan di blade nya sendiri (grid-cols-1 md:... dll)
+    }
 }

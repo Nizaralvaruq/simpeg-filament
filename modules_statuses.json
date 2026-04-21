@@ -1,10 +1,11 @@
 {
-    "Presensi": true,
     "Kepegawaian": true,
+    "Inventory": true,
     "MasterData": true,
-    "Leave": true,
+    "Presensi": true,
+    "Akademik": true,
     "PenilaianKinerja": true,
     "Resign": true,
-    "Retirement": true,
-    "Inventory": true
+    "Leave": true,
+    "Retirement": true
 }

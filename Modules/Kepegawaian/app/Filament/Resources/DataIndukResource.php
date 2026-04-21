@@ -120,8 +120,8 @@ class DataIndukResource extends Resource
             $items[] = NavigationItem::make('Biodata Saya')
                 ->group('Menu Saya')
                 ->icon('heroicon-o-user-circle')
-                ->url(static::getUrl('view', ['record' => $user->employee]))
-                ->isActiveWhen(fn() => request()->fullUrlIs(static::getUrl('view', ['record' => $user->employee])))
+                ->url(static::getUrl('edit', ['record' => $user->employee]))
+                ->isActiveWhen(fn() => request()->fullUrlIs(static::getUrl('edit', ['record' => $user->employee])))
                 ->sort(1);
         }
 
@@ -547,7 +547,7 @@ class DataIndukResource extends Resource
                                 ->relationship('units', 'name', modifyQueryUsing: function (Builder $query) {
                                     /** @var \App\Models\User $user */
                                     $user = Auth::user();
-                                    if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
+                                    if ($user->hasAnyRole(['super_admin', 'ketua_psdm', 'staff'])) {
                                         return $query;
                                     }
                                     $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
