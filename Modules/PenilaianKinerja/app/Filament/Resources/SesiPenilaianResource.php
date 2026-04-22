@@ -31,7 +31,7 @@ class SesiPenilaianResource extends Resource
 {
     protected static ?string $model = AppraisalSession::class;
 
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 10;
 
     public static function canViewAny(): bool
     {

@@ -26,7 +26,7 @@ class TugasPenilaianSayaResource extends Resource
 {
     protected static ?string $model = AppraisalAssignment::class;
 
-    protected static ?int $navigationSort = 70;
+    protected static ?int $navigationSort = 50;
 
     public static function canViewAny(): bool
     {

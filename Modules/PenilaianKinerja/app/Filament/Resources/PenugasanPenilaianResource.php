@@ -29,7 +29,7 @@ class PenugasanPenilaianResource extends Resource
 {
     protected static ?string $model = AppraisalAssignment::class;
 
-    protected static ?int $navigationSort = 60;
+    protected static ?int $navigationSort = 40;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {

@@ -63,6 +63,13 @@ class StockTransactionResource extends Resource
         return $user->hasAnyRole(['super_admin', 'admin_unit']);
     }
 
+    public static function canDelete($record): bool
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasRole('super_admin');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -170,8 +177,13 @@ class StockTransactionResource extends Resource
             ])
             ->recordActions([
                 \Filament\Actions\ViewAction::make(),
+                \Filament\Actions\DeleteAction::make(),
             ])
-            ->toolbarActions([])
+            ->toolbarActions([
+                \Filament\Actions\BulkActionGroup::make([
+                    \Filament\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
             ->defaultSort('created_at', 'desc');
     }
 

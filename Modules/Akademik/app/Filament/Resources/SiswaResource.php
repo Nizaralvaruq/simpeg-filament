@@ -11,6 +11,9 @@ use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Common\EccLevel;
+use chillerlan\QRCode\Common\Version;
+use chillerlan\QRCode\Output\QROutputInterface;
 use Filament\Schemas\Schema;
 
 class SiswaResource extends Resource
@@ -127,11 +130,11 @@ class SiswaResource extends Resource
                         // PNG output — more reliable for physical QR scanners
                         // SVG uses path rendering that can blur edges and confuse cameras
                         $options = new QROptions([
-                            'version'     => 0,   // auto-detect smallest version
-                            'outputType'  => QRCode::OUTPUT_IMAGE_PNG,
-                            'eccLevel'    => QRCode::ECC_M,  // 15% error recovery
-                            'scale'       => 12,  // 12px per module = high quality
-                            'imageBase64' => true,
+                            'version'      => Version::AUTO,
+                            'outputType'   => \chillerlan\QRCode\Output\QRGdImagePNG::class,
+                            'eccLevel'     => EccLevel::M,  // 15% error recovery
+                            'scale'        => 12,  // 12px per module = high quality
+                            'outputBase64' => true,
                         ]);
                         $dataUri = (new QRCode($options))->render($record->nis);
                         $nis   = e($record->nis);

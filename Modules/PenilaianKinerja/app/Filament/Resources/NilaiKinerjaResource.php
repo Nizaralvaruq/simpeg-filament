@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Auth;
 class NilaiKinerjaResource extends Resource
 {
     protected static ?string $model = PerformanceScore::class;
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 60;
 
     public static function canViewAny(): bool
     {

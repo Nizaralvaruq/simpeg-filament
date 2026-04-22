@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     @include('akademik::filament.pages.scanner-setoran.styles')
 
-    <div x-data="qrScannerData()" :class="{ 'qr-fullscreen': isFullscreen }" class="relative min-h-screen">
+    <div x-data="qrScannerData()" :class="{ 'qr-fullscreen': isFullscreen }" class="qr-wrap relative min-h-screen">
 
         @include('akademik::filament.pages.scanner-setoran.header')
 

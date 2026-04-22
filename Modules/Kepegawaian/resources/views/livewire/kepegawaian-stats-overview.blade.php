@@ -30,7 +30,7 @@
 
 <div>
     {{-- Kita gunakan "grid-cols-1 md:grid-cols-2 lg:grid-cols-4" agar menyamping / horizontal --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
         {{-- Total Pegawai --}}
         <div class="rounded-xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all hover:ring-gray-950/10 dark:hover:ring-white/20">
