@@ -5,13 +5,17 @@
 
         @include('akademik::filament.pages.scanner-setoran.header')
 
-        <div class="qr-container">
-            <div class="qr-grid">
+        <div class="max-w-7xl mx-auto py-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {{-- LEFT COLUMN: CAMERA & SCANNER --}}
-                @include('akademik::filament.pages.scanner-setoran.camera-section')
+                <div class="lg:col-span-8 space-y-6">
+                    @include('akademik::filament.pages.scanner-setoran.camera-section')
+                </div>
 
                 {{-- RIGHT COLUMN: SIDEBAR STATS & HISTORY --}}
-                @include('akademik::filament.pages.scanner-setoran.stats-sidebar')
+                <div class="lg:col-span-4 space-y-6">
+                    @include('akademik::filament.pages.scanner-setoran.stats-sidebar')
+                </div>
             </div>
         </div>
 

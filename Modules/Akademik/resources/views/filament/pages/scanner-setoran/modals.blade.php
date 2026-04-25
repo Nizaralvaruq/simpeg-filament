@@ -1,47 +1,47 @@
 {{-- === SETORAN INPUT MODAL === --}}
-<div x-show="$wire.showFormModal" x-cloak class="qr-modal-overlay" @keydown.escape.window="$wire.showFormModal = false">
-    <div class="qr-modal-card" @click.away="$wire.showFormModal = false">
+<div x-show="$wire.showFormModal" x-cloak class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[2000] p-4 transition-opacity duration-200" @keydown.escape.window="$wire.showFormModal = false">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-700 transform transition-all" @click.away="$wire.showFormModal = false">
 
         {{-- MODAL HEADER --}}
-        <div class="qr-modal-header">
-            <div class="qr-modal-avatar">
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-500 p-5 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl bg-white/20 border-2 border-white/30 flex items-center justify-center text-xl font-black text-white shrink-0 overflow-hidden">
                 <img :src="$wire.scannedUser?.avatar" class="w-full h-full object-cover"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <span style="display:none; align-items:center; justify-content:center; width:100%; height:100%; font-size:1.25rem; font-weight:900;"
+                <span style="display:none; align-items:center; justify-content:center; width:100%; height:100%;"
                       x-text="$wire.scannedUser?.name?.charAt(0)?.toUpperCase() ?? '?'"></span>
             </div>
             <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-0.5">
-                    <span class="px-2 py-0.5 bg-white/20 text-white/90 text-[9px] font-black rounded-md tracking-widest border border-white/25">SISWA</span>
-                    <h2 class="qr-modal-name truncate" x-text="$wire.scannedUser?.name"></h2>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 bg-white/20 text-white text-[10px] font-black rounded-md tracking-widest border border-white/20 shadow-sm">SISWA</span>
+                    <h2 class="text-lg font-bold text-white truncate" x-text="$wire.scannedUser?.name"></h2>
                 </div>
-                <p class="qr-modal-meta">
-                    NIS: <span class="font-mono font-bold text-white" x-text="$wire.scannedUser?.nis"></span>
+                <p class="text-xs text-emerald-100 font-medium">
+                    NIS: <span class="font-mono font-bold text-white tracking-wider" x-text="$wire.scannedUser?.nis"></span>
                     &nbsp;·&nbsp; Kelas <span x-text="$wire.scannedUser?.kelas"></span>
                 </p>
             </div>
-            <button @click="$wire.showFormModal = false" class="qr-modal-close">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button @click="$wire.showFormModal = false" class="ml-auto p-2 rounded-lg bg-white/10 text-white hover:bg-rose-500 hover:text-white transition-colors focus:outline-none">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
 
         {{-- RIWAYAT TERAKHIR --}}
-        <div x-show="$wire.riwayatTerakhir" x-cloak class="qr-modal-last">
-            <span class="qr-badge-last">Terakhir</span>
-            <span class="text-amber-900 font-semibold text-xs"
+        <div x-show="$wire.riwayatTerakhir" x-cloak class="px-5 py-3 bg-amber-50 border-b border-amber-200 flex items-center gap-3">
+            <span class="px-2 py-0.5 rounded border border-amber-300 bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest shrink-0">Terakhir</span>
+            <span class="text-amber-900 font-bold text-xs truncate"
                   x-text="$wire.riwayatTerakhir?.tanggal + ' — ' + $wire.riwayatTerakhir?.materi"></span>
         </div>
 
         {{-- FORM --}}
-        <form wire:submit.prevent="saveSetoran" class="qr-modal-form space-y-4">
+        <form wire:submit.prevent="saveSetoran" class="p-6 space-y-5">
 
             {{-- ROW 1: Jenis & Nilai --}}
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="qr-form-label">Jenis Setoran <span>*</span></label>
-                    <select wire:model="jenis_setoran" required class="qr-form-input">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Jenis Setoran <span class="text-rose-500">*</span></label>
+                    <select wire:model="jenis_setoran" required class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 block p-3 transition-shadow">
                         <option value="">— Pilih —</option>
                         <option value="Al-Qur'an">📖 Al-Qur'an</option>
                         <option value="Jilid/Iqro/Ummi">📗 Jilid / Iqro / Ummi</option>
@@ -49,19 +49,21 @@
                     </select>
                 </div>
                 <div>
-                    <label class="qr-form-label">Predikat Nilai <span>*</span></label>
-                    <div class="flex gap-1.5">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Predikat Nilai <span class="text-rose-500">*</span></label>
+                    <div class="flex gap-2">
                         @foreach([
-                            'A' => ['Sangat Lancar', 'A'],
-                            'B' => ['Lancar', 'B'],
-                            'C' => ['Mengulang', 'C'],
+                            'A' => ['Sangat Lancar', 'emerald'],
+                            'B' => ['Lancar', 'blue'],
+                            'C' => ['Mengulang', 'rose'],
                         ] as $k => $v)
                             <button type="button"
                                     @click="$wire.set('predikat_nilai','{{ $k }}')"
-                                    class="qr-grade-btn"
-                                    :class="$wire.predikat_nilai === '{{ $k }}' ? 'active-{{ $k }}' : ''">
+                                    class="flex-1 p-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-0.5 font-black text-sm"
+                                    :class="$wire.predikat_nilai === '{{ $k }}' 
+                                        ? 'bg-{{ $v[1] }}-100 text-{{ $v[1] }}-700 border-{{ $v[1] }}-500 scale-105 shadow-sm' 
+                                        : 'bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-500 dark:hover:border-gray-500'">
                                 <span>{{ $k }}</span>
-                                <span class="qr-grade-sub">{{ $v[0] }}</span>
+                                <span class="text-[9px] uppercase tracking-wider opacity-80">{{ $v[0] }}</span>
                             </button>
                         @endforeach
                     </div>
@@ -69,36 +71,36 @@
             </div>
 
             {{-- ROW 2: Materi & Halaman --}}
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="qr-form-label">Surah / Jilid <span>*</span></label>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Surah / Jilid <span class="text-rose-500">*</span></label>
                     <input type="text" wire:model="nama_materi" required
                            placeholder="Al-Baqarah / Jilid 4"
-                           class="qr-form-input">
+                           class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 block p-3 transition-shadow">
                 </div>
                 <div>
-                    <label class="qr-form-label">Ayat / Halaman</label>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Ayat / Halaman</label>
                     <input type="text" wire:model="ayat_halaman"
                            placeholder="Misal: 1–10"
-                           class="qr-form-input">
+                           class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 block p-3 transition-shadow">
                 </div>
             </div>
 
             {{-- ROW 3: Catatan --}}
             <div>
-                <label class="qr-form-label">Catatan Guru</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Catatan Guru</label>
                 <textarea wire:model="catatan_guru" rows="2"
                           placeholder="Catatan khusus (opsional)…"
-                          class="qr-form-input resize-none leading-relaxed"></textarea>
+                          class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-100 text-sm font-medium rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 block p-3 transition-shadow resize-none"></textarea>
             </div>
 
             {{-- ACTIONS --}}
-            <div class="flex gap-2.5 pt-1">
+            <div class="flex gap-3 pt-3">
                 <button type="button" @click="$wire.showFormModal = false"
-                        class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all">
+                        class="px-5 py-3 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
                     Batal
                 </button>
-                <button type="submit" class="qr-submit-btn flex-1">
+                <button type="submit" class="flex-1 px-5 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-md hover:shadow-lg transition-all focus:ring-4 focus:ring-emerald-500/30 transform hover:-translate-y-0.5">
                     ✅ &nbsp;Simpan Setoran
                 </button>
             </div>
@@ -111,14 +113,13 @@
     <x-slot name="heading">Input NIS Manual</x-slot>
 
     <div class="py-2 text-center" x-data="{ manualNis: '' }">
-        <div class="w-10 h-10 mx-auto mb-2 rounded-xl flex items-center justify-center"
-             style="background: linear-gradient(135deg,#1e3a8a,#2563eb);">
-            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm">
+            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
             </svg>
         </div>
-        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Nomor Induk Siswa (NIS)</p>
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Nomor Induk Siswa (NIS)</p>
         <input type="text"
                x-model="manualNis"
                placeholder="Ketik atau scan NIS di sini…"
@@ -131,15 +132,15 @@
                        $dispatch('close-modal', { id: 'manual-input-modal' });
                    }
                "
-               class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl text-center text-xl font-black tracking-widest focus:border-blue-500 focus:ring-0 outline-none transition-all bg-gray-50 focus:bg-white">
-        <p class="text-[10px] text-gray-400 mt-3 font-semibold">
+               class="w-full px-5 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-center text-xl font-black tracking-widest focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 outline-none transition-all bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-gray-800 text-gray-900 dark:text-white shadow-inner">
+        <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-4 font-semibold">
             💡 Arahkan scanner fisik ke kolom ini — NIS akan terisi otomatis.
         </p>
 
-        <div class="flex gap-3 mt-5">
+        <div class="flex gap-3 mt-6">
             <button type="button"
                     @click="$dispatch('close-modal', { id: 'manual-input-modal' })"
-                    class="qr-btn qr-btn-outline flex-1">Batal</button>
+                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors shadow-sm">Batal</button>
             <button type="button"
                     @click="
                         const v = manualNis.trim();
@@ -149,7 +150,7 @@
                             $dispatch('close-modal', { id: 'manual-input-modal' });
                         }
                     "
-                    class="qr-btn qr-btn-primary flex-1">✅ Proses NIS</button>
+                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-md hover:shadow-lg transition-all">✅ Proses NIS</button>
         </div>
     </div>
 </x-filament::modal>

@@ -131,7 +131,7 @@ class SiswaResource extends Resource
                         // SVG uses path rendering that can blur edges and confuse cameras
                         $options = new QROptions([
                             'version'      => Version::AUTO,
-                            'outputType'   => \chillerlan\QRCode\Output\QRGdImagePNG::class,
+                            'outputType'   => QROutputInterface::GDIMAGE_PNG,
                             'eccLevel'     => EccLevel::M,  // 15% error recovery
                             'scale'        => 12,  // 12px per module = high quality
                             'outputBase64' => true,
@@ -160,7 +160,7 @@ class SiswaResource extends Resource
                                        ⬇ Download PNG
                                     </a>
                                     <button onclick="window.print()"
-                                            style="padding:.6rem 1.4rem;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;">
+                                             style="padding:.6rem 1.4rem;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;">
                                        🖨 Print
                                     </button>
                                 </div>
@@ -175,7 +175,6 @@ class SiswaResource extends Resource
                 \Filament\Actions\DeleteAction::make(),
             ])
             ->toolbarActions([
-                \Filament\Actions\CreateAction::make(),
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),
                 ]),

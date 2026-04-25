@@ -6,6 +6,8 @@ use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use Modules\Akademik\Models\Siswa;
 use Modules\Akademik\Models\SetoranNgaji;
+use Modules\Akademik\Models\AbsensiKegiatanSiswa;
+use Modules\Presensi\Models\Kegiatan;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -27,6 +29,10 @@ class ScannerSetoran extends Page
     public ?int $siswaId = null;
     public ?array $scannedUser = null;
     public ?array $riwayatTerakhir = null;
+    
+    public string $scanMode = 'setoran'; // 'setoran' or 'kehadiran'
+    public ?int $kegiatanId = null;
+    public array $availableKegiatans = [];
 
     // Stats & History
     public array $todayStats = ['total' => 0, 'countA' => 0];
@@ -52,6 +58,15 @@ class ScannerSetoran extends Page
         $this->loadStats();
         $this->loadRecentScans();
         $this->volume = (int)cache()->get('scanner_volume_akademik', 70);
+        $this->loadAvailableKegiatans();
+    }
+
+    public function loadAvailableKegiatans()
+    {
+        $this->availableKegiatans = Kegiatan::whereDate('tanggal', Carbon::today())
+            ->where('is_closed', false)
+            ->pluck('nama_kegiatan', 'id')
+            ->toArray();
     }
 
     public static function getNavigationGroup(): ?string
@@ -113,6 +128,12 @@ class ScannerSetoran extends Page
             'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($siswa->nama_lengkap) . '&color=7F9CF5&background=EBF4FF',
         ];
 
+        if ($this->scanMode === 'kehadiran') {
+            $this->processKehadiranScan($siswa);
+            return;
+        }
+
+        // Mode Setoran
         // Load last record
         $last = SetoranNgaji::where('siswa_id', $siswa->id)->latest()->first();
         $this->riwayatTerakhir = $last ? [
@@ -124,6 +145,38 @@ class ScannerSetoran extends Page
         $this->showFormModal = true;
         
         $this->dispatch('scan-success', type: 'check-in', name: $siswa->nama_lengkap);
+    }
+
+    protected function processKehadiranScan($siswa)
+    {
+        if (!$this->kegiatanId) {
+            $this->dispatch('scan-error', message: "Silakan pilih kegiatan terlebih dahulu.");
+            return;
+        }
+
+        $existingAbsen = AbsensiKegiatanSiswa::where('kegiatan_id', $this->kegiatanId)
+            ->where('siswa_id', $siswa->id)
+            ->first();
+
+        if ($existingAbsen) {
+            $this->dispatch('scan-error', message: "Siswa {$siswa->nama_lengkap} sudah tercatat hadir pada kegiatan ini.");
+            return;
+        }
+
+        AbsensiKegiatanSiswa::create([
+            'kegiatan_id' => $this->kegiatanId,
+            'siswa_id'    => $siswa->id,
+            'jam_absen'   => now(),
+            'status'      => 'hadir',
+        ]);
+
+        $this->dispatch('scan-success', type: 'check-in', name: $siswa->nama_lengkap . ' (Hadir)');
+        
+        Notification::make()
+            ->title('Kehadiran Berhasil Disimpan')
+            ->body($siswa->nama_lengkap . ' tercatat hadir.')
+            ->success()
+            ->send();
     }
 
     public function saveSetoran()

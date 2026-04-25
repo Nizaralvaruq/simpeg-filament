@@ -52,10 +52,21 @@ class LaporanPenilaianResource extends Resource
 
     public static function table(Table $table): Table
     {
+        return $table
+            ->query(static::getTableQuery())
+            ->columns(static::getTableColumns())
+            ->striped()
+            ->persistFiltersInSession()
+            ->filters(static::getTableFilters())
+            ->recordActions(static::getTableActions());
+    }
+
+    public static function getTableQuery(): Builder
+    {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $query = AppraisalAssignment::query()
+        return AppraisalAssignment::query()
             ->fromSub(
                 AppraisalAssignment::query()
                     ->select('session_id', 'ratee_id')
@@ -83,8 +94,11 @@ class LaporanPenilaianResource extends Resource
                     ? $q->where('ratee_id', $user->employee->id)
                     : $q->whereRaw('1=0')
             );
+    }
 
-        $columns = [
+    public static function getTableColumns(): array
+    {
+        return [
             TextColumn::make('session.name')
                 ->label('Sesi')
                 ->sortable(),
@@ -107,14 +121,20 @@ class LaporanPenilaianResource extends Resource
                 ->html()
                 ->state(fn ($record) => static::getBreakdownHtml($record)),
         ];
+    }
 
-        $filters = [
+    public static function getTableFilters(): array
+    {
+        return [
             SelectFilter::make('session_id')
                 ->label('Filter Sesi')
                 ->options(AppraisalSession::whereNotNull('name')->pluck('name', 'id')),
         ];
+    }
 
-        $actions = [
+    public static function getTableActions(): array
+    {
+        return [
             ActionGroup::make([
                 Action::make('print_report')
                     ->label('Cetak Raport')
@@ -123,14 +143,6 @@ class LaporanPenilaianResource extends Resource
                     ->action(fn ($record) => static::printReport($record)),
             ])->button()->label('Aksi'),
         ];
-
-        return $table
-            ->query($query)
-            ->columns($columns)
-            ->striped()
-            ->persistFiltersInSession()
-            ->filters($filters)
-            ->recordActions($actions);
     }
 
     public static function getEloquentQuery(): Builder

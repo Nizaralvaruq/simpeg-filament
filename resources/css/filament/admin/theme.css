@@ -5,6 +5,8 @@
 @source '../../../../resources/views/filament/pages/auth/login.blade.php';
 @source '../../../../Modules/Presensi/resources/views/**/*.blade.php';
 @source '../../../../Modules/Presensi/app/Filament/**/*.php';
+@source '../../../../Modules/Akademik/resources/views/**/*.blade.php';
+@source '../../../../Modules/Akademik/app/Filament/**/*.php';
 
 .glass {
     background: rgba(255, 255, 255, 0.4) !important;

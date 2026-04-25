@@ -188,7 +188,6 @@ class SetoranNgajiResource extends Resource
                 \Filament\Actions\DeleteAction::make(),
             ])
             ->toolbarActions([
-                \Filament\Actions\CreateAction::make(),
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),
                 ]),
