@@ -10,6 +10,7 @@ use Modules\Akademik\Models\AbsensiKegiatanSiswa;
 use Modules\Presensi\Models\Kegiatan;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Services\FonnteService;
 
 class ScannerSetoran extends Page
 {

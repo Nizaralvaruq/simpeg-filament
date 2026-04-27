@@ -34,19 +34,19 @@ class SiswaResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return 'Siswa';
+        return 'QR Siswa';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Data Siswa';
+        return 'Data QR Siswa';
     }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Informasi Siswa')
+                \Filament\Schemas\Components\Section::make('Informasi QR Siswa')
                     ->description('Data identitas siswa. NIS akan diubah menjadi QR Code untuk keperluan scanner setoran.')
                     ->schema([
                         Forms\Components\TextInput::make('nis')
