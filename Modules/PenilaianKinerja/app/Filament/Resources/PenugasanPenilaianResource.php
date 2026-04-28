@@ -181,7 +181,7 @@ class PenugasanPenilaianResource extends Resource
                     ->collapsible(),
             ])
             ->defaultGroup('session.name')
-            ->striped()
+            ->striped() 
             ->persistFiltersInSession()
             ->defaultPaginationPageOption(10)
             ->filters([
