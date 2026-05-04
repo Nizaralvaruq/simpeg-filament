@@ -14,6 +14,11 @@ use Modules\Kepegawaian\Models\DataInduk;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ */
 class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     /**

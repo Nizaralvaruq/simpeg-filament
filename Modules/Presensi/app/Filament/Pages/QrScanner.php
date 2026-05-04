@@ -504,6 +504,7 @@ class QrScanner extends Page
             'user_id' => $user->id,
             'jam_absen' => now(),
             'status' => 'hadir',
+            'keterangan' => 'Dipindai oleh: ' . (Auth::user()->name ?? 'Sistem'),
         ]);
 
         Log::info('QR Event Attendance', [

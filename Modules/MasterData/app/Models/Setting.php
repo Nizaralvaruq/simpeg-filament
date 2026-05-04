@@ -4,6 +4,11 @@ namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property float $office_latitude
+ * @property float $office_longitude
+ * @property int $office_radius
+ */
 class Setting extends Model
 {
     protected $fillable = [
