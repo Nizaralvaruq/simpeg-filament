@@ -90,10 +90,10 @@
             font-size: 0.75rem;
             font-weight: 700;
             letter-spacing: 0.025em;
-            background-color: #eff6ff;
-            color: #0066cc;
+            background-color: #f0fdf4;
+            color: #15803d;
             text-transform: uppercase;
-            border: 1px solid #dbeafe;
+            border: 1px solid #bbf7d0;
             margin-bottom: 2rem;
         }
 
@@ -187,8 +187,8 @@
                 <!-- Status Badge -->
                 <div class="status-badge">
                     <span
-                        style="width: 0.5rem; height: 0.5rem; border-radius: 9999px; background-color: #0066cc; margin-right: 0.5rem;"></span>
-                    Aktif • Valid s/d {{ now()->addHours(1)->format('H:i') }}
+                        style="width: 0.5rem; height: 0.5rem; border-radius: 9999px; background-color: #15803d; margin-right: 0.5rem;"></span>
+                    ✓ Kartu QR Permanen
                 </div>
 
                 <!-- Info Labels -->

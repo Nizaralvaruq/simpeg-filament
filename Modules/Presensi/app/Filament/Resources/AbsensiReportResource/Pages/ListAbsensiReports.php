@@ -25,7 +25,6 @@ class ListAbsensiReports extends ListRecords
                     // Hidden from staff and kepala_sekolah, visible for super_admin and ketua_psdm
                     return $user && $user->hasAnyRole(['super_admin', 'ketua_psdm']);
                 })
-                ->action(function () {})
                 ->schema([
                     \Filament\Forms\Components\DatePicker::make('start_date')->default(now()->startOfMonth()),
                     \Filament\Forms\Components\DatePicker::make('end_date')->default(now()->endOfMonth()),
@@ -33,8 +32,8 @@ class ListAbsensiReports extends ListRecords
                 ->action(function (array $data) {
                     $query = Absensi::query()
                         ->whereBetween('tanggal', [$data['start_date'], $data['end_date']]);
-                        
-                     // Apply Scoping
+
+                    // Apply Scoping
                     /** @var \App\Models\User $user */
                     $user = \Illuminate\Support\Facades\Auth::user();
                     if ($user && $user->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah'])) {

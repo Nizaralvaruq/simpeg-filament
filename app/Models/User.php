@@ -73,19 +73,23 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     }
 
     /**
-     * Dynamic QR Token accessor using NIP/NPA as fallback
+     * QR Token accessor - always returns the permanent NIP/NPA identifier.
+     * The random qr_token column in the database is ignored to ensure
+     * QR codes are permanent and tied to the employee's identity number.
      */
     public function getQrTokenAttribute(): ?string
     {
-        return $this->attributes['qr_token'] ?? $this->employee?->nip ?? $this->student?->nisn;
+        // Always use the permanent NIP/NPA — never the random token
+        return $this->employee?->nip ?? $this->attributes['qr_token'] ?? null;
     }
 
+    /**
+     * @deprecated QR Codes are now permanent (NIP-based). This method is kept
+     * for backwards compatibility only and no longer has any practical use.
+     */
     public function generateQrToken(): void
     {
-        $this->update([
-            'qr_token' => Str::random(32),
-            'qr_token_generated_at' => now(),
-        ]);
+        // QR Codes are now permanent (NIP-based). This method is intentionally a no-op.
     }
 
 

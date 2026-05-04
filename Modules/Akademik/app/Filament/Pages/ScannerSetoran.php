@@ -148,7 +148,7 @@ class ScannerSetoran extends Page
         $this->dispatch('scan-success', type: 'check-in', name: $siswa->nama_lengkap);
     }
 
-    protected function processKehadiranScan($siswa)
+    protected function processKehadiranScan(Siswa $siswa)
     {
         if (!$this->kegiatanId) {
             $this->dispatch('scan-error', message: "Silakan pilih kegiatan terlebih dahulu.");
@@ -222,7 +222,7 @@ class ScannerSetoran extends Page
         $this->catatan_guru = '';
     }
 
-    public function updatedVolume($value)
+    public function updatedVolume(mixed $value)
     {
         cache()->forever('scanner_volume_akademik', (int)$value);
     }

@@ -7,6 +7,7 @@ use Filament\Pages\Page;
 use Modules\Presensi\Models\Absensi;
 use Modules\Presensi\Models\JadwalPiket;
 use Modules\Presensi\Models\Kegiatan;
+use Modules\Presensi\Models\AbsensiKegiatan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -105,8 +106,10 @@ class QrScanner extends Page
 
     public function getEventsProperty()
     {
-        return Kegiatan::whereDate('tanggal', Carbon::today())
-            ->where('is_closed', false)
+        // Show all non-closed events (not only today's) so admins can still
+        // scan for events created on different dates
+        return Kegiatan::where('is_closed', false)
+            ->latest('tanggal')
             ->get()
             ->pluck('nama_kegiatan', 'id');
     }
@@ -114,7 +117,12 @@ class QrScanner extends Page
     public function updatedScanMode()
     {
         $this->selectedEventId = null;
-        $this->loadTodayStats(); // Refresh stats for mode
+        $this->refreshScannerData();
+    }
+
+    public function updatedSelectedEventId()
+    {
+        $this->refreshScannerData();
     }
 
     public function processScan(string $token, ?float $lat = null, ?float $lng = null, bool $isSilent = false)
@@ -146,6 +154,19 @@ class QrScanner extends Page
 
         // --- BRANCH: EVENT MODE ---
         if ($this->scanMode === 'event') {
+            // Ensure a valid event is selected before recording
+            $eventId = (int) $this->selectedEventId;
+            if (!$eventId) {
+                if (!$isSilent) {
+                    $this->dispatch('scan-error', message: 'Pilih Event/Kegiatan terlebih dahulu!');
+                    Notification::make()
+                        ->title('Event Belum Dipilih')
+                        ->body('Silakan pilih kegiatan dari dropdown sebelum melakukan scan.')
+                        ->warning()
+                        ->send();
+                }
+                return;
+            }
             $this->recordEventAttendance($user, $lat, $lng, $isSilent);
             return;
         }
@@ -227,6 +248,7 @@ class QrScanner extends Page
         ];
 
         $today = Carbon::today();
+        /** @var \Modules\Presensi\Models\Absensi|null $attendance */
         $attendance = Absensi::where('user_id', $user->id)
             ->whereDate('tanggal', $today)
             ->first();
@@ -307,7 +329,7 @@ class QrScanner extends Page
         }
     }
 
-    protected function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    protected function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
         $theta = $lon1 - $lon2;
         $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
@@ -333,6 +355,18 @@ class QrScanner extends Page
      */
     public function loadTodayStats()
     {
+        if ($this->scanMode === 'event' && $this->selectedEventId) {
+            $checkedIn = AbsensiKegiatan::where('kegiatan_id', $this->selectedEventId)
+                ->where('status', 'hadir')
+                ->count();
+                
+            $this->todayStats = [
+                'checkedIn' => $checkedIn,
+                'checkedOut' => 0
+            ];
+            return;
+        }
+
         $today = Carbon::today();
 
         $checkedIn = Absensi::whereDate('tanggal', $today)
@@ -354,6 +388,29 @@ class QrScanner extends Page
      */
     public function loadRecentScans()
     {
+        if ($this->scanMode === 'event' && $this->selectedEventId) {
+            $scans = AbsensiKegiatan::with(['user.employee'])
+                ->where('kegiatan_id', $this->selectedEventId)
+                ->latest('updated_at')
+                ->limit(10)
+                ->get()
+                ->map(function ($absensi) {
+                    return [
+                        'id' => $absensi->id,
+                        'name' => $absensi->user->employee->nama ?? $absensi->user->name ?? 'Unknown',
+                        'email' => $absensi->user->email ?? '',
+                        'avatar' => $absensi->user ? $absensi->user->getFilamentAvatarUrl() : null,
+                        'type' => 'check-in',
+                        'time' => $absensi->jam_absen ? Carbon::parse($absensi->jam_absen)->format('H:i') : $absensi->updated_at->format('H:i'),
+                        'timestamp' => $absensi->updated_at->diffForHumans()
+                    ];
+                })
+                ->toArray();
+                
+            $this->recentScans = $scans;
+            return;
+        }
+
         $today = Carbon::today();
 
         $scans = Absensi::with(['user.employee'])
@@ -383,7 +440,7 @@ class QrScanner extends Page
     /**
      * Update volume setting
      */
-    public function updatedVolume($value)
+    public function updatedVolume(mixed $value)
     {
         $this->volume = max(0, min(100, (int)$value));
         cache()->forever('scanner_volume', $this->volume);
@@ -422,6 +479,7 @@ class QrScanner extends Page
             return;
         }
 
+        /** @var \Modules\Presensi\Models\Kegiatan|null $kegiatan */
         $kegiatan = Kegiatan::find($this->selectedEventId);
         if (!$kegiatan || $kegiatan->is_closed) {
             if (!$isSilent) $this->dispatch('scan-error', message: 'Event tidak valid atau sudah ditutup.');
@@ -470,7 +528,7 @@ class QrScanner extends Page
                 ->send();
         }
 
-        // Refresh local stats if needed (though main stats are daily)
-        $this->loadRecentScans();
+        // Refresh local stats if needed
+        $this->refreshScannerData();
     }
 }

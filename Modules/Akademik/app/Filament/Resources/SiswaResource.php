@@ -47,13 +47,13 @@ class SiswaResource extends Resource
         return $schema
             ->components([
                 \Filament\Schemas\Components\Section::make('Informasi QR Siswa')
-                    ->description('Data identitas siswa. NIS akan diubah menjadi QR Code untuk keperluan scanner setoran.')
+                    ->description('Data identitas siswa. NIS akan digunakan sebagai QR Code permanen — tidak akan berubah.')
                     ->schema([
                         Forms\Components\TextInput::make('nis')
                             ->label('NIS (Nomor Induk Siswa)')
                             ->required()
                             ->unique(ignoreRecord: true)
-                            ->helperText('NIS ini akan menjadi isi dari QR Code siswa.'),
+                            ->helperText('NIS ini menjadi isi QR Code permanen siswa dan tidak dapat diubah sembarangan.'),
                         Forms\Components\TextInput::make('nama_lengkap')
                             ->label('Nama Lengkap')
                             ->required(),
