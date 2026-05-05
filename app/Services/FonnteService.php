@@ -12,7 +12,7 @@ class FonnteService
 
     public function __construct()
     {
-        $this->token = config('services.fonnte.token', env('FONNTE_TOKEN', ''));
+        $this->token = config('services.fonnte.token', '');
     }
 
     /**

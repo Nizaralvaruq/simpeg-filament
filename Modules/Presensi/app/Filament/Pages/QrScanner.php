@@ -479,9 +479,9 @@ class QrScanner extends Page
             return;
         }
 
-        /** @var \Modules\Presensi\Models\Kegiatan|null $kegiatan */
+        /** @var \Modules\Presensi\Models\Kegiatan&object{is_closed: bool, nama_kegiatan: string}|null $kegiatan */
         $kegiatan = Kegiatan::find($this->selectedEventId);
-        if (!$kegiatan || $kegiatan->is_closed) {
+        if (!$kegiatan || $kegiatan->getAttribute('is_closed')) {
             if (!$isSilent) $this->dispatch('scan-error', message: 'Event tidak valid atau sudah ditutup.');
             return;
         }
@@ -493,7 +493,7 @@ class QrScanner extends Page
                 $this->dispatch('scan-error', message: 'Sudah absen di event ini.');
                 Notification::make()
                     ->title('Sudah Hadir')
-                    ->body("{$userName} sudah tercatat hadir di {$kegiatan->nama_kegiatan}.")
+                    ->body("{$userName} sudah tercatat hadir di {$kegiatan->getAttribute('nama_kegiatan')}.")
                     ->warning()
                     ->send();
             }
@@ -509,7 +509,7 @@ class QrScanner extends Page
 
         Log::info('QR Event Attendance', [
             'user' => $userName,
-            'kegiatan' => $kegiatan->nama_kegiatan,
+            'kegiatan' => $kegiatan->getAttribute('nama_kegiatan'),
             'admin' => Auth::user()->name ?? 'System',
         ]);
 
@@ -524,7 +524,7 @@ class QrScanner extends Page
 
             Notification::make()
                 ->title('Hadir di Event')
-                ->body("{$userName} berhasil check-in di {$kegiatan->nama_kegiatan}. Cek Laporan Kegiatan.")
+                ->body("{$userName} berhasil check-in di {$kegiatan->getAttribute('nama_kegiatan')}. Cek Laporan Kegiatan.")
                 ->success()
                 ->send();
         }

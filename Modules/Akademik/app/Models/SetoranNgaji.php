@@ -21,12 +21,15 @@ class SetoranNgaji extends Model
         static::created(function ($setoran) {
             $siswa = $setoran->siswa;
             
-            if ($siswa && $siswa->nomor_wa_ortu) {
+            if ($siswa && $siswa->nomor_wa_ortu) { 
                 $fonnteService = app(FonnteService::class);
                 
                 $message = "Assalamualaikum, menginfokan setoran Ananda *{$siswa->nama_lengkap}* pada tanggal *" . Carbon::parse($setoran->tanggal_setoran)->format('d/m/Y') . "*:\n\n";
                 $message .= "📚 *Jenis:* {$setoran->jenis_setoran}\n";
                 $message .= "📖 *Materi:* {$setoran->nama_materi}\n";
+                if ($setoran->ayat_halaman) {
+                    $message .= "📄 *Ayat/Halaman:* {$setoran->ayat_halaman}\n";
+                }
                 $message .= "📝 *Nilai:* *{$setoran->predikat_nilai}*\n";
                 
                 if ($setoran->catatan_guru) {

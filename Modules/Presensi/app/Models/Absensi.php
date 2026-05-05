@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string|null $jam_masuk
+ * @property string|null $jam_keluar
+ */
 class Absensi extends Model
 {
     use HasFactory;
@@ -62,18 +66,19 @@ class Absensi extends Model
             return 0;
         }
 
+        /** @var \Modules\MasterData\Models\Setting|null $settings */
         $settings = \Modules\MasterData\Models\Setting::get();
-        if (!$settings || !$settings->office_start_time) {
+        if (!$settings || !$settings->getAttribute('office_start_time')) {
             return 0;
         }
 
         $jamMasuk = \Carbon\Carbon::parse($this->jam_masuk);
-        $startTime = \Carbon\Carbon::parse($settings->office_start_time);
+        $startTime = \Carbon\Carbon::parse($settings->getAttribute('office_start_time'));
 
         // Ensure both are on the same date for accurate time-only comparison
         $startTime->setDate($jamMasuk->year, $jamMasuk->month, $jamMasuk->day);
 
-        $tolerance = (int) ($settings->late_tolerance ?? 0);
+        $tolerance = (int) ($settings->getAttribute('late_tolerance') ?? 0);
         $startTimeWithTolerance = $startTime->copy()->addMinutes($tolerance);
 
         if ($jamMasuk->lte($startTimeWithTolerance)) {
@@ -88,8 +93,9 @@ class Absensi extends Model
     public static function isWorkingDay($date = null): bool
     {
         $date = $date ? \Carbon\Carbon::parse($date) : \Carbon\Carbon::today();
+        /** @var \Modules\MasterData\Models\Setting|null $settings */
         $settings = \Modules\MasterData\Models\Setting::get();
-        $workingDays = $settings->working_days ?? [1, 2, 3, 4, 5]; // Default Mon-Fri
+        $workingDays = $settings->getAttribute('working_days') ?? [1, 2, 3, 4, 5]; // Default Mon-Fri
 
         return in_array($date->dayOfWeekIso, $workingDays);
     }

@@ -5,9 +5,15 @@ namespace Modules\MasterData\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * @property string $app_name
+ * @property array|null $working_days
+ * @property string|null $office_start_time
+ * @property string|null $auto_alpha_time
+ * @property string|null $office_end_time
  * @property float $office_latitude
  * @property float $office_longitude
  * @property int $office_radius
+ * @property int|null $late_tolerance
  */
 class Setting extends Model
 {
