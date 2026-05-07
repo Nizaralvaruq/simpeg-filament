@@ -73,6 +73,19 @@ class AbsensiKegiatansRelationManager extends RelationManager
                         'hadir' => 'success',
                         'tidak_hadir' => 'danger',
                     }),
+                Tables\Columns\TextColumn::make('metode_scan')
+                    ->label('Metode')
+                    ->badge()
+                    ->color(fn(?string $state): string => match ($state) {
+                        'self'    => 'info',
+                        'petugas' => 'gray',
+                        default   => 'gray',
+                    })
+                    ->formatStateUsing(fn(?string $state): string => match ($state) {
+                        'self'    => '📱 Self Scan',
+                        'petugas' => '👤 Petugas',
+                        default   => '-',
+                    }),
                 Tables\Columns\TextColumn::make('keterangan')
                     ->limit(50),
             ])

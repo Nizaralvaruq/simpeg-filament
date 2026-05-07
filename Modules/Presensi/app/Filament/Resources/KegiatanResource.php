@@ -21,10 +21,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Services\QrCodeService;
 
 class KegiatanResource extends Resource
 {
     protected static ?string $model = Kegiatan::class;
+
+    protected static ?int $navigationSort = 3;
 
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
@@ -148,7 +151,7 @@ class KegiatanResource extends Resource
                     ->color('success')
                     ->visible(function () {
                         /** @var User $user */
-                        $user = \Illuminate\Support\Facades\Auth::user();
+                        $user = Auth::user();
                         return $user && $user->hasAnyRole(['super_admin', 'admin_unit', 'koor_jenjang', 'kepala_sekolah']);
                     }),
                 Tables\Columns\IconColumn::make('is_wajib')
@@ -189,6 +192,37 @@ class KegiatanResource extends Resource
                         /** @var User $user */
                         $user = Auth::user();
                         return $user instanceof User && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit', 'koor_jenjang', 'kepala_sekolah']);
+                    }),
+                Action::make('showQrCode')
+                    ->label('QR Kegiatan')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->modalHeading(fn (Kegiatan $record) => 'QR Code: ' . $record->nama_kegiatan)
+                    ->modalDescription('Tampilkan QR Code ini kepada pegawai untuk absensi mandiri (Scan Kehadiran).')
+                    ->modalContent(function (Kegiatan $record): \Illuminate\Contracts\View\View {
+                        $token    = 'KEGIATAN-' . $record->id;
+                        $qrService = new QrCodeService();
+                        $image    = $qrService->generateQrImage($token);
+                        $qrBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+                        if ($image) {
+                            ob_start();
+                            imagepng($image);
+                            $pngData  = ob_get_clean();
+                            $qrBase64 = 'data:image/png;base64,' . base64_encode($pngData);
+                        }
+                        return view('presensi::filament.resources.kegiatan-resource.actions.show-qr-code', [
+                            'kegiatan'   => $record,
+                            'qrBase64'   => $qrBase64,
+                            'token'      => $token,
+                            'downloadUrl' => route('kegiatan.qr.download', $record->id),
+                        ]);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->visible(function () {
+                        /** @var User $user */
+                        $user = Auth::user();
+                        return $user instanceof User && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'admin_unit']);
                     }),
                 Action::make('finalizeAttendance')
                     ->label('Tutup Absensi')

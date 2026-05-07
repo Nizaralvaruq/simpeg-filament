@@ -23,6 +23,8 @@ class AbsensiResource extends Resource
 {
     protected static ?string $model = Absensi::class;
 
+    protected static ?int $navigationSort = 5;
+
     public static function getNavigationIcon(): string | \BackedEnum | null
     {
         return 'heroicon-o-clock';

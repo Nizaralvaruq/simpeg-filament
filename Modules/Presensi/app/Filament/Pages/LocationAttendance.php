@@ -27,7 +27,7 @@ class LocationAttendance extends Page implements HasForms
 
     protected static ?string $navigationLabel = 'Dinas Luar';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public ?array $data = [];
     public ?float $latitude = null;

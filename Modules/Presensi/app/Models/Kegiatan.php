@@ -7,7 +7,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
+ * @property int $id
  * @property string $nama_kegiatan
+ * @property \Illuminate\Support\Carbon $tanggal
+ * @property string $jam_mulai
+ * @property string $jam_selesai
+ * @property string|null $lokasi
+ * @property string|null $keterangan
+ * @property bool $is_wajib
  * @property bool $is_closed
  */
 class Kegiatan extends Model

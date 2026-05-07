@@ -7,6 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property int $id
+ * @property int $kegiatan_id
+ * @property int $user_id
+ * @property \Illuminate\Support\Carbon $jam_absen
+ * @property string $status
+ * @property string $metode_scan
+ * @property string|null $keterangan
+ * @property-read Kegiatan $kegiatan
+ * @property-read \App\Models\User $user
+ */
 class AbsensiKegiatan extends Model
 {
     use HasFactory;
@@ -16,6 +27,7 @@ class AbsensiKegiatan extends Model
         'user_id',
         'jam_absen',
         'status',
+        'metode_scan',
         'keterangan',
     ];
 
