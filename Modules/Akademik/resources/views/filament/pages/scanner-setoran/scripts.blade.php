@@ -44,7 +44,11 @@
 
                 // Livewire events
                 window.addEventListener('scan-success', () => this.playAudio(this.audioSuccess));
-                window.addEventListener('scan-error',   () => this.playAudio(this.audioError));
+                window.addEventListener('scan-error',   () => {
+                    this.playAudio(this.audioError);
+                    // Buka kembali scanner jika scan gagal (termasuk saat guru klik Batal di modal konfirmasi)
+                    this.isScanning = false;
+                });
                 window.addEventListener('setoran-saved',() => {
                     this.playAudio(this.audioSaved);
                     // Scroll history list to top
@@ -119,7 +123,13 @@
                 // Gunakan this.$wire (bukan $wire global) agar Alpine bisa resolve magic property
                 this.$wire.processScan(token).then(() => {
                     if (overlay) overlay.style.opacity = '0';
-                    // Keep isScanning true until modal is closed or saved
+
+                    // Jika modal konfirmasi siswa baru muncul (bukan modal setoran),
+                    // lepas lock scanner agar tidak freeze saat guru membaca konfirmasi
+                    if (this.$wire.showConfirmNewSiswa) {
+                        this.isScanning = false;
+                    }
+                    // Jika modal setoran muncul, biarkan isScanning = true (dikunci sampai disimpan)
                 }).catch(() => {
                     if (overlay) overlay.style.opacity = '0';
                     this.isScanning = false;

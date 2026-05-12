@@ -1,86 +1,193 @@
 @import "../../../../vendor/filament/filament/resources/css/theme.css";
 
-@source '../../../../app/Filament/**/*';
-@source '../../../../resources/views/filament/**/*';
-@source '../../../../resources/views/filament/pages/auth/login.blade.php';
-@source '../../../../Modules/Presensi/resources/views/**/*.blade.php';
-@source '../../../../Modules/Presensi/app/Filament/**/*.php';
-@source '../../../../Modules/Akademik/resources/views/**/*.blade.php';
-@source '../../../../Modules/Akademik/app/Filament/**/*.php';
+@source '../../../../app/**/*.php';
+@source '../../../../resources/views/**/*.blade.php';
+@source '../../../../Modules/**/resources/views/**/*.blade.php';
+@source '../../../../Modules/**/app/Filament/**/*.php';
 
+/* ============================================================
+   DESIGN TOKENS — Clean Dark Mobile
+   ============================================================ */
+:root {
+    --brand-navy:       #0f172a;  /* slate-900  — body bg dark    */
+    --brand-card:       #1e293b;  /* slate-800  — card / panel    */
+    --brand-border:     #334155;  /* slate-700  — border          */
+    --brand-muted:      #475569;  /* slate-600  — muted text      */
+    --brand-sky:        #0ea5e9;  /* sky-500    — primary accent  */
+    --brand-sky-light:  #38bdf8;  /* sky-400    — hover           */
+    --brand-sky-glow:   rgba(14, 165, 233, 0.15);
+    --sidebar-width:    16rem;
+    --topbar-h:         3.5rem;
+    --radius-card:      0.875rem;
+    --radius-btn:       0.625rem;
+    --shadow-card:      0 1px 3px 0 rgba(0,0,0,0.4), 0 1px 2px -1px rgba(0,0,0,0.4);
+    --shadow-card-hover:0 4px 12px 0 rgba(0,0,0,0.5);
+}
+
+/* ============================================================
+   .glass — utility (dipakai di komponen custom)
+   Ringan: tanpa blur di mobile, pakai semi-opaque solid
+   ============================================================ */
 .glass {
-    background: rgba(255, 255, 255, 0.4) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: var(--radius-card) !important;
 }
-
+@media (min-width: 1024px) {
+    .glass {
+        -webkit-backdrop-filter: blur(16px) !important;
+        backdrop-filter: blur(16px) !important;
+    }
+}
 .dark .glass {
-    background: rgba(17, 24, 39, 0.6) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
+/* ============================================================
+   GRADIENT BACKGROUND (dipakai di beberapa page custom)
+   ============================================================ */
 .bg-premium-gradient {
-    background-color: #1e2a4a;
+    background-color: var(--brand-navy);
     background-image:
-        radial-gradient(at 0% 0%, hsla(199, 100%, 35%, 1) 0, transparent 50%),
-        radial-gradient(at 50% 0%, hsla(201, 100%, 25%, 1) 0, transparent 50%),
-        radial-gradient(at 100% 0%, hsla(197, 100%, 30%, 1) 0, transparent 50%),
-        radial-gradient(at 0% 100%, hsla(205, 100%, 15%, 1) 0, transparent 50%),
-        radial-gradient(
-            at 100% 100%,
-            hsla(202, 100%, 20%, 1) 0,
-            transparent 50%
-        );
+        radial-gradient(at 0% 0%,   hsla(199, 100%, 35%, 0.7) 0, transparent 55%),
+        radial-gradient(at 100% 0%, hsla(197, 100%, 28%, 0.6) 0, transparent 55%),
+        radial-gradient(at 50% 100%,hsla(202, 100%, 18%, 0.8) 0, transparent 55%);
 }
 
-/* Global Filament Overrides for Glassmorphism */
+/* ============================================================
+   WIDGET & STATS CARDS — solid, no blur, mobile-friendly
+   ============================================================ */
 .fi-wi-stats-overview-stat,
 .fi-wi-widget > div {
-    background: rgba(255, 255, 255, 0.4) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 1rem !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: var(--radius-card) !important;
+    box-shadow: var(--shadow-card) !important;
     overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.fi-wi-stats-overview-stat:hover,
+.fi-wi-widget > div:hover {
+    box-shadow: var(--shadow-card-hover) !important;
 }
 
 .dark .fi-wi-stats-overview-stat,
 .dark .fi-wi-widget > div {
-    background: rgba(17, 24, 39, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.fi-sidebar {
-    background: rgba(255, 255, 255, 0.4) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-.dark .fi-sidebar {
-    background: rgba(17, 24, 39, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.fi-topbar {
-    background: rgba(255, 255, 255, 0.4) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-.dark .fi-topbar {
-    background: rgba(17, 24, 39, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--brand-card) !important;
+    border: 1px solid var(--brand-border) !important;
 }
 
 /* ============================================================
-   Login Page Global Overrides
-   Force the outer body/layout wrapper to be transparent so
-   our blade insan-login-wrapper colors show correctly.
+   SIDEBAR — solid dark, no blur, smooth slide on mobile
+   ============================================================ */
+.fi-sidebar {
+    background: var(--brand-card) !important;
+    border-right: 1px solid var(--brand-border) !important;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.25) !important;
+}
+/* Light mode sidebar */
+html:not(.dark) .fi-sidebar {
+    background: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.06) !important;
+}
+
+/* Sidebar nav items — besar & mudah di-tap */
+.fi-sidebar-item-button {
+    min-height: 44px !important;
+    border-radius: var(--radius-btn) !important;
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+}
+.fi-sidebar-item-button:active {
+    transform: scale(0.97) !important;
+}
+
+/* Active sidebar item */
+.fi-sidebar-item-button.fi-active,
+.fi-sidebar-item-button[aria-current="page"] {
+    background: var(--brand-sky-glow) !important;
+    color: var(--brand-sky) !important;
+}
+.dark .fi-sidebar-item-button.fi-active,
+.dark .fi-sidebar-item-button[aria-current="page"] {
+    background: var(--brand-sky-glow) !important;
+    color: var(--brand-sky-light) !important;
+}
+
+/* ============================================================
+   TOPBAR — solid, sticky, clear
+   ============================================================ */
+.fi-topbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    height: var(--topbar-h) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+}
+.dark .fi-topbar {
+    background: var(--brand-card) !important;
+    border-bottom: 1px solid var(--brand-border) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* ============================================================
+   MAIN PAGE HEADER — clean
+   ============================================================ */
+.fi-header {
+    padding-top: 1.25rem !important;
+    padding-bottom: 0.75rem !important;
+}
+.fi-page-header-heading {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* ============================================================
+   TABLES — mobile-optimized rows
+   ============================================================ */
+.fi-ta-row {
+    min-height: 48px !important;
+}
+.fi-ta-cell {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+}
+
+/* ============================================================
+   BUTTONS — minimum 44px touch target
+   ============================================================ */
+.fi-btn {
+    min-height: 44px !important;
+    border-radius: var(--radius-btn) !important;
+    font-weight: 600 !important;
+    transition: opacity 0.15s, transform 0.1s !important;
+}
+.fi-btn:active {
+    transform: scale(0.97) !important;
+    opacity: 0.88 !important;
+}
+
+/* ============================================================
+   MODALS — full-screen friendly on mobile
+   ============================================================ */
+@media (max-width: 640px) {
+    .fi-modal-window {
+        margin: 0 !important;
+        border-radius: 1rem 1rem 0 0 !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        max-height: 92vh !important;
+        overflow-y: auto !important;
+    }
+}
+
+/* ============================================================
+   LOGIN PAGE — tidak berubah, sudah bagus
    ============================================================ */
 .fi-simple-layout {
     background-color: transparent !important;
@@ -89,7 +196,6 @@
     flex-direction: column !important;
     padding: 0 !important;
 }
-
 .fi-simple-main-ctn {
     flex: 1 !important;
     display: flex !important;
@@ -98,7 +204,6 @@
     padding: 0 !important;
     margin: 0 !important;
 }
-
 main.fi-simple-main {
     width: 100% !important;
     max-width: 100% !important;
@@ -109,41 +214,44 @@ main.fi-simple-main {
     border: none !important;
     box-shadow: none !important;
 }
-
-/* Force dark body background only on large screens where left panel is visible */
-@media (min-width: 1024px) {
-    body:has(.insan-login-wrapper) {
-        background-color: #060b19 !important;
-        overflow-x: hidden !important;
-    }
-}
-
-/* On mobile, ensure login page body is light */
-@media (max-width: 1023px) {
-    body:has(.insan-login-wrapper) {
-        background-color: #f8fafc !important;
-    }
+/* Login page body — always dark navy, no mode switching */
+body:has(.insan-login-wrapper) {
+    background-color: #060b19 !important;
+    overflow-x: hidden !important;
 }
 
 /* ============================================================
-   Navigation Group Custom Colors
+   NAVIGATION GROUP COLORS — tetap sama
    ============================================================ */
 .fi-sidebar-group[data-group-label="Menu Saya"] .fi-sidebar-group-label {
-    color: rgb(14 165 233) !important; /* Sky 500 */
+    color: rgb(14 165 233) !important;   /* Sky 500 */
 }
 .fi-sidebar-group[data-group-label="Kepegawaian"] .fi-sidebar-group-label {
-    color: rgb(245 158 11) !important; /* Amber 500 */
+    color: rgb(245 158 11) !important;   /* Amber 500 */
 }
 .fi-sidebar-group[data-group-label="Presensi"] .fi-sidebar-group-label {
-    color: rgb(16 185 129) !important; /* Emerald 500 */
+    color: rgb(16 185 129) !important;   /* Emerald 500 */
 }
-.fi-sidebar-group[data-group-label="Penilaian Kinerja"]
-    .fi-sidebar-group-label {
-    color: rgb(139 92 246) !important; /* Violet 500 */
+.fi-sidebar-group[data-group-label="Penilaian Kinerja"] .fi-sidebar-group-label {
+    color: rgb(139 92 246) !important;   /* Violet 500 */
 }
 .fi-sidebar-group[data-group-label="Data Master"] .fi-sidebar-group-label {
-    color: rgb(99 102 241) !important; /* Indigo 500 */
+    color: rgb(99 102 241) !important;   /* Indigo 500 */
+}
+.fi-sidebar-group[data-group-label="Inventaris"] .fi-sidebar-group-label {
+    color: rgb(234 88 12) !important;    /* Orange 600 */
+}
+.fi-sidebar-group[data-group-label="Akademik"] .fi-sidebar-group-label {
+    color: rgb(20 184 166) !important;   /* Teal 500 */
 }
 .fi-sidebar-group[data-group-label="Authorization"] .fi-sidebar-group-label {
-    color: rgb(244 63 94) !important; /* Rose 500 */
+    color: rgb(244 63 94) !important;    /* Rose 500 */
+}
+
+/* ============================================================
+   DARK MODE BODY BACKGROUND
+   ============================================================ */
+.dark body,
+.dark .fi-body {
+    background-color: var(--brand-navy) !important;
 }

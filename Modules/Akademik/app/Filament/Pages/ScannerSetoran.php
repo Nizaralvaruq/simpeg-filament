@@ -52,6 +52,10 @@ class ScannerSetoran extends Page
 
     // UI state
     public bool $showFormModal = false;
+    public bool $showConfirmNewSiswa = false; // konfirmasi sebelum auto-create siswa baru
+    public string $pendingNewNis = '';       // NIS yang menunggu konfirmasi
+    public string $pendingNamaSiswa = '';    // nama yang diisi guru saat konfirmasi
+    public string $pendingWaOrtu = '';       // nomor WA ortu yang diisi guru saat konfirmasi
 
     public function mount(): void
     {
@@ -102,7 +106,7 @@ class ScannerSetoran extends Page
             ->map(function ($s) {
                 return [
                     'id' => $s->id,
-                    'name' => $s->siswa->nama_lengkap,
+                    'name' => $s->siswa?->nama_lengkap ?? '(Tidak Diketahui)',
                     'materi' => $s->nama_materi,
                     'grade' => $s->predikat_nilai,
                     'time' => Carbon::parse($s->created_at)->format('H:i'),
@@ -113,19 +117,98 @@ class ScannerSetoran extends Page
 
     public function processScan(string $token)
     {
-        $siswa = Siswa::where('nis', $token)->where('is_active', true)->first();
-
-        if (!$siswa) {
-            $this->dispatch('scan-error', message: "Siswa dengan NIS '{$token}' tidak ditemukan.");
+        // ── Solusi Risiko #2: Validasi format NIS ──────────────────────────────
+        // Token harus berupa angka saja, minimal 4 digit — tolak token acak/tidak valid
+        if (!preg_match('/^\d{4,}$/', $token)) {
+            $this->dispatch('scan-error', message: "Token tidak valid: '{$token}'. NIS harus berupa angka minimal 4 digit.");
             return;
         }
 
+        // Cari siswa berdasarkan NIS — baik aktif maupun tidak
+        $siswa = Siswa::where('nis', $token)->first();
+
+        if (!$siswa) {
+            // ── Solusi Risiko #3: Konfirmasi sebelum auto-create ────────────────
+            // Jangan langsung buat — simpan ke pending state, tampilkan modal konfirmasi
+            $this->pendingNewNis = $token;
+            $this->showConfirmNewSiswa = true;
+            return;
+        }
+
+        $this->loadScannedUser($siswa);
+    }
+
+    /**
+     * Dipanggil saat guru menekan "Ya, Buat Siswa Baru" di modal konfirmasi.
+     * Baru di sini siswa benar-benar dibuat ke database.
+     */
+    public function confirmCreateSiswa(): void
+    {
+        $nis  = trim($this->pendingNewNis);
+        $nama = trim($this->pendingNamaSiswa) ?: ('Siswa ' . $nis);
+
+        // Normalisasi nomor WA: hapus karakter non-digit, pastikan prefix 62
+        $wa = preg_replace('/[^0-9]/', '', $this->pendingWaOrtu);
+        if ($wa !== '') {
+            if (str_starts_with($wa, '0')) {
+                $wa = '62' . substr($wa, 1);
+            } elseif (!str_starts_with($wa, '62')) {
+                $wa = '62' . $wa;
+            }
+        }
+
+        // Double-check: siapa tahu siswa sudah dibuat di antara waktu konfirmasi
+        $siswa = Siswa::firstOrCreate(
+            ['nis' => $nis],
+            [
+                'nama_lengkap'  => $nama,
+                'nomor_wa_ortu' => $wa ?: null,
+                'is_active'     => true,
+            ]
+        );
+
+        // Jika siswa sudah ada sebelumnya (firstOrCreate tidak create baru),
+        // update nama & WA jika guru mengisinya
+        if (!$siswa->wasRecentlyCreated) {
+            $updates = [];
+            if ($nama !== 'Siswa ' . $nis) $updates['nama_lengkap']  = $nama;
+            if ($wa !== '')               $updates['nomor_wa_ortu'] = $wa;
+            if ($updates)                 $siswa->update($updates);
+            $siswa->refresh();
+        }
+
+        $this->showConfirmNewSiswa = false;
+        $this->pendingNewNis       = '';
+        $this->pendingNamaSiswa    = '';
+        $this->pendingWaOrtu       = '';
+
+        $this->loadScannedUser($siswa, isNew: true);
+    }
+
+    /**
+     * Dipanggil saat guru menekan "Batal" di modal konfirmasi.
+     */
+    public function cancelCreateSiswa(): void
+    {
+        $this->showConfirmNewSiswa = false;
+        $this->pendingNewNis    = '';
+        $this->pendingNamaSiswa = '';
+        $this->pendingWaOrtu    = '';
+        $this->dispatch('scan-error', message: 'Scan dibatalkan.');
+    }
+
+    /**
+     * Memproses data siswa yang sudah ditemukan/dibuat ke dalam state scanner.
+     */
+    protected function loadScannedUser(Siswa $siswa, bool $isNew = false): void
+    {
         $this->siswaId = $siswa->id;
         $this->scannedUser = [
-            'id' => $siswa->id,
-            'nis' => $siswa->nis,
-            'name' => $siswa->nama_lengkap,
-            'kelas' => $siswa->kelas ?? '-',
+            'id'     => $siswa->id,
+            'nis'    => $siswa->nis,
+            'name'   => $siswa->nama_lengkap,
+            'kelas'  => $siswa->kelas ?? '-',
+            'is_new' => $isNew, // hanya true kalau baru saja dikonfirmasi dan dibuat
             'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($siswa->nama_lengkap) . '&color=7F9CF5&background=EBF4FF',
         ];
 
@@ -134,17 +217,16 @@ class ScannerSetoran extends Page
             return;
         }
 
-        // Mode Setoran
-        // Load last record
+        // Mode Setoran — muat riwayat terakhir
         $last = SetoranNgaji::where('siswa_id', $siswa->id)->latest()->first();
         $this->riwayatTerakhir = $last ? [
-            'materi' => $last->nama_materi . ' (' . $last->predikat_nilai . ')',
+            'materi'  => $last->nama_materi . ' (' . $last->predikat_nilai . ')',
             'tanggal' => Carbon::parse($last->tanggal_setoran)->format('d/m/Y'),
         ] : null;
 
         $this->resetForm();
         $this->showFormModal = true;
-        
+
         $this->dispatch('scan-success', type: 'check-in', name: $siswa->nama_lengkap);
     }
 

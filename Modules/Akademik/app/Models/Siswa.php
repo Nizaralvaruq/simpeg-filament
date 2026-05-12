@@ -8,6 +8,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int         $id
+ * @property string      $nis
+ * @property string      $nama_lengkap
+ * @property string|null $kelas
+ * @property string|null $nomor_wa_ortu
+ * @property bool        $is_active
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ */
 class Siswa extends Model
 {
     use HasFactory, SoftDeletes;

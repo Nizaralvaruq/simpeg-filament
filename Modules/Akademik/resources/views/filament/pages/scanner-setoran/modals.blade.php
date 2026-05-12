@@ -1,4 +1,70 @@
+{{-- === MODAL KONFIRMASI BUAT SISWA BARU === --}}
+<div x-show="$wire.showConfirmNewSiswa" x-cloak
+     class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[2100] p-4"
+     x-on:keydown.escape="$wire.cancelCreateSiswa()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700"
+         style="width: 100%; max-width: 400px;">
+        <div class="p-5">
+            {{-- Row: icon + judul + tombol X --}}
+            <div class="flex items-start gap-3 mb-3">
+                <div class="rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0"
+                     style="width: 36px; height: 36px; margin-top: 2px;">
+                    <svg style="width:20px;height:20px;" class="text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-black text-gray-800 dark:text-gray-100">NIS Tidak Ditemukan</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        NIS <code class="px-1 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded font-mono font-bold" x-text="$wire.pendingNewNis"></code>
+                        belum terdaftar. Buat data baru?
+                    </p>
+                </div>
+                <button wire:click="cancelCreateSiswa"
+                        class="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div style="padding: 0 20px 16px 48px;">
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nama Siswa <span class="text-rose-500">*</span></label>
+                    <input type="text" wire:model="pendingNamaSiswa" placeholder="Siswa Baru" required
+                           class="w-full text-sm font-semibold"
+                           style="display: block; width: 100%; padding: 8px 12px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; color: #1f2937; outline: none;">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">WA Orang Tua <span class="text-xs text-gray-400 font-normal normal-case">(Opsional)</span></label>
+                    <input type="text" wire:model="pendingWaOrtu" placeholder="0812..."
+                           class="w-full text-sm font-semibold"
+                           style="display: block; width: 100%; padding: 8px 12px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; color: #1f2937; outline: none;">
+                </div>
+            </div>
+
+            {{-- Tombol aksi --}}
+            <div class="flex gap-2" style="padding-left:48px;">
+                <button type="button" wire:click="cancelCreateSiswa" wire:loading.attr="disabled"
+                        class="flex-1 rounded-xl font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        style="padding: 8px 0; font-size:12px;">
+                    Batal
+                </button>
+                <button type="button" wire:click="confirmCreateSiswa" wire:loading.attr="disabled"
+                        class="flex-1 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-400 transition-colors shadow-sm"
+                        style="padding: 8px 0; font-size:12px;">
+                    <span wire:loading.remove wire:target="confirmCreateSiswa">✅ Ya, Buat</span>
+                    <span wire:loading wire:target="confirmCreateSiswa">Proses…</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {{-- === SETORAN INPUT MODAL === --}}
+
 <div x-show="$wire.showFormModal" x-cloak class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[2000] p-4 transition-opacity duration-200" @keydown.escape.window="$wire.showFormModal = false">
     <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-700 transform transition-all" @click.away="$wire.showFormModal = false">
 
@@ -25,6 +91,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
+        </div>
+
+        {{-- BANNER SISWA BARU (otomatis dibuat) --}}
+        <div x-show="$wire.scannedUser?.is_new" x-cloak
+             class="px-5 py-3 bg-amber-50 border-b border-amber-300 flex items-center gap-3">
+            <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+            <div>
+                <p class="text-xs font-black text-amber-800 uppercase tracking-wide">Siswa Baru Dibuat Otomatis</p>
+                <p class="text-[11px] text-amber-700 mt-0.5">
+                    NIS ini belum ada di database. Data siswa dibuat sementara — silakan lengkapi namanya melalui menu
+                    <strong>Data QR Siswa</strong> setelah setoran disimpan.
+                </p>
+            </div>
         </div>
 
         {{-- RIWAYAT TERAKHIR --}}

@@ -1,6 +1,6 @@
 {{--
     Login Page - INSAN Themed
-    Matching Google Stitch design: dark left panel + light right form panel
+    One consistent look — dark navy bg + white card — same for both light & dark OS preference
 --}}
 <div class="insan-login-wrapper">
 
@@ -35,27 +35,8 @@
         </div>
     </div>
 
-    {{-- ===== RIGHT SIDE: Light Form ===== --}}
+    {{-- ===== RIGHT SIDE: Form ===== --}}
     <div class="insan-right">
-
-        {{-- Dark Mode Toggle Button --}}
-        <button class="insan-theme-btn"
-            onclick="document.documentElement.classList.toggle('dark'); this.querySelector('.icon-moon').style.display = document.documentElement.classList.contains('dark') ? 'none' : 'block'; this.querySelector('.icon-sun').style.display = document.documentElement.classList.contains('dark') ? 'block' : 'none';"
-            aria-label="Toggle theme">
-            <span class="icon-moon">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                </svg>
-            </span>
-            <span class="icon-sun" style="display:none">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="4" />
-                    <path
-                        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-                </svg>
-            </span>
-        </button>
-
         <div class="insan-form-wrap">
             {{-- Header --}}
             <h2 class="insan-form-title">Sign In</h2>
@@ -80,20 +61,19 @@
 
     <style>
         /* =====================================================
-           INSAN LOGIN PAGE STYLES
-           Matching Google Stitch design
+           INSAN LOGIN — One Consistent Theme
+           Dark navy bg (always) + white card form
+           No dark/light mode switching — same for everyone
            ===================================================== */
 
-        /* Reset body background for this page */
+        /* Force override any OS/browser dark mode on this page */
         html,
         body {
             margin: 0 !important;
             padding: 0 !important;
             height: 100% !important;
-        }
-
-        body {
             background-color: #060b19 !important;
+            color-scheme: light !important; /* prevent browser dark-mode override on form */
         }
 
         /* ---- Main Wrapper ---- */
@@ -105,7 +85,9 @@
             font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
         }
 
-        /* ---- LEFT SIDE (Dark Panel) ---- */
+        /* ========================================
+           LEFT SIDE — Dark Branding Panel
+           ======================================== */
         .insan-left {
             position: relative;
             display: flex;
@@ -116,57 +98,35 @@
             overflow: hidden;
         }
 
-        /* Dynamic Animated Mesh Gradient Background */
+        /* Animated mesh gradient */
         .insan-grid-bg {
             position: absolute;
             inset: -50%;
             background-image:
                 radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.15) 0%, transparent 60%),
-                radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.10) 0%, transparent 50%),
                 radial-gradient(circle at 20% 80%, rgba(2, 132, 199, 0.15) 0%, transparent 50%);
             animation: mesh-rotate 20s linear infinite;
             z-index: 0;
         }
 
         @keyframes mesh-rotate {
-            0% {
-                transform: rotate(0deg) scale(1.2);
-            }
-
-            50% {
-                transform: rotate(180deg) scale(1.5);
-            }
-
-            100% {
-                transform: rotate(360deg) scale(1.2);
-            }
+            0%   { transform: rotate(0deg)   scale(1.2); }
+            50%  { transform: rotate(180deg) scale(1.5); }
+            100% { transform: rotate(360deg) scale(1.2); }
         }
 
-        /* Floating decoration elements */
+        /* Floating decorations */
         .insan-left::before,
         .insan-left::after {
             content: '';
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255,255,255,0.03);
             z-index: 1;
         }
-
-        .insan-left::before {
-            width: 300px;
-            height: 300px;
-            top: -100px;
-            left: -100px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .insan-left::after {
-            width: 500px;
-            height: 500px;
-            bottom: -200px;
-            right: -150px;
-            border: 1px solid rgba(255, 255, 255, 0.02);
-        }
+        .insan-left::before { width:300px; height:300px; top:-100px;   left:-100px;  border:1px solid rgba(255,255,255,0.05); }
+        .insan-left::after  { width:500px; height:500px; bottom:-200px; right:-150px; border:1px solid rgba(255,255,255,0.02); }
 
         .insan-left-content {
             position: relative;
@@ -182,87 +142,55 @@
         }
 
         @keyframes fade-in-up {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Logo in a rounded dark box */
         .insan-logo-box {
-            width: 120px;
-            height: 120px;
+            width: 120px; height: 120px;
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.10);
+            display: flex; align-items: center; justify-content: center;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
+        .insan-logo-img { width: auto; height: 88px; object-fit: contain; }
 
-        .insan-logo-img {
-            width: auto;
-            height: 88px;
-            object-fit: contain;
-        }
-
-        /* Brand name */
         .insan-brand-name {
-            font-size: 72px;
-            font-weight: 900;
+            font-size: 72px; font-weight: 900;
             color: #ffffff;
-            letter-spacing: 0.1em;
-            line-height: 1;
-            margin: 0;
-            text-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            letter-spacing: 0.1em; line-height: 1; margin: 0;
+            text-shadow: 0 4px 24px rgba(0,0,0,0.4);
         }
-
-        /* Abbreviation (small cyan caps) */
         .insan-brand-abbr {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: #38bdf8;
-            line-height: 1.8;
-            margin: 0;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.2em; text-transform: uppercase;
+            color: #38bdf8; line-height: 1.8; margin: 0;
         }
 
-        /* Quote card */
         .insan-quote-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.10);
             border-radius: 20px;
             padding: 1.75rem 2rem;
             margin-top: 0.5rem;
             max-width: 420px;
-            position: relative;
         }
-
         .insan-quote-icon {
-            width: 32px;
-            height: 32px;
+            width: 32px; height: 32px;
             color: #38bdf8;
-            margin: 0 auto 0.75rem;
-            display: block;
+            margin: 0 auto 0.75rem; display: block;
         }
-
         .insan-quote-text {
-            font-size: 15px;
-            font-style: italic;
-            color: #94a3b8;
-            line-height: 1.7;
-            margin: 0;
+            font-size: 15px; font-style: italic;
+            color: #94a3b8; line-height: 1.7; margin: 0;
         }
 
-        /* ---- RIGHT SIDE (Light Form) ---- */
+        /* ========================================
+           RIGHT SIDE — White Card Form
+           Always white card on dark bg, no toggle
+           ======================================== */
         .insan-right {
             position: relative;
             display: flex;
@@ -270,89 +198,48 @@
             align-items: center;
             justify-content: center;
             width: 45%;
-            background-color: #f8fafc;
+            background-color: #0f172a; /* dark navy — matches left panel */
             padding: 4rem 3rem;
         }
 
-        .insan-theme-btn {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #e2e8f0;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #475569;
-            transition: background 0.2s;
-        }
-
-        .insan-theme-btn:hover {
-            background-color: #cbd5e1;
-        }
-
+        /* The card itself */
         .insan-form-wrap {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
             width: 100%;
-            max-width: 380px;
-            animation: fade-in-up 0.8s ease-out forwards;
-            opacity: 0;
-            transform: translateY(15px);
-            animation-fill-mode: both;
+            max-width: 400px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+            animation: fade-in-up 0.8s ease-out both;
         }
 
         .insan-form-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 0 0 0.5rem;
+            font-size: 26px; font-weight: 700;
+            color: #0f172a; margin: 0 0 0.4rem;
             letter-spacing: -0.02em;
         }
-
         .insan-form-subtitle {
-            font-size: 14.5px;
-            color: #64748b;
-            margin: 0 0 2.5rem;
-            line-height: 1.5;
+            font-size: 14px; color: #64748b;
+            margin: 0 0 2rem; line-height: 1.5;
         }
-
-        .insan-filament-wrap {
-            width: 100%;
-        }
+        .insan-filament-wrap { width: 100%; }
 
         .insan-register-link {
             text-align: center;
-            font-size: 13.5px;
-            color: #64748b;
+            font-size: 13.5px; color: #64748b;
             margin-top: 1.5rem;
         }
-
         .insan-register-link a {
-            color: #0ea5e9;
-            font-weight: 600;
-            text-decoration: none;
-            transition: color 0.2s;
+            color: #0ea5e9; font-weight: 600;
+            text-decoration: none; transition: color 0.2s;
         }
-
-        .insan-register-link a:hover {
-            color: #0284c7;
-            text-decoration: underline;
-        }
+        .insan-register-link a:hover { color: #0284c7; text-decoration: underline; }
 
         /* =====================================================
-           FILAMENT FORM OVERRIDES
+           FILAMENT FORM OVERRIDES — Always light card style
            ===================================================== */
-
-        /* =====================================================
-           FILAMENT FORM OVERRIDES
-           ===================================================== */
-
-        /* Remove Filament's card/border wrappers */
         .fi-simple-main,
-        .fi-simple-main>div,
+        .fi-simple-main > div,
         .fi-simple-layout,
         .fi-simple-main-ctn main {
             background: transparent !important;
@@ -364,91 +251,82 @@
             border-radius: 0 !important;
         }
 
-        /* Field spacing */
-        .fi-form {
-            gap: 1.5rem !important;
-        }
+        .fi-form { gap: 1.25rem !important; }
 
-        /* Labels */
-        .fi-fo-field-wrp-label {
+        /* Labels — always dark text */
+        .fi-fo-field-wrp-label,
+        .fi-fo-field-wrp-label * {
             font-size: 14px !important;
             font-weight: 600 !important;
             color: #1e293b !important;
-            margin-bottom: 8px !important;
-            letter-spacing: -0.01em !important;
         }
 
-        /* Input wrappers - Modern Light Theme */
+        /* Input wrapper — always light */
         .fi-input-wrp {
             background-color: #f8fafc !important;
-            border: 1px solid #e2e8f0 !important;
+            border: 1.5px solid #e2e8f0 !important;
             border-radius: 12px !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease !important;
             height: 52px !important;
             padding: 0 1rem !important;
         }
-
         .fi-input-wrp:focus-within {
             border-color: #0ea5e9 !important;
             background-color: #ffffff !important;
-            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1) !important;
+            box-shadow: 0 0 0 4px rgba(14,165,233,0.12) !important;
         }
 
-        /* Input text */
+        /* Input text — always dark */
         .fi-input-wrp input {
             background: transparent !important;
             color: #0f172a !important;
-            font-size: 15px !important;
-            font-weight: 500 !important;
-            border: none !important;
-            box-shadow: none !important;
+            font-size: 15px !important; font-weight: 500 !important;
+            border: none !important; box-shadow: none !important;
             padding-left: 0.25rem !important;
         }
-
         .fi-input-wrp input::placeholder {
-            color: #94a3b8 !important;
-            font-weight: 400 !important;
+            color: #94a3b8 !important; font-weight: 400 !important;
         }
 
         /* Helper text */
         .fi-fo-field-wrp-helper-text {
             font-size: 12.5px !important;
             color: #64748b !important;
-            margin-top: 6px !important;
+            margin-top: 5px !important;
         }
 
-        /* Submit / Masuk button */
+        /* Validation error */
+        .fi-fo-field-wrp-error-message {
+            color: #ef4444 !important;
+            font-size: 12.5px !important;
+        }
+
+        /* Submit button — sky blue gradient, always */
         .fi-btn[type="submit"],
         button[type="submit"] {
             width: 100% !important;
-            height: 54px !important;
+            height: 52px !important;
             background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
             color: #ffffff !important;
-            font-size: 16px !important;
-            font-weight: 700 !important;
+            font-size: 15px !important; font-weight: 700 !important;
             letter-spacing: 0.02em !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
             border-radius: 12px !important;
             border: none !important;
-            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4), 0 8px 10px -6px rgba(14, 165, 233, 0.2) !important;
-            margin-top: 1.5rem !important;
+            box-shadow: 0 8px 24px -4px rgba(14,165,233,0.45) !important;
+            margin-top: 1.25rem !important;
             cursor: pointer !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            transition: all 0.25s ease !important;
             justify-content: center !important;
         }
-
         .fi-btn[type="submit"]:hover {
             transform: translateY(-2px) !important;
-            box-shadow: 0 14px 28px -5px rgba(14, 165, 233, 0.5), 0 10px 10px -6px rgba(14, 165, 233, 0.3) !important;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+            box-shadow: 0 14px 32px -4px rgba(14,165,233,0.55) !important;
         }
-
         .fi-btn[type="submit"]:active {
-            transform: translateY(1px) !important;
-            box-shadow: 0 4px 10px -4px rgba(14, 165, 233, 0.4) !important;
+            transform: translateY(0) !important;
+            box-shadow: 0 4px 12px -4px rgba(14,165,233,0.4) !important;
         }
-
         .fi-btn[type="submit"] span,
         .fi-btn[type="submit"] * {
             color: #ffffff !important;
@@ -458,123 +336,76 @@
         .fi-checkbox {
             border-radius: 6px !important;
             border-color: #cbd5e1 !important;
-            width: 18px !important;
-            height: 18px !important;
-            transition: all 0.2s !important;
+            width: 18px !important; height: 18px !important;
         }
-
         .fi-checkbox:checked {
             background-color: #0ea5e9 !important;
             border-color: #0ea5e9 !important;
-            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2) !important;
         }
-
         .fi-fo-checkbox label,
         .fi-fo-checkbox span {
             font-size: 14px !important;
-            color: #475569 !important;
-            font-weight: 500 !important;
+            color: #475569 !important; font-weight: 500 !important;
         }
 
-        /* Password reveal */
+        /* Password reveal button */
         .fi-input-wrp button {
             background: transparent !important;
             color: #94a3b8 !important;
             transition: color 0.2s !important;
         }
-
-        .fi-input-wrp button:hover {
-            color: #0ea5e9 !important;
-        }
+        .fi-input-wrp button:hover { color: #0ea5e9 !important; }
 
         /* =====================================================
-           DARK MODE SUPPORT (right side only)
-           ===================================================== */
-        .dark .insan-right {
-            background-color: #0f172a;
-        }
-
-        .dark .insan-form-title {
-            color: #f8fafc;
-        }
-
-        .dark .insan-form-subtitle {
-            color: #94a3b8;
-        }
-
-        .dark .insan-theme-btn {
-            background-color: #1e293b;
-            color: #94a3b8;
-            border: 1px solid #334155;
-        }
-
-        .dark .insan-theme-btn:hover {
-            background-color: #334155;
-            color: #f1f5f9;
-        }
-
-        .dark .insan-register-link {
-            color: #94a3b8;
-        }
-
-        .dark .insan-register-link a {
-            color: #38bdf8;
-        }
-
-        .dark .fi-fo-field-wrp-label {
-            color: #f1f5f9 !important;
-        }
-
-        .dark .fi-input-wrp {
-            background-color: #1e293b !important;
-            border-color: #334155 !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        .dark .fi-input-wrp:focus-within {
-            background-color: #0f172a !important;
-            border-color: #0ea5e9 !important;
-            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15) !important;
-        }
-
-        .dark .fi-input-wrp input {
-            color: #f8fafc !important;
-        }
-
-        .dark .fi-fo-checkbox span {
-            color: #cbd5e1 !important;
-        }
-
-        /* =====================================================
-           MOBILE
+           MOBILE — Stack vertically, card on dark bg
            ===================================================== */
         @media (max-width: 1023px) {
-
-            html,
-            body {
-                background-color: #f8fafc !important;
-            }
+            html, body { background-color: #0f172a !important; }
 
             .insan-login-wrapper {
                 flex-direction: column;
                 min-height: 100vh;
+                background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+                align-items: center;
+                justify-content: center;
+                padding: 2rem 1.25rem;
             }
 
-            .insan-left {
-                display: none;
-            }
+            /* Hide the big left panel */
+            .insan-left { display: none; }
 
             .insan-right {
                 width: 100%;
-                min-height: 100vh;
-                padding: 3rem 2rem;
-                background-color: #f8fafc;
+                min-height: unset;
+                padding: 0;
+                background: transparent;
+            }
+
+            /* Card with logo above it */
+            .insan-form-wrap {
+                position: relative;
+                padding-top: 3rem; /* space for logo */
+            }
+
+            /* Mini logo floating above card */
+            .insan-form-wrap::before {
+                content: '';
+                position: absolute;
+                top: -36px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 72px; height: 72px;
+                background: url('{{ asset("images/logo1.png") }}') center/56px no-repeat,
+                            #1e293b;
+                border-radius: 18px;
+                border: 2px solid rgba(255,255,255,0.1);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             }
         }
 
-        /* Hide Alpine cloak */
-        [x-cloak] {
-            display: none !important;
-        }
+        /* =====================================================
+           HIDE ALPINE CLOAK
+           ===================================================== */
+        [x-cloak] { display: none !important; }
     </style>
 </div>
