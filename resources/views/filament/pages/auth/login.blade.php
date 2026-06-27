@@ -404,6 +404,39 @@
         }
 
         /* =====================================================
+           DARK MODE OVERRIDES — Force labels visible
+           ===================================================== */
+        .dark .fi-fo-field-wrp-label,
+        .dark .fi-fo-field-wrp-label *,
+        .dark label,
+        .dark label span,
+        .dark .fi-fo-field-wrp-label span,
+        .dark .fi-fo-field-wrp-label div {
+            color: #1e293b !important;
+        }
+
+        .dark .fi-input-wrp {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        .dark .fi-input-wrp input {
+            color: #0f172a !important;
+        }
+
+        .dark .fi-input-wrp input::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .dark .fi-fo-field-wrp-helper-text {
+            color: #64748b !important;
+        }
+
+        .dark .fi-fo-field-wrp-error-message {
+            color: #ef4444 !important;
+        }
+
+        /* =====================================================
            HIDE ALPINE CLOAK
            ===================================================== */
         [x-cloak] { display: none !important; }
