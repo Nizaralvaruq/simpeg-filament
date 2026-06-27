@@ -28,6 +28,7 @@ class ListSiswas extends ListRecords
                         ->required()
                         ->disk('public')
                         ->directory('imports')
+                        ->maxSize(5120)
                         ->acceptedFileTypes([
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
                             'application/vnd.ms-excel',                                           // xls
