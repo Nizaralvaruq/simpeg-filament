@@ -25,30 +25,34 @@ class GrafikTrenKehadiran extends ChartWidget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        $isGlobalAdmin = $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
+
+        $startDate = now()->subDays(6)->startOfDay();
+        $endDate = now()->endOfDay();
+
+        $query = Absensi::query()
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->where('late_minutes', '>', 0)
+            ->when(!$isGlobalAdmin, function ($q) use ($user) {
+                $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                if (!empty($unitIds)) {
+                    $q->whereHas('user.employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
+                } else {
+                    $q->whereRaw('1=0');
+                }
+            })
+            ->selectRaw('DATE(tanggal) as date, COUNT(*) as count')
+            ->groupByRaw('DATE(tanggal)');
+
+        $countsByDate = $query->get()->keyBy('date')->map(fn($row) => $row->count);
 
         $data = [];
         $labels = [];
-
-        // Get last 7 days
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
+            $dateStr = $date->format('Y-m-d');
             $labels[] = $date->format('d M');
-
-            $isGlobalAdmin = $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
-
-            $query = Absensi::query()
-                ->whereDate('tanggal', $date)
-                ->where('late_minutes', '>', 0)
-                ->when(!$isGlobalAdmin, function ($q) use ($user) {
-                    $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
-                    if (!empty($unitIds)) {
-                        $q->whereHas('user.employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
-                    } else {
-                        $q->whereRaw('1=0');
-                    }
-                });
-
-            $data[] = $query->count();
+            $data[] = $countsByDate->get($dateStr, 0);
         }
 
         return [
@@ -56,7 +60,7 @@ class GrafikTrenKehadiran extends ChartWidget
                 [
                     'label' => 'Pegawai Terlambat',
                     'data' => $data,
-                    'borderColor' => '#0ea5e9', // Sky Blue
+                    'borderColor' => '#0ea5e9',
                     'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
                     'fill' => true,
                     'tension' => 0.4,

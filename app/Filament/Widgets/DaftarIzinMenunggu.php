@@ -31,10 +31,15 @@ class DaftarIzinMenunggu extends BaseWidget
                 $user = Auth::user();
                 $isGlobalAdmin = $user && $user->hasAnyRole(['super_admin', 'ketua_psdm', 'kepala_sekolah']);
 
+                $unitIds = [];
+                if (!$isGlobalAdmin) {
+                    $user->loadMissing('employee.units');
+                    $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                }
+
                 return LeaveRequest::query()
                     ->where('status', 'pending')
-                    ->when(!$isGlobalAdmin, function ($q) use ($user) {
-                        $unitIds = $user->employee?->units->pluck('id')->all() ?? [];
+                    ->when(!$isGlobalAdmin, function ($q) use ($unitIds) {
                         if (!empty($unitIds)) {
                             $q->whereHas('employee.units', fn($sq) => $sq->whereIn('units.id', $unitIds));
                         } else {

@@ -36,6 +36,8 @@ class EditProfile extends BaseEditProfile
                                     ->disk('public')
                                     ->visibility('public')
                                     ->alignCenter()
+                                    ->maxSize(2048)
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                                     ->columnSpanFull(),
                                 $this->getNameFormComponent(),
                                 $this->getEmailFormComponent(),
