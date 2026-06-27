@@ -44,7 +44,7 @@ class EditPeminjaman extends EditRecord
                 ->action(function () use ($user) {
                     // Validasi stok
                     foreach ($this->record->details as $detail) {
-                        $barang = Barang::find($detail->barang_id);
+                        $barang = $detail->barang;
                         if ($barang->stok_saat_ini < $detail->jumlah_pinjam) {
                             Notification::make()->title("Stok {$barang->nama_barang} tidak mencukupi!")->danger()->send();
                             return;
@@ -53,8 +53,8 @@ class EditPeminjaman extends EditRecord
 
                     // Potong stok
                     foreach ($this->record->details as $detail) {
-                        $barang = Barang::find($detail->barang_id);
-                        
+                        $barang = $detail->barang;
+
                         StockTransaction::create([
                             'barang_id' => $barang->id,
                             'type' => 'out',
@@ -127,8 +127,8 @@ class EditPeminjaman extends EditRecord
                 ->action(function () use ($user) {
                     // Kembalikan stok
                     foreach ($this->record->details as $detail) {
-                        $barang = Barang::find($detail->barang_id);
-                        
+                        $barang = $detail->barang;
+
                         StockTransaction::create([
                             'barang_id' => $barang->id,
                             'type' => 'in',
@@ -160,8 +160,8 @@ class EditPeminjaman extends EditRecord
                 ->action(function () use ($user) {
                     // Tidak mengembalikan stok. Catat bahwa ada kehilangan/kerusakan fisik.
                     foreach ($this->record->details as $detail) {
-                        $barang = Barang::find($detail->barang_id);
-                        
+                        $barang = $detail->barang;
+
                         StockTransaction::create([
                             'barang_id' => $barang->id,
                             'type' => 'opname',

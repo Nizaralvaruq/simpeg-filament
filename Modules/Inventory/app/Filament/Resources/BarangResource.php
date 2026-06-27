@@ -43,9 +43,7 @@ class BarangResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        // Barang berfungsi sebagai katalog global, semua user (termasuk Staff) 
-        // diizinkan melihat semua barang agar mudah saat ingin meminjam.
-        return parent::getEloquentQuery();
+        return parent::getEloquentQuery()->with(['kategori', 'unit']);
     }
 
     public static function canCreate(): bool
@@ -171,6 +169,8 @@ class BarangResource extends Resource
                         ->image()
                         ->disk('public')
                         ->directory('inventaris/foto')
+                        ->maxSize(2048)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                         ->columnSpanFull(),
 
                     Forms\Components\Toggle::make('is_active')

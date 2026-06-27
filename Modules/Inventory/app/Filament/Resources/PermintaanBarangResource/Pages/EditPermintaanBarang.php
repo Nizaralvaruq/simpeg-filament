@@ -129,7 +129,7 @@ class EditPermintaanBarang extends EditRecord
                     // Validasi stok mencukupi
                     $errors = [];
                     foreach ($this->record->details as $detail) {
-                        $barang = Barang::find($detail->barang_id);
+                        $barang = $detail->barang;
                         $jumlah = $detail->jumlah_disetujui ?? $detail->jumlah_diminta;
                         if ($barang && $barang->stok_saat_ini < $jumlah) {
                             $errors[] = "Stok {$barang->nama_barang} tidak mencukupi (tersedia: {$barang->stok_saat_ini}, dibutuhkan: {$jumlah})";
@@ -147,7 +147,7 @@ class EditPermintaanBarang extends EditRecord
 
                     DB::transaction(function () {
                         foreach ($this->record->details as $detail) {
-                            $barang = Barang::find($detail->barang_id);
+                            $barang = $detail->barang;
                             $jumlah = $detail->jumlah_disetujui ?? $detail->jumlah_diminta;
 
                             if ($barang && $jumlah > 0) {
