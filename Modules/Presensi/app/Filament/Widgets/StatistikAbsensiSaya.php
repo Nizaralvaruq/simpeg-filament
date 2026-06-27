@@ -24,50 +24,31 @@ class StatistikAbsensiSaya extends BaseWidget
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
 
-        // Count attendance by status for current month
-        $hadir = Absensi::where('user_id', $userId)
+        $stats = Absensi::where('user_id', $userId)
             ->whereMonth('tanggal', $currentMonth)
             ->whereYear('tanggal', $currentYear)
-            ->where('status', 'hadir')
-            ->count();
-
-        $izin = Absensi::where('user_id', $userId)
-            ->whereMonth('tanggal', $currentMonth)
-            ->whereYear('tanggal', $currentYear)
-            ->where('status', 'izin')
-            ->count();
-
-        $sakit = Absensi::where('user_id', $userId)
-            ->whereMonth('tanggal', $currentMonth)
-            ->whereYear('tanggal', $currentYear)
-            ->where('status', 'sakit')
-            ->count();
-
-        $alpha = Absensi::where('user_id', $userId)
-            ->whereMonth('tanggal', $currentMonth)
-            ->whereYear('tanggal', $currentYear)
-            ->where('status', 'alpha')
-            ->count();
-
-        // Check if already absent today
-        $todayAbsent = Absensi::where('user_id', $userId)
-            ->where('tanggal', Carbon::today()->toDateString())
-            ->exists();
+            ->selectRaw("
+                SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
+                SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit,
+                SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha
+            ")
+            ->first();
 
         return [
-            Stat::make('Hadir Bulan Ini', $hadir)
+            Stat::make('Hadir Bulan Ini', $stats->hadir ?? 0)
                 ->description('Total kehadiran')
                 ->color('success'),
 
-            Stat::make('Izin', $izin)
+            Stat::make('Izin', $stats->izin ?? 0)
                 ->description('Total izin')
                 ->color('warning'),
 
-            Stat::make('Sakit', $sakit)
+            Stat::make('Sakit', $stats->sakit ?? 0)
                 ->description('Total sakit')
                 ->color('danger'),
 
-            Stat::make('Alpha', $alpha)
+            Stat::make('Alpha', $stats->alpha ?? 0)
                 ->description('Total alpha')
                 ->color('gray'),
         ];

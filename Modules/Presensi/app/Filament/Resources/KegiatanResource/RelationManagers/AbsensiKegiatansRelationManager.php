@@ -43,6 +43,7 @@ class AbsensiKegiatansRelationManager extends RelationManager
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
+                $query->with('user');
                 /** @var \App\Models\User $user */
                 $user = \Illuminate\Support\Facades\Auth::user();
 

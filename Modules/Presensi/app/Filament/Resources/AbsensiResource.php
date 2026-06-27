@@ -186,6 +186,8 @@ class AbsensiResource extends Resource
                             ->image()
                             ->disk('public')
                             ->directory('absensi-verifikasi')
+                            ->maxSize(2048)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->disabled()
                             ->columnSpan(1),
 
@@ -208,7 +210,7 @@ class AbsensiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('30s')
             ->modifyQueryUsing(fn($query) => $query->with(['user.employee.units']))
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')

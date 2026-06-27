@@ -50,25 +50,19 @@ class MyAttendance extends Page
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $hadir = Absensi::where('user_id', $userId)
+        $stats = Absensi::where('user_id', $userId)
             ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->whereIn('status', ['hadir', 'dinas_luar'])
-            ->count();
-
-        $lateMinutes = Absensi::where('user_id', $userId)
-            ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->get()
-            ->sum('late_minutes');
-
-        $izinSakitCuti = Absensi::where('user_id', $userId)
-            ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->whereIn('status', ['izin', 'sakit', 'cuti'])
-            ->count();
+            ->selectRaw("
+                SUM(CASE WHEN status IN ('hadir', 'dinas_luar') THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status IN ('izin', 'sakit', 'cuti') THEN 1 ELSE 0 END) as izin_sakit_cuti,
+                COALESCE(SUM(late_minutes), 0) as late_minutes
+            ")
+            ->first();
 
         return [
-            'hadir' => $hadir,
-            'late' => $lateMinutes,
-            'izin_sakit' => $izinSakitCuti,
+            'hadir' => $stats->hadir ?? 0,
+            'late' => $stats->late_minutes ?? 0,
+            'izin_sakit' => $stats->izin_sakit_cuti ?? 0,
         ];
     }
 }
