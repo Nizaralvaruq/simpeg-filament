@@ -82,7 +82,8 @@
 
                 if (this.html5QrCode) {
                     try {
-                        if (this.html5QrCode.isScanning) {
+                        const state = this.html5QrCode.getState();
+                        if (state === 1) { // 1 = Html5QrcodeScannerState.RUNNING
                             this.html5QrCode.stop()
                                 .then(() => { this.html5QrCode.clear(); doStart(); })
                                 .catch(() => doStart());
@@ -120,19 +121,16 @@
                 const overlay = document.getElementById('scan-loading');
                 if (overlay) overlay.style.opacity = '1';
 
-                // Gunakan this.$wire (bukan $wire global) agar Alpine bisa resolve magic property
-                this.$wire.processScan(token).then(() => {
+                this.$wire.processScan(token).then((result) => {
                     if (overlay) overlay.style.opacity = '0';
 
-                    // Jika modal konfirmasi siswa baru muncul (bukan modal setoran),
-                    // lepas lock scanner agar tidak freeze saat guru membaca konfirmasi
                     if (this.$wire.showConfirmNewSiswa) {
                         this.isScanning = false;
                     }
-                    // Jika modal setoran muncul, biarkan isScanning = true (dikunci sampai disimpan)
-                }).catch(() => {
+                }).catch((err) => {
                     if (overlay) overlay.style.opacity = '0';
                     this.isScanning = false;
+                    console.error('Scan process error:', err);
                 });
             },
 
