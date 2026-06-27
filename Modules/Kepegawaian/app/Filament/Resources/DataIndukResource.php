@@ -244,7 +244,8 @@ class DataIndukResource extends Resource
                     ->circleCropper()
                     ->disk('public')
                     ->directory('foto-profil')
-                    ->maxSize(100)
+                    ->maxSize(2048)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string =>
                         'Foto_Profil_' . now()->timestamp . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension()
@@ -407,6 +408,8 @@ class DataIndukResource extends Resource
                             ->label('Upload KK/Akte')
                             ->disk('public')
                             ->directory('dokumen-keluarga')
+                            ->maxSize(2048)
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->columnSpanFull(),
                     ])
                     ->columns(3)
@@ -458,6 +461,8 @@ class DataIndukResource extends Resource
                             ->label('Upload KK/Akte')
                             ->disk('public')
                             ->directory('dokumen-keluarga')
+                            ->maxSize(2048)
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->columnSpanFull(),
                     ])
                     ->columns(3)

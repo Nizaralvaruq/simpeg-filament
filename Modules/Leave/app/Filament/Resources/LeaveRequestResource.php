@@ -52,19 +52,19 @@ class LeaveRequestResource extends Resource
             return null;
         }
 
-        $query = static::getModel()::where('status', 'pending');
-
-        // Admin Unit: Only count pending requests from their units
         if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id');
-                $query->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
-            } else {
-                return null; // No units assigned
+            $user->loadMissing('employee.units');
+            if (!$user->employee || !$user->employee->units->isNotEmpty()) {
+                return null;
             }
+            $unitIds = $user->employee->units->pluck('id');
+            $count = static::getModel()::where('status', 'pending')
+                ->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds))
+                ->count();
+            return $count > 0 ? (string) $count : null;
         }
 
-        $count = $query->count();
+        $count = static::getModel()::where('status', 'pending')->count();
         return $count > 0 ? (string) $count : null;
     }
 
@@ -173,9 +173,12 @@ class LeaveRequestResource extends Resource
                         ->directory('upload_file')
                         ->disk('public')
                         ->visibility('public')
-                        ->preserveFilenames()
-                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                         ->maxSize(2048)
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->getUploadedFileNameForStorageUsing(
+                            fn(\Filament\Forms\Components\TemporaryUploadedFile $file): string =>
+                            'Upload_' . now()->timestamp . '_' . \Illuminate\Support\Str::random(5) . '.' . $file->getClientOriginalExtension()
+                        )
                         ->visible(function () {
                             /** @var \App\Models\User $user */
                             $user = Auth::user();
