@@ -49,11 +49,12 @@ class AssignPiket extends Page implements HasTable
                 /** @var \App\Models\User $user */
                 $user = Auth::user();
 
-                if ($user->hasAnyRole(['super_admin', 'kepala_sekolah'])) {
+                if ($user->hasRole('super_admin')) {
                     return $query;
                 }
 
-                if ($user->hasRole('admin_unit')) {
+                // Kepala sekolah dan admin_unit: filter berdasarkan unit mereka sendiri
+                if ($user->hasAnyRole(['kepala_sekolah', 'admin_unit'])) {
                     if ($user->employee && $user->employee->units->isNotEmpty()) {
                         $unitIds = $user->employee->units->pluck('id');
                         return $query->whereHas('units', function ($q) use ($unitIds) {
