@@ -62,11 +62,29 @@ class JadwalPiketResource extends Resource
                     ->schema([
                         Select::make('user_id')
                             ->label('Petugas Piket')
-                            ->relationship('user', 'name')
+                            ->options(function () {
+                                /** @var User|null $authUser */
+                                $authUser = Auth::user();
+
+                                // Kepala sekolah: hanya tampilkan user dari unitnya sendiri
+                                if ($authUser?->hasRole('kepala_sekolah') && $authUser->employee) {
+                                    $unitIds = $authUser->employee->units->pluck('id');
+
+                                    return User::whereHas('employee', function ($q) use ($unitIds) {
+                                        $q->whereHas('units', fn($q2) => $q2->whereIn('units.id', $unitIds));
+                                    })
+                                        ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super_admin', 'siswa']))
+                                        ->get()
+                                        ->mapWithKeys(fn(User $u) => [$u->id => $u->name . ' (' . ($u->employee?->jabatan ?? $u->email) . ')']);
+                                }
+
+                                // Super admin / admin_unit / ketua_psdm: tampilkan semua pegawai aktif
+                                return User::whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super_admin', 'siswa']))
+                                    ->get()
+                                    ->mapWithKeys(fn(User $u) => [$u->id => $u->name . ' (' . ($u->employee?->jabatan ?? $u->email) . ')']);
+                            })
                             ->searchable()
-                            ->preload()
                             ->required()
-                            ->getOptionLabelFromRecordUsing(fn(User $record) => "{$record->name} - {$record->email}")
                             ->columnSpanFull(),
 
                         DatePicker::make('tanggal')
@@ -216,6 +234,27 @@ class JadwalPiketResource extends Resource
             'edit' => Pages\EditJadwalPiket::route('/{record}/edit'),
             'assign' => Pages\AssignPiket::route('/assign'),
         ];
+    }
+
+    /**
+     * Filter query jadwal piket berdasarkan unit (untuk kepala sekolah)
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        // Kepala sekolah: hanya lihat jadwal piket dari pegawai di unitnya
+        if ($user?->hasRole('kepala_sekolah') && $user->employee) {
+            $unitIds = $user->employee->units->pluck('id');
+
+            return $query->whereHas('user.employee', function ($q) use ($unitIds) {
+                $q->whereHas('units', fn($q2) => $q2->whereIn('units.id', $unitIds));
+            });
+        }
+
+        return $query;
     }
 
     public static function shouldRegisterNavigation(): bool
