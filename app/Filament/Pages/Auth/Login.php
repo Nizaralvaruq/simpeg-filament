@@ -12,13 +12,19 @@ use Illuminate\Contracts\Support\Htmlable;
 class Login extends BaseLogin
 {
     /**
-     * @var string|view
+     * @var string
      */
     protected string $view = 'filament.pages.auth.login';
 
     public function getHeading(): string | Htmlable
     {
         return '';
+    }
+
+    protected function getEmailFormComponent(): Component
+    {
+        return parent::getEmailFormComponent()
+            ->label('Username');
     }
 
     protected function getPasswordFormComponent(): Component

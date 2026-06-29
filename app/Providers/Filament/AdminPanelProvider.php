@@ -42,7 +42,6 @@ class AdminPanelProvider extends PanelProvider
             ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->collapsibleNavigationGroups(true)
-            ->profile(\App\Filament\Pages\EditProfile::class)
             ->font('Plus Jakarta Sans')
             ->colors([
                 'primary' => Color::Sky,
@@ -176,6 +175,18 @@ class AdminPanelProvider extends PanelProvider
                         document.addEventListener("livewire:navigated", restoreScroll);
                     })();
                 </script>
+            '),
+        );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::SIDEBAR_NAV_END,
+            fn(): string => Blade::render('
+                <form method="POST" action="{{ route(\'filament.admin.auth.logout\') }}" class="px-4 py-3 mt-4 border-t border-gray-200 dark:border-white/10">
+                    @csrf
+                    <x-filament::button type="submit" color="danger" icon="heroicon-o-arrow-left-on-rectangle" class="w-full">
+                        Keluar / Log Out
+                    </x-filament::button>
+                </form>
             '),
         );
     }
