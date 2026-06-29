@@ -195,16 +195,22 @@ class DataIndukResource extends Resource
                 'Data Induk' => static::getKepegawaianSchema(),
                 'Riwayat' => static::getRiwayatSchema(),
                 'BPJS' => static::getBpjsSchema(),
-                'Akun' => static::getAkunLoginSchema(),
+                'Akun' => static::getAkunLoginSchema($operation),
             ];
 
             if ($operation === 'create') {
+                // Saat tambah baru: hanya Data Diri & Akun.
+                // Data Induk, Riwayat, BPJS bisa dilengkapi staff via halaman edit.
                 return [
                     Wizard::make([
-                        Step::make('Data Diri')->schema($sections['Data Diri']),
-                        Step::make('Data Induk')->schema($sections['Data Induk']),
-                        Step::make('Riwayat')->schema($sections['Riwayat']),
-                        Step::make('BPJS & Akun')->schema(array_merge($sections['BPJS'], $sections['Akun'])),
+                        Step::make('Data Diri')
+                            ->description('Isi data pribadi pegawai baru')
+                            ->icon('heroicon-o-user')
+                            ->schema($sections['Data Diri']),
+                        Step::make('Akun Login')
+                            ->description('Buat akun aplikasi untuk pegawai (opsional)')
+                            ->icon('heroicon-o-key')
+                            ->schema($sections['Akun']),
                     ])->columnSpanFull()
                 ];
             }
@@ -263,7 +269,7 @@ class DataIndukResource extends Resource
                             ->afterStateUpdated(function ($state, Set $set, Get $get, $record) {
                                 if (!$record) {
                                     if (empty($get('email')) && !empty($state)) {
-                                        $set('email', str($state)->lower()->replace(' ', '.')->append('@domain.com')->toString());
+                                        $set('email', str($state)->lower()->replace(' ', '.')->append('@insan.id')->toString());
                                     }
                                     if (empty($get('password'))) {
                                         $set('password', 'password123');
@@ -840,12 +846,12 @@ class DataIndukResource extends Resource
         ];
     }
 
-    protected static function getAkunLoginSchema(): array
+    protected static function getAkunLoginSchema(string $operation = 'edit'): array
     {
         return [
             Section::make('Akun Login')
                 ->collapsible()
-                ->collapsed()
+                ->collapsed($operation !== 'create')
                 ->description('Isi Email & Password di bawah jika ingin membuat akun baru untuk pegawai ini.')
                 ->visible(function (): bool {
                     /** @var \App\Models\User $user */
@@ -854,11 +860,11 @@ class DataIndukResource extends Resource
                 })
                 ->schema([
                     Forms\Components\TextInput::make('email')
-                        ->label('Email Login')
+                        ->label('Username')
                         ->email()
                         ->live()
                         ->dehydrated(false)
-                        ->placeholder('contoh: budi.santoso@domain.com')
+                        ->placeholder('contoh: budi.santoso@insan.id')
                         ->autocomplete('off')
                         ->afterStateHydrated(function (Forms\Components\TextInput $component, $record) {
                             if ($record && $record->user) {
@@ -1088,11 +1094,17 @@ class DataIndukResource extends Resource
                                     $user = $record->user;
                                     if (!$user || !$user->qr_token) continue;
 
-                                    $image = $qrService->generateQrImage($user->qr_token);
+                                    $image = $qrService->generateQrCard(
+                                        $user->qr_token,
+                                        $record->nama,
+                                        $record->nip ?? '-',
+                                        $record->jabatan ?? 'Pegawai'
+                                    );
                                     if ($image) {
                                         ob_start();
                                         imagepng($image);
                                         $content = ob_get_clean();
+                                        imagedestroy($image);
 
                                         // Filename: NIP.png or Name.png
                                         $filename = ($record->nip ?? $record->nama) . '.png';

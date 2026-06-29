@@ -115,18 +115,24 @@ class MyQrCard extends Page
         $token = $user->qr_token ?? '';
 
         $qrService = new QrCodeService();
-        $image = $qrService->generateQrImage($token);
+        $image = $qrService->generateQrCard(
+            $token,
+            $this->getUserName(),
+            $this->getUserNip() ?? '-',
+            $this->getUserJabatan()
+        );
 
         $qrCodeBinary = '';
         if ($image) {
             ob_start();
             imagepng($image);
             $qrCodeBinary = ob_get_clean();
+            imagedestroy($image);
         }
 
         return response()->streamDownload(function () use ($qrCodeBinary) {
             echo $qrCodeBinary;
-        }, 'QR-Code-' . ($user->employee?->nip ?? 'User') . '.png', [
+        }, 'Kartu-QR-' . ($this->getUserNip() ?? 'User') . '.png', [
             'Content-Type' => 'image/png',
         ]);
     }

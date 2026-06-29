@@ -53,7 +53,8 @@ class AssignPiket extends Page implements HasTable
                     return $query;
                 }
 
-                if ($user->hasAnyRole(['admin_unit', 'koor_jenjang', 'kepala_sekolah'])) {
+                // Kepala sekolah dan admin_unit: filter berdasarkan unit mereka sendiri
+                if ($user->hasAnyRole(['kepala_sekolah', 'admin_unit'])) {
                     if ($user->employee && $user->employee->units->isNotEmpty()) {
                         $unitIds = $user->employee->units->pluck('id');
                         return $query->whereHas('units', function ($q) use ($unitIds) {
@@ -78,7 +79,7 @@ class AssignPiket extends Page implements HasTable
                     ->separator(', '),
 
                 TextColumn::make('jabatan')
-                    ->label('Amanah/Jabatan')
+                    ->label('Jabatan')
                     ->searchable(),
 
                 TextColumn::make('nip')

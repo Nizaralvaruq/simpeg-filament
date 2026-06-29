@@ -217,10 +217,12 @@
             font-size: 26px; font-weight: 700;
             color: #0f172a; margin: 0 0 0.4rem;
             letter-spacing: -0.02em;
+            text-align: center;
         }
         .insan-form-subtitle {
             font-size: 14px; color: #64748b;
             margin: 0 0 2rem; line-height: 1.5;
+            text-align: center;
         }
         .insan-filament-wrap { width: 100%; }
 
@@ -254,15 +256,22 @@
         .fi-form { gap: 1.25rem !important; }
 
         /* Labels — always dark text */
+        .fi-fo-field-label,
+        .fi-fo-field-label *,
         .fi-fo-field-wrp-label,
-        .fi-fo-field-wrp-label * {
+        .fi-fo-field-wrp-label *,
+        .dark .fi-fo-field-label,
+        .dark .fi-fo-field-label *,
+        .dark .fi-fo-field-wrp-label,
+        .dark .fi-fo-field-wrp-label * {
             font-size: 14px !important;
             font-weight: 600 !important;
             color: #1e293b !important;
         }
 
         /* Input wrapper — always light */
-        .fi-input-wrp {
+        .fi-input-wrp,
+        .dark .fi-input-wrp {
             background-color: #f8fafc !important;
             border: 1.5px solid #e2e8f0 !important;
             border-radius: 12px !important;
@@ -271,40 +280,54 @@
             height: 52px !important;
             padding: 0 1rem !important;
         }
-        .fi-input-wrp:focus-within {
+        .fi-input-wrp:focus-within,
+        .dark .fi-input-wrp:focus-within {
             border-color: #0ea5e9 !important;
             background-color: #ffffff !important;
             box-shadow: 0 0 0 4px rgba(14,165,233,0.12) !important;
         }
 
         /* Input text — always dark */
-        .fi-input-wrp input {
+        .fi-input-wrp input,
+        .dark .fi-input-wrp input,
+        .fi-input,
+        .dark .fi-input {
             background: transparent !important;
             color: #0f172a !important;
-            font-size: 15px !important; font-weight: 500 !important;
-            border: none !important; box-shadow: none !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+            border: none !important;
+            box-shadow: none !important;
             padding-left: 0.25rem !important;
         }
-        .fi-input-wrp input::placeholder {
-            color: #94a3b8 !important; font-weight: 400 !important;
+        .fi-input-wrp input::placeholder,
+        .dark .fi-input-wrp input::placeholder,
+        .fi-input::placeholder,
+        .dark .fi-input::placeholder {
+            color: #94a3b8 !important;
+            font-weight: 400 !important;
         }
 
         /* Helper text */
-        .fi-fo-field-wrp-helper-text {
+        .fi-fo-field-wrp-helper-text,
+        .dark .fi-fo-field-wrp-helper-text {
             font-size: 12.5px !important;
             color: #64748b !important;
             margin-top: 5px !important;
         }
 
         /* Validation error */
-        .fi-fo-field-wrp-error-message {
+        .fi-fo-field-wrp-error-message,
+        .dark .fi-fo-field-wrp-error-message {
             color: #ef4444 !important;
             font-size: 12.5px !important;
         }
 
         /* Submit button — sky blue gradient, always */
         .fi-btn[type="submit"],
-        button[type="submit"] {
+        button[type="submit"],
+        .dark .fi-btn[type="submit"],
+        .dark button[type="submit"] {
             width: 100% !important;
             height: 52px !important;
             background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
@@ -319,42 +342,55 @@
             transition: all 0.25s ease !important;
             justify-content: center !important;
         }
-        .fi-btn[type="submit"]:hover {
+        .fi-btn[type="submit"]:hover,
+        .dark .fi-btn[type="submit"]:hover {
             transform: translateY(-2px) !important;
             box-shadow: 0 14px 32px -4px rgba(14,165,233,0.55) !important;
         }
-        .fi-btn[type="submit"]:active {
+        .fi-btn[type="submit"]:active,
+        .dark .fi-btn[type="submit"]:active {
             transform: translateY(0) !important;
             box-shadow: 0 4px 12px -4px rgba(14,165,233,0.4) !important;
         }
         .fi-btn[type="submit"] span,
-        .fi-btn[type="submit"] * {
+        .fi-btn[type="submit"] *,
+        .dark .fi-btn[type="submit"] span,
+        .dark .fi-btn[type="submit"] * {
             color: #ffffff !important;
         }
 
         /* Checkbox */
-        .fi-checkbox {
+        .fi-checkbox,
+        .dark .fi-checkbox {
             border-radius: 6px !important;
             border-color: #cbd5e1 !important;
             width: 18px !important; height: 18px !important;
         }
-        .fi-checkbox:checked {
+        .fi-checkbox:checked,
+        .dark .fi-checkbox:checked {
             background-color: #0ea5e9 !important;
             border-color: #0ea5e9 !important;
         }
         .fi-fo-checkbox label,
-        .fi-fo-checkbox span {
+        .fi-fo-checkbox span,
+        .dark .fi-fo-checkbox label,
+        .dark .fi-fo-checkbox span {
             font-size: 14px !important;
             color: #475569 !important; font-weight: 500 !important;
         }
 
         /* Password reveal button */
-        .fi-input-wrp button {
+        .fi-input-wrp button,
+        .dark .fi-input-wrp button,
+        .fi-input-wrp button *,
+        .dark .fi-input-wrp button * {
             background: transparent !important;
             color: #94a3b8 !important;
             transition: color 0.2s !important;
         }
-        .fi-input-wrp button:hover { color: #0ea5e9 !important; }
+        .fi-input-wrp button:hover,
+        .dark .fi-input-wrp button:hover { color: #0ea5e9 !important; }
+
 
         /* =====================================================
            MOBILE — Stack vertically, card on dark bg
