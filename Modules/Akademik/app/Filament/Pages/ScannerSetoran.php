@@ -30,7 +30,7 @@ class ScannerSetoran extends Page
     public ?int $siswaId = null;
     public ?array $scannedUser = null;
     public ?array $riwayatTerakhir = null;
-    
+
     public string $scanMode = 'setoran'; // 'setoran' or 'kehadiran'
     public ?int $kegiatanId = null;
     public array $availableKegiatans = [];
@@ -88,7 +88,7 @@ class ScannerSetoran extends Page
     {
         $today = Carbon::today();
         $total = SetoranNgaji::whereDate('tanggal_setoran', $today)->count();
-        
+
         // Calculate simplified average or just count by grade
         $this->todayStats = [
             'total' => $total,
@@ -119,17 +119,16 @@ class ScannerSetoran extends Page
     {
         // ── Solusi Risiko #2: Validasi format NIS ──────────────────────────────
         // Token harus berupa angka saja, minimal 4 digit — tolak token acak/tidak valid
-        if (!preg_match('/^\d{4,}$/', $token)) {
-            $this->dispatch('scan-error', message: "Token tidak valid: '{$token}'. NIS harus berupa angka minimal 4 digit.");
-            return;
-        }
+        // todo:: Perlu cek ini, di data siswa tidak ada validasi min 4 digit, sementara disable validasinya
+        // if (!preg_match('/^\d{4,}$/', $token)) {
+        //     $this->dispatch('scan-error', message: "Token tidak valid: '{$token}'. NIS harus berupa angka minimal 4 digit.");
+        //     return;
+        // }
 
         // Cari siswa berdasarkan NIS — baik aktif maupun tidak
         $siswa = Siswa::where('nis', $token)->first();
 
         if (!$siswa) {
-            // ── Solusi Risiko #3: Konfirmasi sebelum auto-create ────────────────
-            // Jangan langsung buat — simpan ke pending state, tampilkan modal konfirmasi
             $this->pendingNewNis = $token;
             $this->showConfirmNewSiswa = true;
             return;
@@ -194,7 +193,6 @@ class ScannerSetoran extends Page
         $this->pendingNewNis    = '';
         $this->pendingNamaSiswa = '';
         $this->pendingWaOrtu    = '';
-        $this->dispatch('scan-error', message: 'Scan dibatalkan.');
     }
 
     /**
@@ -254,7 +252,7 @@ class ScannerSetoran extends Page
         ]);
 
         $this->dispatch('scan-success', type: 'check-in', name: $siswa->nama_lengkap . ' (Hadir)');
-        
+
         Notification::make()
             ->title('Kehadiran Berhasil Disimpan')
             ->body($siswa->nama_lengkap . ' tercatat hadir.')
@@ -286,7 +284,7 @@ class ScannerSetoran extends Page
         $this->showFormModal = false;
         $this->loadStats();
         $this->loadRecentScans();
-        
+
         Notification::make()
             ->title('Setoran Berhasil Disimpan')
             ->success()

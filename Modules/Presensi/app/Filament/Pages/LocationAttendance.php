@@ -69,7 +69,9 @@ class LocationAttendance extends Page implements HasForms
                         ->image()
                         ->required()
                         ->disk('public')
-                        ->directory('absensi-verifikasi'),
+                        ->directory('absensi-verifikasi')
+                        ->maxSize(2048)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']),
                     Textarea::make('keterangan')
                         ->label('Tujuan / Alasan Dinas Luar')
                         ->placeholder('Contoh: Kunjungan ke Client A')

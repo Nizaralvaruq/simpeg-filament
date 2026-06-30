@@ -148,9 +148,10 @@ class AdminPanelProvider extends PanelProvider
                         const STORAGE_KEY = "sidebar-scroll-pos";
                         
                         function saveScroll(target) {
-                            if (target && target.classList.contains("fi-sidebar-nav")) {
-                                sessionStorage.setItem(STORAGE_KEY, target.scrollTop);
+                            if (!target || !target.classList || !target.classList.contains("fi-sidebar-nav")) {
+                                return;
                             }
+                            sessionStorage.setItem(STORAGE_KEY, target.scrollTop);
                         }
 
                         function restoreScroll() {

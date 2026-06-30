@@ -28,54 +28,45 @@ class RingkasanStatistikSDM extends BaseWidget
 
     protected function getStats(): array
     {
-        // 1. Employee Growth Logic
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
+        $isGlobalAdmin = $user->hasAnyRole(['super_admin', 'ketua_psdm']);
+        $unitIds = $isGlobalAdmin ? [] : ($user->employee?->units->pluck('id')->toArray() ?? []);
 
-        $employeeQuery = DataInduk::whereIn('status', ['aktif', 'Aktif']);
-        $leaveQuery = LeaveRequest::where('status', 'pending');
-        $resignQuery = Resign::where('status', 'diajukan');
+        $employeeStats = DataInduk::whereIn('status', ['aktif', 'Aktif'])
+            ->when(!$isGlobalAdmin && !empty($unitIds), fn($q) => $q->whereHas('units', fn($q2) => $q2->whereIn('units.id', $unitIds)))
+            ->when(!$isGlobalAdmin && empty($unitIds), fn($q) => $q->whereRaw('1=0'))
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN created_at < ? THEN 1 ELSE 0 END) as last_month,
+                SUM(CASE WHEN jenis_kelamin = 'Laki-laki' THEN 1 ELSE 0 END) as male,
+                SUM(CASE WHEN jenis_kelamin = 'Perempuan' THEN 1 ELSE 0 END) as female
+            ", [now()->startOfMonth()->toDateTimeString()])
+            ->first();
 
-        if (!$user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
-            $unitIds = $user->employee?->units->pluck('id')->toArray() ?? [];
-            if (!empty($unitIds)) {
-                $employeeQuery->whereHas('units', fn($q) => $q->whereIn('units.id', $unitIds));
-                $leaveQuery->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
-                $resignQuery->whereHas('employee.units', fn($q) => $q->whereIn('units.id', $unitIds));
-            } else {
-                // User has no unit but is not super_admin (edge case)
-                $employeeQuery->whereRaw('1=0');
-                $leaveQuery->whereRaw('1=0');
-                $resignQuery->whereRaw('1=0');
-            }
-        }
-
-        $currentMonthEmployees = (clone $employeeQuery)->count();
-        $lastMonthEmployees = (clone $employeeQuery)
-            ->where('created_at', '<', now()->startOfMonth())
+        $pendingLeaves = LeaveRequest::where('status', 'pending')
+            ->when(!$isGlobalAdmin && !empty($unitIds), fn($q) => $q->whereHas('employee.units', fn($q2) => $q2->whereIn('units.id', $unitIds)))
+            ->when(!$isGlobalAdmin && empty($unitIds), fn($q) => $q->whereRaw('1=0'))
             ->count();
 
-        // Hitung Gender breakdown
-        $maleCount = (clone $employeeQuery)->where('jenis_kelamin', 'Laki-laki')->count();
-        $femaleCount = (clone $employeeQuery)->where('jenis_kelamin', 'Perempuan')->count();
+        $pendingResigns = Resign::where('status', 'diajukan')
+            ->when(!$isGlobalAdmin && !empty($unitIds), fn($q) => $q->whereHas('employee.units', fn($q2) => $q2->whereIn('units.id', $unitIds)))
+            ->when(!$isGlobalAdmin && empty($unitIds), fn($q) => $q->whereRaw('1=0'))
+            ->count();
+
+        $currentMonthEmployees = $employeeStats->total ?? 0;
+        $lastMonthEmployees = $employeeStats->last_month ?? 0;
+        $maleCount = $employeeStats->male ?? 0;
+        $femaleCount = $employeeStats->female ?? 0;
 
         $employeeDescription = "{$maleCount} Laki-laki / {$femaleCount} Perempuan";
-        $employeeIcon = 'heroicon-m-users';
-        $employeeColor = 'primary';
-
-        // 2. Pending Leave Logic
-        $pendingLeaves = $leaveQuery->count();
-
-        // 3. Pending Resign Logic
-        $pendingResigns = $resignQuery->count();
-
 
         return [
             Stat::make('Total Pegawai Aktif', $currentMonthEmployees)
                 ->description($employeeDescription)
-                ->descriptionIcon($employeeIcon)
-                ->chart([$lastMonthEmployees, $currentMonthEmployees]) // Simple trend line
-                ->color($employeeColor),
+                ->descriptionIcon('heroicon-m-users')
+                ->chart([$lastMonthEmployees, $currentMonthEmployees])
+                ->color('primary'),
 
             Stat::make('Pengajuan Cuti Pending', $pendingLeaves)
                 ->description('Membutuhkan persetujuan segera')

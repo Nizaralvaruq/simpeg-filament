@@ -73,7 +73,7 @@ class PermintaanBarangResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['user', 'unit', 'details.barang']);
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -371,7 +371,7 @@ class PermintaanBarangResource extends Resource
                         // Validasi stok mencukupi untuk semua item
                         $errors = [];
                         foreach ($record->details as $detail) {
-                            $barang = Barang::find($detail->barang_id);
+                            $barang = $detail->barang;
                             $jumlah = $detail->jumlah_disetujui ?? $detail->jumlah_diminta;
                             if ($barang && $barang->stok_saat_ini < $jumlah) {
                                 $errors[] = "Stok {$barang->nama_barang} tidak mencukupi (tersedia: {$barang->stok_saat_ini}, dibutuhkan: {$jumlah})";
@@ -389,7 +389,7 @@ class PermintaanBarangResource extends Resource
 
                         DB::transaction(function () use ($record) {
                             foreach ($record->details as $detail) {
-                                $barang = Barang::find($detail->barang_id);
+                                $barang = $detail->barang;
                                 $jumlah = $detail->jumlah_disetujui ?? $detail->jumlah_diminta;
 
                                 if ($barang && $jumlah > 0) {

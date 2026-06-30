@@ -151,9 +151,12 @@ class RetirementResource extends Resource
                             ->directory('pensiun')
                             ->disk('public')
                             ->visibility('public')
-                            ->preserveFilenames()
-                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->maxSize(2048)
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->getUploadedFileNameForStorageUsing(
+                                fn(\Filament\Forms\Components\TemporaryUploadedFile $file): string =>
+                                'Upload_' . now()->timestamp . '_' . \Illuminate\Support\Str::random(5) . '.' . $file->getClientOriginalExtension()
+                            )
                             ->columnSpanFull(),
                     ]),
 

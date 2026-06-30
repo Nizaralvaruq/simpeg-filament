@@ -11,6 +11,7 @@
             offlineQueue: [],
             isSyncing: false, // Prevent concurrent syncs
             init() {
+                const component = @this;
                 setInterval(() => this.currentTime = new Date(), 1000);
                 this.checkOnlineStatus();
                 setInterval(() => this.checkOnlineStatus(), 5000);
@@ -51,7 +52,7 @@
                 }
             },
             checkOnlineStatus() {
-                @this.isOnline = navigator.onLine;
+                component.isOnline = navigator.onLine;
                 if (navigator.onLine && this.offlineQueue.length > 0) {
                     this.syncOfflineQueue();
                 }

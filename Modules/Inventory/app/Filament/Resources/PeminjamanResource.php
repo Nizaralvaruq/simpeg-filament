@@ -68,7 +68,7 @@ class PeminjamanResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['user', 'details.barang']);
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -257,7 +257,7 @@ class PeminjamanResource extends Resource
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         foreach ($record->details as $detail) {
-                            $barang = Barang::find($detail->barang_id);
+                            $barang = $detail->barang;
                             if ($barang->stok_saat_ini < $detail->jumlah_pinjam) {
                                 Notification::make()->title("Stok {$barang->nama_barang} tidak mencukupi!")->danger()->send();
                                 return;
@@ -265,8 +265,8 @@ class PeminjamanResource extends Resource
                         }
 
                         foreach ($record->details as $detail) {
-                            $barang = Barang::find($detail->barang_id);
-                            
+                            $barang = $detail->barang;
+
                             StockTransaction::create([
                                 'barang_id' => $barang->id,
                                 'type' => 'out',
@@ -348,8 +348,8 @@ class PeminjamanResource extends Resource
                     ->modalDescription('Stok ini akan dikembalikan ke inventaris.')
                     ->action(function ($record) {
                         foreach ($record->details as $detail) {
-                            $barang = Barang::find($detail->barang_id);
-                            
+                            $barang = $detail->barang;
+
                             StockTransaction::create([
                                 'barang_id' => $barang->id,
                                 'type' => 'in',
@@ -383,12 +383,12 @@ class PeminjamanResource extends Resource
                     ->modalDescription('Barang dinyatakan rusak. Stok TIDAK AKAN dipulihkan.')
                     ->action(function ($record) {
                         foreach ($record->details as $detail) {
-                            $barang = Barang::find($detail->barang_id);
-                            
+                            $barang = $detail->barang;
+
                             StockTransaction::create([
                                 'barang_id' => $barang->id,
                                 'type' => 'opname',
-                                'quantity' => 0, 
+                                'quantity' => 0,
                                 'stok_sebelum_transaksi' => $barang->stok_saat_ini,
                                 'stok_setelah_transaksi' => $barang->stok_saat_ini,
                                 'remarks' => "Insiden Pengembalian Rusak: " . $record->nomor_peminjaman,
