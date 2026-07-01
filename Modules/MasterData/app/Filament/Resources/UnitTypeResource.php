@@ -47,9 +47,7 @@ class UnitTypeResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        return $user?->hasRole('super_admin');
+        return false; // Dikelola via dropdown di halaman Jenjang
     }
 
     public static function form(Schema $schema): Schema
@@ -73,7 +71,7 @@ class UnitTypeResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('units_count')
-                    ->label('Jumlah Unit')
+                    ->label('Jumlah Jenjang')
                     ->counts('units'),
             ])
             ->filters([

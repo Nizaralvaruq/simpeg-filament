@@ -16,16 +16,19 @@ use Carbon\Carbon;
 
 class QrScanner extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-qr-code';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-viewfinder-circle';
 
     protected string $view = 'presensi::filament.pages.qr-scanner';
 
     protected static string | \UnitEnum | null $navigationGroup = 'Presensi';
 
-    protected static ?string $title = 'Scanner Dashboard';
+    protected static ?string $title = 'Scan Absensi';
 
-    protected static ?string $navigationLabel = 'Scan QR Kehadiran';
+    protected static ?string $navigationLabel = 'Scan Absensi';
 
+    protected static ?int $navigationSort = 1;
+
+    // ─── Admin/Piket Scanner Properties ───────────────────────────
     public ?string $lastScannedToken = null;
     public ?array $scannedUser = null;
 
@@ -44,33 +47,37 @@ class QrScanner extends Page
     public bool $isOnline = true;
     public int $pendingScans = 0;
 
+    // ─── Self-Scan Properties (untuk user biasa) ───────────────────
+    public bool $selfScanSuccess = false;
+    public bool $selfScanError = false;
+    public string $selfScanMessage = '';
+    public ?array $selfScanLastResult = null;
+    public array $selfScanRiwayat = [];
+
     public function mount()
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Check if user has permanent access OR is on piket duty today
-        $hasAccess = $user && (
-            $user->hasAnyRole(['super_admin', 'admin_unit']) ||
-            JadwalPiket::isUserOnPiketToday($user->id)
-        );
-
-        if (!$hasAccess) {
-            abort(403, 'Akses Ditolak: Hanya petugas piket yang dijadwalkan hari ini yang dapat menggunakan scanner.');
+        if (!$user) {
+            abort(403);
         }
 
-        // Initialize stats
-        $this->loadTodayStats();
-        $this->loadRecentScans();
-
-        // Load Global States
-        $this->volume = (int)cache()->get('scanner_volume', 70);
+        // Jika admin/piket: inisialisasi dashboard scanner lengkap
+        if ($this->isAdminOrPiket()) {
+            $this->loadTodayStats();
+            $this->loadRecentScans();
+            $this->volume = (int)cache()->get('scanner_volume', 70);
+        } else {
+            // User biasa: inisialisasi self-scan kegiatan
+            $this->loadSelfScanRiwayat();
+        }
     }
 
     /**
-     * Check if navigation should be visible
+     * Cek apakah user adalah admin atau petugas piket hari ini
      */
-    public static function shouldRegisterNavigation(): bool
+    public function isAdminOrPiket(): bool
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
@@ -78,6 +85,14 @@ class QrScanner extends Page
 
         return $user->hasAnyRole(['super_admin', 'admin_unit']) ||
             JadwalPiket::isUserOnPiketToday($user->id);
+    }
+
+    /**
+     * Check if navigation should be visible — semua user login
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::check();
     }
 
     /**
@@ -112,6 +127,117 @@ class QrScanner extends Page
             ->latest('tanggal')
             ->get()
             ->pluck('nama_kegiatan', 'id');
+    }
+
+    // ─── Self-Scan Methods (untuk user biasa) ─────────────────────
+
+    /**
+     * Load riwayat absensi kegiatan hari ini untuk user yang sedang login
+     */
+    public function loadSelfScanRiwayat(): void
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $this->selfScanRiwayat = \Modules\Presensi\Models\AbsensiKegiatan::with('kegiatan')
+            ->where('user_id', $user->id)
+            ->whereHas('kegiatan', function ($q) {
+                $q->whereDate('tanggal', \Carbon\Carbon::today());
+            })
+            ->latest()
+            ->get()
+            ->map(fn($abs) => [
+                'kegiatan_nama' => $abs->kegiatan->nama_kegiatan ?? '-',
+                'jam_absen'     => $abs->jam_absen ? \Carbon\Carbon::parse($abs->jam_absen)->format('H:i') : '-',
+                'status'        => $abs->status,
+                'metode_scan'   => $abs->metode_scan,
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Proses self-scan kegiatan (dipanggil dari JS frontend)
+     * Token format: KEGIATAN-{id}
+     */
+    public function processSelfScan(string $token): void
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $this->selfScanSuccess = false;
+        $this->selfScanError   = false;
+        $this->selfScanMessage = '';
+        $this->selfScanLastResult = null;
+
+        // 1. Validasi format token
+        if (!preg_match('/^KEGIATAN-(\d+)$/', $token, $matches)) {
+            $this->selfScanError = true;
+            $this->selfScanMessage = 'QR Code tidak valid untuk kegiatan.';
+            $this->dispatch('self-scan-error', message: $this->selfScanMessage);
+            return;
+        }
+
+        $kegiatanId = (int) $matches[1];
+
+        // 2. Cari kegiatan
+        /** @var \Modules\Presensi\Models\Kegiatan|null $kegiatan */
+        $kegiatan = Kegiatan::find($kegiatanId);
+        if (!$kegiatan) {
+            $this->selfScanError = true;
+            $this->selfScanMessage = 'Kegiatan tidak ditemukan.';
+            $this->dispatch('self-scan-error', message: $this->selfScanMessage);
+            return;
+        }
+
+        // 3. Cek apakah kegiatan sudah ditutup
+        if ($kegiatan->getAttribute('is_closed')) {
+            $this->selfScanError = true;
+            $this->selfScanMessage = "Kegiatan \"{$kegiatan->getAttribute('nama_kegiatan')}\" sudah ditutup.";
+            $this->dispatch('self-scan-error', message: $this->selfScanMessage);
+            return;
+        }
+
+        // 4. Cek duplikat
+        $exists = \Modules\Presensi\Models\AbsensiKegiatan::where('kegiatan_id', $kegiatanId)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($exists) {
+            $this->selfScanError = true;
+            $this->selfScanMessage = "Anda sudah tercatat hadir di kegiatan \"{$kegiatan->getAttribute('nama_kegiatan')}\".";
+            $this->dispatch('self-scan-error', message: $this->selfScanMessage);
+            return;
+        }
+
+        // 5. Simpan absensi
+        \Modules\Presensi\Models\AbsensiKegiatan::create([
+            'kegiatan_id'  => $kegiatanId,
+            'user_id'      => $user->id,
+            'jam_absen'    => now(),
+            'status'       => 'hadir',
+            'metode_scan'  => 'self',
+            'keterangan'   => "Scan Kehadiran oleh {$user->name}",
+        ]);
+
+        $this->selfScanSuccess = true;
+        $kegiatanNama = $kegiatan->getAttribute('nama_kegiatan');
+        $this->selfScanMessage = "Berhasil! Anda tercatat hadir di kegiatan \"{$kegiatanNama}\".";
+        $this->selfScanLastResult = [
+            'kegiatan' => $kegiatanNama,
+            'waktu'    => now()->format('H:i'),
+            'tanggal'  => \Carbon\Carbon::parse($kegiatan->getAttribute('tanggal'))->translatedFormat('d F Y'),
+            'lokasi'   => $kegiatan->getAttribute('lokasi') ?? '-',
+        ];
+
+        $this->loadSelfScanRiwayat();
+
+        Notification::make()
+            ->title('Absensi Berhasil!')
+            ->body("Anda berhasil absen di kegiatan \"{$kegiatanNama}\".")
+            ->success()
+            ->send();
+
+        $this->dispatch('self-scan-success', result: $this->selfScanLastResult);
     }
 
     public function updatedScanMode()

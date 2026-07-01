@@ -1,59 +1,66 @@
 <?php
 
-namespace Modules\Presensi\Filament\Resources;
+namespace Modules\Presensi\Filament\Widgets;
 
-use Modules\Presensi\Filament\Resources\AbsensiReportResource\Pages;
+use Filament\Widgets\TableWidget as BaseWidget;
+use Filament\Tables\Table;
 use Modules\Kepegawaian\Models\DataInduk;
 use Modules\Presensi\Models\Absensi;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
-use Carbon\Carbon;
 use Filament\Tables\Columns\TextColumn;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Modules\Presensi\Exports\AbsensiExport;
+use Illuminate\Database\Eloquent\Builder;
 
-
-class AbsensiReportResource extends Resource
+class RekapAbsensiWidget extends BaseWidget
 {
-    protected static ?string $model = DataInduk::class; // We look at Employees
-    protected static ?string $navigationLabel = 'Laporan Absensi';
-    protected static ?string $modelLabel = 'Laporan Absensi';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $sort = 13;
+    protected int | string | array $columnSpan = 'full';
+    
+    // Jangan tampilkan otomatis di dashboard
+    protected static bool $isDiscovered = false;
 
-    public static function getNavigationIcon(): string | \BackedEnum | null
-    {
-        return 'heroicon-o-chart-bar';
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Presensi';
-    }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
-    }
-
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
+            ->query(function () {
+                $query = DataInduk::where('status', 'Aktif');
+                /** @var User $user */
+                $user = Auth::user();
+
+                if (!$user) {
+                    return $query->whereRaw('1=0');
+                }
+
+                // 1. Staff: Hanya melihat data sendiri
+                if ($user->hasRole('staff')) {
+                    return $query->where('user_id', $user->id);
+                }
+
+                // 2. Unit Admins / Coordinators / Kepala Sekolah: Lihat data unit masing-masing
+                if ($user->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah'])) {
+                    if ($user->employee && $user->employee->units->isNotEmpty()) {
+                        $unitIds = $user->employee->units->pluck('id');
+                        $query->whereHas('units', fn($q) => $q->whereIn('units.id', $unitIds));
+                    } else {
+                        return $query->whereRaw('1=0');
+                    }
+                }
+
+                // 3. Super Admin / Ketua PSDM: Semua data
+                return $query;
+            })
             ->modifyQueryUsing(function (Builder $query) {
                 // Get current filter values
                 $month = request('tableFilters.period.month', now()->month);
                 $year = request('tableFilters.period.year', now()->year);
 
-                // Eager load with aggregates to prevent N+1 queries
                 return $query
                     ->with(['user', 'units'])
                     ->withCount([
@@ -104,7 +111,6 @@ class AbsensiReportResource extends Resource
                         return $record->units->pluck('name')->join(', ');
                     }),
 
-                // Calculated Columns (using state)
                 TextColumn::make('attendance_summary')
                     ->label('Ringkasan Kehadiran')
                     ->view('presensi::filament.tables.columns.attendance-summary'),
@@ -135,7 +141,6 @@ class AbsensiReportResource extends Resource
                     ->badge()
                     ->color(fn($state) => $state >= 90 ? 'success' : ($state >= 75 ? 'warning' : 'danger'))
                     ->formatStateUsing(fn($state) => $state . '%'),
-
             ])
             ->filters([
                 Filter::make('period')
@@ -167,10 +172,10 @@ class AbsensiReportResource extends Resource
                     ])
                     ->query(fn(Builder $query) => $query),
 
-                Tables\Filters\SelectFilter::make('unit')
+                \Filament\Tables\Filters\SelectFilter::make('unit')
                     ->label('Unit Kerja')
                     ->relationship('units', 'name', modifyQueryUsing: function (Builder $query) {
-                        /** @var \App\Models\User $user */
+                        /** @var User $user */
                         $user = Auth::user();
                         if ($user->hasAnyRole(['super_admin', 'ketua_psdm'])) {
                             return $query;
@@ -180,7 +185,7 @@ class AbsensiReportResource extends Resource
                     })
                     ->searchable()
                     ->preload()
-                    ->visible(fn() => !($user = Auth::user()) || !($user instanceof User) || !$user->hasRole('staff')),
+                    ->visible(fn() => !($user = Auth::user()) || !($user instanceof User && $user->hasRole('staff'))),
             ])
             ->recordActions([
                 Action::make('view_details')
@@ -217,45 +222,7 @@ class AbsensiReportResource extends Resource
                         ->action(function (mixed $records) {
                             return Excel::download(new AbsensiExport($records), 'Laporan_Absensi_Terpilih.xlsx');
                         }),
-                    DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        $query = parent::getEloquentQuery()->where('status', 'Aktif');
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (!$user) {
-            return $query->whereRaw('1=0');
-        }
-
-        // 1. Staff: Can only see THEMSELVES
-        if ($user->hasRole('staff')) {
-            return $query->where('user_id', $user->id);
-        }
-
-        // 2. Unit Admins / Coordinators: Can see Employees in their UNITS
-        if ($user->hasAnyRole(['koor_jenjang', 'admin_unit', 'kepala_sekolah'])) {
-            if ($user->employee && $user->employee->units->isNotEmpty()) {
-                $unitIds = $user->employee->units->pluck('id');
-                $query->whereHas('units', fn($q) => $q->whereIn('units.id', $unitIds));
-            } else {
-                return $query->whereRaw('1=0');
-            }
-        }
-
-        // 3. Super Admin / Ketua PSDM: Can see ALL (No extra filter needed)
-
-        return $query;
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListAbsensiReports::route('/'),
-        ];
     }
 }

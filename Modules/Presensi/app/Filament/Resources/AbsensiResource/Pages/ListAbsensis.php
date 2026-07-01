@@ -10,6 +10,10 @@ class ListAbsensis extends ListRecords
 {
     protected static string $resource = AbsensiResource::class;
 
+    protected string $view = 'presensi::filament.pages.list-absensis';
+
+    public ?string $activeTab = 'log';
+
     protected function getHeaderActions(): array
     {
         return [];

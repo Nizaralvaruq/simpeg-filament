@@ -82,6 +82,7 @@ class UnitResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('unit_type_id')
+                    ->label('Tipe Jenjang')
                     ->relationship('unitType', 'name')
                     ->required()
                     ->createOptionForm([
@@ -141,7 +142,7 @@ class UnitResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('unitType.name')
-                    ->label('Tipe')
+                    ->label('Tipe Jenjang')
                     ->sortable(),
             ])
             ->filters([

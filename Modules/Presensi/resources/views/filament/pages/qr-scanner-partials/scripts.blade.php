@@ -1,5 +1,6 @@
 <script>
     function qrScannerData() {
+        const component = @this;
         return {
             mode: 'scan',
             scannedUser: null,
@@ -11,7 +12,6 @@
             offlineQueue: [],
             isSyncing: false, // Prevent concurrent syncs
             init() {
-                const component = @this;
                 setInterval(() => this.currentTime = new Date(), 1000);
                 this.checkOnlineStatus();
                 setInterval(() => this.checkOnlineStatus(), 5000);
@@ -22,9 +22,9 @@
                     this.isFullscreen = !!document.fullscreenElement;
                 });
 
-                // Initialize Scanner with Retry
+                // Initialize Scanner with Retry — delay 500ms agar push scripts sudah dieksekusi
                 this.$nextTick(() => {
-                    this.startScannerWithRetry();
+                    setTimeout(() => this.startScannerWithRetry(), 500);
                 });
             },
             destroy() {
@@ -102,6 +102,11 @@
         // Store component ID globally for dynamic access
         window.filamentQrScannerComponentId = '{{ $this->getId() }}';
 
+        if (window.hasInitializedQrScanner) {
+            // Re-inisialisasi scanner karena elemen mungkin baru di-mount ulang (x-if)
+            window.hasInitializedQrScanner = false;
+        }
+
         if (!window.hasInitializedQrScanner) {
             window.hasInitializedQrScanner = true;
 
@@ -115,6 +120,13 @@
             // Singleton Audio Elements
             let audioCheckIn, audioCheckOut, audioError;
 
+            // Reset instance lama jika ada (dari mount sebelumnya)
+            if (window._piketQrInstance) {
+                try {
+                    window._piketQrInstance.stop().catch(() => {});
+                } catch(e) {}
+                window._piketQrInstance = null;
+            }
             let html5QrCode = null;
             let isScanning = false;
 
@@ -166,6 +178,7 @@
 
                 if (!html5QrCode) {
                     html5QrCode = new Html5Qrcode("reader");
+                    window._piketQrInstance = html5QrCode; // Simpan untuk cleanup saat tab switch
                 }
 
                 startScanner();

@@ -24,7 +24,9 @@ class ViewDataInduk extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make()->label('Edit Data'),
+            EditAction::make()
+                ->label('Edit Data')
+                ->visible(fn ($record) => auth()->user()->can('update', $record)),
         ];
     }
 

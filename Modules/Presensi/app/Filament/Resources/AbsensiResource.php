@@ -42,10 +42,15 @@ class AbsensiResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return 'Riwayat Absensi';
+        return 'Absensi';
     }
 
     public static function getModelLabel(): string
+    {
+        return 'Absensi';
+    }
+
+    public static function getPluralModelLabel(): string
     {
         return 'Absensi';
     }
@@ -211,7 +216,13 @@ class AbsensiResource extends Resource
     {
         return $table
             ->poll('30s')
-            ->modifyQueryUsing(fn($query) => $query->with(['user.employee.units']))
+            ->modifyQueryUsing(function ($query, Table $table) {
+                $livewire = $table->getLivewire();
+                if ($livewire && isset($livewire->activeTab) && $livewire->activeTab !== 'log') {
+                    return $query->whereRaw('1=0');
+                }
+                return $query->with(['user.employee.units']);
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Pegawai')

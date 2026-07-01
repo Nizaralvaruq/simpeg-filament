@@ -22,8 +22,6 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Grid;
@@ -120,8 +118,8 @@ class DataIndukResource extends Resource
             $items[] = NavigationItem::make('Biodata Saya')
                 ->group('Menu Saya')
                 ->icon('heroicon-o-user-circle')
-                ->url(static::getUrl('edit', ['record' => $user->employee]))
-                ->isActiveWhen(fn() => request()->fullUrlIs(static::getUrl('edit', ['record' => $user->employee])))
+                ->url(static::getUrl('view', ['record' => $user->employee]))
+                ->isActiveWhen(fn() => request()->fullUrlIs(static::getUrl('view', ['record' => $user->employee])))
                 ->sort(1);
         }
 
@@ -266,7 +264,7 @@ class DataIndukResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, Set $set, Get $get, $record) {
+                            ->afterStateUpdated(function ($state, callable $set, callable $get, $record) {
                                 if (!$record) {
                                     if (empty($get('email')) && !empty($state)) {
                                         $set('email', str($state)->lower()->replace(' ', '.')->append('@insan.id')->toString());
@@ -376,7 +374,7 @@ class DataIndukResource extends Resource
                 Forms\Components\Repeater::make('riwayatPasangan')
                     ->relationship()
                     ->label('Data Pasangan (Suami/Istri)')
-                    ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
+                    ->visible(fn(callable $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
                     ->schema([
                         Forms\Components\TextInput::make('nama')
                             ->required()
@@ -426,7 +424,7 @@ class DataIndukResource extends Resource
                 Forms\Components\Repeater::make('riwayatAnaks')
                     ->relationship()
                     ->label('Data Anak')
-                    ->visible(fn(Get $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
+                    ->visible(fn(callable $get) => filled($get('status_perkawinan')) && $get('status_perkawinan') !== 'Belum Menikah')
                     ->schema([
                         Forms\Components\TextInput::make('nama')
                             ->required()
@@ -610,7 +608,7 @@ class DataIndukResource extends Resource
                         ->native(false)
                         ->required()
                         ->live()
-                        ->afterStateUpdated(function ($state, Set $set) {
+                        ->afterStateUpdated(function ($state, callable $set) {
                             if ($state === 'tetap') {
                                 $set('riwayatJabatans', []);
                             }
@@ -649,9 +647,9 @@ class DataIndukResource extends Resource
                                 ->columnSpanFull(),
                         ])
                         ->columns(4)
-                        ->visible(fn(Get $get) => $get('pindah_tugas') === 'pernah')
+                        ->visible(fn(callable $get) => $get('pindah_tugas') === 'pernah')
                         ->live()
-                        ->afterStateUpdated(function ($state, Set $set) {
+                        ->afterStateUpdated(function ($state, callable $set) {
                             if (! is_array($state)) return;
                             $latest = collect($state)
                                 ->filter(fn($r) => ! empty($r['tanggal']) && ! empty($r['nama_jabatan']))
@@ -697,7 +695,7 @@ class DataIndukResource extends Resource
                                 ->columnSpanFull(),
                         ])
                         ->columns(3)
-                        ->afterStateUpdated(function ($state, Set $set) {
+                        ->afterStateUpdated(function ($state, callable $set) {
                             if (! is_array($state)) return;
                             $latest = collect($state)
                                 ->filter(fn($row) => ! empty($row['tanggal']) && ! empty($row['golongan_id']))
@@ -914,7 +912,7 @@ class DataIndukResource extends Resource
                         ->validationMessages([
                             'min' => 'Password harus minimal 8 karakter.',
                         ])
-                        ->required(fn(string $operation, Get $get): bool => $operation === 'create' && filled($get('email'))),
+                        ->required(fn(string $operation, callable $get): bool => $operation === 'create' && filled($get('email'))),
                 ])
                 ->columns(2),
         ];

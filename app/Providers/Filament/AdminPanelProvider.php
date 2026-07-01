@@ -64,9 +64,10 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 \App\Filament\Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->discoverWidgets(in: base_path('Modules/Presensi/app/Filament/Widgets'), for: 'Modules\\Presensi\\Filament\\Widgets')
             ->discoverWidgets(in: base_path('Modules/Kepegawaian/app/Filament/Widgets'), for: 'Modules\\Kepegawaian\\Filament\\Widgets')
+            ->discoverWidgets(in: base_path('Modules/MasterData/app/Filament/Widgets'), for: 'Modules\\MasterData\\Filament\\Widgets')
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -70,15 +70,7 @@ class EditDataInduk extends EditRecord
 
     protected function getRedirectUrl(): string
     {
-        /** @var \App\Models\User $user */
-        $user = \Illuminate\Support\Facades\Auth::user();
-
-        // Staff diredirect kembali ke halaman edit mereka sendiri (bukan list)
-        if ($user?->hasRole('staff') && $user->employee) {
-            return $this->getResource()::getUrl('edit', ['record' => $user->employee]);
-        }
-
-        return $this->getResource()::getUrl('index');
+        return $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
